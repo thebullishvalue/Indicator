@@ -240,3 +240,36 @@ None of these rules reads a strategy output.
 4. **Missing classes.** US stocks and world indices are absent. The literature's
    trend premium is strongest in exactly the diversified futures universe that
    this sample lacks.
+
+### 6.1 · Amendment (same day, after a data-quality scan, still before any result)
+
+A scan of the assembled files found defects the close-only rule misses. The
+harness trades **opens**, and its ranges use all four prices:
+
+- **Bad opens.** On 2011-07-20, every INR pair opens at a tenth of the
+  previous close but closes normally.
+- **Two-bar ÷10 episodes.** Five ETFs on 2019-12-19/20; MON100 on 2021-06-17/18.
+- **Unadjusted demergers**, each a single persistent gap:
+  - BAJAJHLDNG on 2008-03-14 (−65%)
+  - MASTEK on 2015-06-12 (−66%)
+  - ABREL on 2019-10-11 (−56%)
+  - VEDL on 2026-04-30 (−63%)
+
+Left in, a ±2 volatility-targeted position takes a false loss of up to 130% in
+a day.
+
+The bad-print rule is therefore replaced, and one rule is added:
+
+- **(a) Bad prints.** An episode of 1 to 5 consecutive bars is dropped when
+  every bar in it has an open, high, low or close more than 3×, or less than
+  ⅓, of both the last close before the episode and the first close after it.
+- **(b) Unadjusted corporate actions** (all classes but crypto). After (a), an
+  overnight gap with `open_t / close_{t−1}` below 0.5 or above 2.0 is treated
+  as an unadjusted split, bonus or demerger. Every earlier open, high, low and
+  close is scaled by that ratio, so a holder's return across the gap is zero.
+
+Genuine crashes are intraday, and (b) leaves them alone. GTL's −90% on
+2011-06-20 is kept.
+
+**Known residual:** smaller unadjusted demergers stay in the data. Tata Motors'
+on 2025-10-14 is one.
