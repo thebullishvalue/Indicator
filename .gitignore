@@ -1,0 +1,3 @@
+# Python bytecode from running reference/ locally
+__pycache__/
+*.pyc
