@@ -298,3 +298,23 @@ command on the null walks showed TSMOM at Sharpe −1.37.
   them means flat.
 
 **FROZEN** at commit `62ce3c2`: winner T126×TS; `research/trail_lab.py` sha256 recorded in `research/results/lab/frozen.json`. HA and HB have not been evaluated.
+
+### Amendment 2 (after the frozen engine, before any holdout evaluation): two defects in HA's crypto
+
+A scan of the assembled HA files, before any variant ran on them, found two
+problems:
+
+1. **USTUSDT is in the top 20.** UST is TerraUSD, a stablecoin, and the
+   exclusion rule names stablecoin bases as a category. UST was missing from the
+   rule's example list only because that list was written for 2017–18
+   listings. **UST is excluded, and the 21st-ranked pair takes its place.**
+2. **LUNAUSDT splices two assets.** Binance reused the symbol. The archive holds
+   Terra's LUNA up to 2022-05-10 and the new "LUNA 2.0" from 2022-06-01, after a
+   22-day gap. **A crypto series is now cut at its first gap of more than
+   7 days, and only the earlier segment is kept.** No other HA market has such
+   a gap.
+
+Listing-day jumps of up to 200× (ALICE, UNI and others) fall inside every
+engine's warm-up and take no position, so they are left as they are.
+
+Nothing about the frozen engine changes.
