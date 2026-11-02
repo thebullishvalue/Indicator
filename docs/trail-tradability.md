@@ -1,9 +1,10 @@
 # Can the acceptance trail be traded or invested? Council verdict and test plan
 
-**Status:** written and frozen on 2026-11-02, **before any market data was
+**Status:** sections 1–5 written and frozen on 2026-11-02, **before any market data was
 read.** This document is a pre-registration. It fixes the candidates, the
 data, the costs and the pass marks before a single result exists.
 `research/tradability.py` runs it unchanged.
+Section 6 and its amendment 6.1 (the data) were added before any result. Section 7 is the result.
 
 ---
 
@@ -273,3 +274,73 @@ Genuine crashes are intraday, and (b) leaves them alone. GTL's −90% on
 
 **Known residual:** smaller unadjusted demergers stay in the data. Tata Motors'
 on 2025-10-14 is one.
+
+## 7 · Result (2026-11-02, the harness run unchanged on the §6 data)
+
+**Files** (in `research/results/2026-11-02/`):
+- `report.md`: the harness's own output.
+- `diagnostics.md`: the per-class and per-era measures §4 promised.
+- `timing-exploratory.md`: **not** pre-registered.
+- `universe.csv`: holds each file's sha256.
+- `build-log.txt`: every dropped bar and neutralised gap.
+
+119 of the 123 markets reached the harness; four have fewer than 600 bars.
+
+### Verdict: no candidate passes. Trade or invest with neither the trail nor Acceptance Momentum.
+
+| Candidate | Use | Result | Mark |
+|---|---|---|---|
+| T-LS | Trade | Sharpe +0.48, t +2.90. 2014–19 −0.05 | **Fail**: below 0.50, TSMOM (+0.58) and ST (+0.51) |
+| AM | Trade | +0.52, t +3.04. 2014–19 −0.02 | **Fail**: below TSMOM; one era negative |
+| AM-A | Trade | +0.51, t +3.01. 2014–19 −0.02 | **Fail**: as AM |
+| T-LO | Invest | Max DD −35.0% vs BH −73.5%; CAGR +13.5% vs +24.4% | **Fail**: CAGR 11 pts short; 0 of 3 eras |
+| AM | Invest | −44.7%; +15.9% | **Fail**: 0 of 3 eras |
+| AM-A | Invest | −44.4%; +15.5% | **Fail**: 0 of 3 eras |
+| H4 | Trail state predicts | 10 bars +0.006 (t +0.16); 20 bars +0.002 (t +0.04) | **Null** |
+| H5 | Acceptance | Flips beat probes by +2.1 pts pooled (t +3.69). By era: −0.2 (t −0.19), +2.4 (t +2.12), +3.7 (t +3.61) | **Fail**: needs every era, t > 3. AM-A's modifier is not kept |
+
+### What the numbers say
+
+1. **The POC adds nothing over the close.** AM's Sharpe is 0.52 against TSMOM's
+   0.58, and it trails TSMOM in five of six classes. The exception is the eight
+   commodities: 0.52 against 0.46.
+2. **The trail has no timing skill; what it earns is drift.**
+   - H4 is null.
+   - The exploratory centred score is t +0.09, positive in 49% of markets: a
+     coin toss.
+   - The trail's average position is long (+0.20 on a unit scale), so T-LS
+     earns what a long tilt earns in rising markets.
+   - TSMOM, by contrast, is positive in 70% of markets.
+3. **As an investing filter it does halve drawdowns, at a price.**
+   - Pooled, it costs about 11 points of CAGR a year.
+   - In the common-start sensitivity, BH gets no head start during the push
+     gate's warm-up. There it costs 6 points, and the drawdown cut shrinks
+     to 26%.
+   - Every trend filter tested buys protection at about the same price. SMA200
+     reached −45% drawdown with +15.7% CAGR. The trail is no cheaper than they
+     are.
+4. **Acceptance is real but unstable.**
+   - Ten bars on, flips are still beyond the trail 3.4 points more often than a
+     random walk would leave them; probe onsets 1.2 points more.
+   - The gap appears only after 2014.
+5. **The one engine that clears the trading marks is the baseline, plain
+   TSMOM.**
+   - Sharpe +0.58; eras +0.62 / +0.15 / +1.13; deflated p 1.000; t +3.58.
+   - Positive in 86% of markets.
+   - It is the literature's engine, entered here as a baseline. Its showing is
+     a replication on Indian and crypto data, not a Pragati discovery.
+   - It was weak in 2014–19 and negative in FX.
+6. **§2's single-stock worry did not appear.** Trend on NSE stocks was positive:
+   TSMOM +0.51, T-LS +0.43. Survivorship (§6, bias 1) may flatter this.
+
+### What follows, under §4's rules
+
+- No candidate is tuned and retried.
+- The trail stays what §2 said it is good for: **structure for a discretionary
+  reader**. It shows where value was last accepted and where a stop belongs.
+- If a systematic trend book is wanted, this evidence points to TSMOM on the
+  close, diversified across many markets. That is a **new hypothesis**. It
+  needs its own pre-registration and a live out-of-sample year, then paper
+  trading, one-tenth size, and the kill rule.
+- Before any of that, this test should be repeated on Sanket's 380 markets.
+  Sanket holds the US stocks, world indices and futures that this sample lacks.
