@@ -3,7 +3,7 @@
 
 //@version=6
 // ═══════════════════════════════════════════════════════════════════════════
-//  PRAGATI · प्रगति  ·  MULTI-TIMEFRAME CONVICTION OSCILLATOR            v9.5
+//  PRAGATI · प्रगति  ·  MULTI-TIMEFRAME CONVICTION OSCILLATOR            v9.6
 //  "Is this move paid for - and is it paid for on every timeframe?"
 //
 //  ═══ v9 · A FRESH AUDIT, AND THE SIGNALS MOVED TO WHERE THE EDGE IS ════════
@@ -86,6 +86,35 @@
 //      style). The tapes: each tape and its momentum band sit one point apart,
 //      and their names carry the reading, not the frame list, coloured by what
 //      the tape says. No engine or signal number changed.
+//
+//  v9.6 · THE ENGINE AUDIT - every engine checked for what the acceptance trail
+//      leans on, each suspicion provoked on synthetic data built to break it,
+//      each defect replicated on fresh data before its fix was adopted. No
+//      market data was read; no hypothesis was run. docs/audit-v9.6.md has it
+//      engine by engine; the trail's spec is now v2 (docs/auction-trail-spec.md).
+//      · THE TRAIL'S PROFILE IS WEIGHTED BY PARTICIPATION, NOT RAW VOLUME - the
+//        conviction engine's own capped w. Raw volume let one expiry or block
+//        print own the window's POC for N bars, and flips were 2.0× likelier on
+//        the bar it left the window: a flip caused by nothing.
+//      · ITS BINS SIT ON AN ABSOLUTE GRID - a power of two of the tick near
+//        ATR/4. Anchored at the window's low, 29% of the value area's bin-sized
+//        moves were phantom (the market had not moved); the absolute grid cut
+//        flips 15% and whipsaw in ranges 19%.
+//      · A FLIP NEEDS VALUE TO HAVE MIGRATED, not only the POC to follow: in a
+//        balanced range the POC hops between two clusters. Whipsaw in ranges
+//        halved (41 → 19 per 1,000 range bars) for about 6 bars more lag on a
+//        genuine reversal - the acceptance the trail is for.
+//      · ONLY A PROBE'S FIRST BAR IS MARKED: probe bars were a quarter of the
+//        chart, so the gold × meant nothing; onsets are one in about 18 bars.
+//      · NON-STANDARD CHARTS PAUSE EVERYTHING, with the reason shown: Heikin
+//        Ashi, Renko and the rest hand every engine prices that never traded.
+//      · THE PROFILE'S VOLUME TEST READS THE LAST 500 BARS, not all history, so
+//        a feed that began printing volume late is read as volume once it does.
+//      · TESTED AND KEPT: the push gate the trail steps by. Suspected of shutting
+//        in smooth low-volatility trends, it measured the opposite - quiet in
+//        10.6% of grind bars against 43% of range bars, the trail on its side
+//        92.6% of the time in a grind. Its ≈ 450-bar warm-up is now named in the
+//        readout instead of reading as 'no trail yet'.
 //
 //  v9.5 · PRESENTATION - colour, differentiation, the settings page and the
 //      code's order, reviewed as one system. No engine, signal or threshold
@@ -1045,9 +1074,9 @@ bool   inpTraceZone = input.bool(true, "Trace intensity by zone", group=G_PANE, 
 bool   inpFill = input.bool(true, "Trace fill", group=G_PANE, tooltip="DISPLAY ONLY. A faint fill between the trace and zero, green above and red below.", display=display.none)
 
 // ── 5 · Acceptance trail · price chart ────────────────────────────────────────
-bool   inpTrail   = input.bool(true, "Acceptance trail", group=G_AT, tooltip="A stepped line on the PRICE chart: where value was last accepted. Display-only and unmeasured (v9.4) - read it as structure, not as a trade.\n\nTHE LEVEL is the ratcheted far edge of value - the value-area LOW while the trail is up, the HIGH while it is down - of a rolling volume profile over the last Lookback bars (the conviction horizon), built from this chart's own bars - not the session profile above, which is a display. It rides the value ribbon's edge and holds when the ribbon dips.\n\nIT STEPS only when value shifts or migrates its way AND conviction's own histogram confirms a push that way - the gate the Conviction-Value Grid moves a row by - so it holds flat through pullbacks.\n\nIT FLIPS only on ACCEPTANCE: a close beyond it AND the window's POC following. The broken floor becomes the ceiling. A close beyond it without the POC following is a PROBE (gold ×) - price outside value that the market has not accepted yet.\n\nCOLOUR - one question per channel: HUE is the trail's side. INTENSITY is the conviction tape in the trail's direction: solid past the outer zone, strong past the inner zone, moderate on its side, faint against it. GOLD when the value tape is stretched past θ in the trail's direction - the move is already paid for, so it is late.\n\nLAG: none of averaging - the level is the edge of where the market traded 70% of its volume. The wait is acceptance. Committed on closed bars; it never repaints.\n\nFrozen in docs/auction-trail-spec.md before any result was seen; its tests decide what it may claim.", display=display.none)
-bool   inpRibbon  = input.bool(true, "    Value ribbon", group=G_AT, tooltip="The rolling value area behind the trail - the band where 70% of the last Lookback bars' volume traded - in its own identity slate - not the session profile's blue, so the two value areas never read as one - with its POC dotted. Hue marks identity, never direction, as on the profile. The last 1,500 closed bars.\n\nPrice inside the band is IN VALUE; above or below it, price the window has not yet accepted.", display=display.none)
-bool   inpProbe   = input.bool(true, "    Probe marks", group=G_AT, tooltip="A gold × at the close of each bar that closed beyond the trail while the window's POC did not follow - a break the market had not accepted. Gold means what it means everywhere here: read with caution. The latest 40 are kept.", display=display.none)
+bool   inpTrail   = input.bool(true, "Acceptance trail", group=G_AT, tooltip="A stepped line on the PRICE chart: where value was last accepted. Display-only and unmeasured (v9.4) - read it as structure, not as a trade.\n\nTHE LEVEL is the ratcheted far edge of value - the value-area LOW while the trail is up, the HIGH while it is down - of a rolling volume profile over the last Lookback bars (the conviction horizon), built from this chart's own bars - not the session profile above, which is a display. It rides the value ribbon's edge and holds when the ribbon dips.\n\nIT STEPS only when value shifts or migrates its way AND conviction's own histogram confirms a push that way - the gate the Conviction-Value Grid moves a row by - so it holds flat through pullbacks.\n\nIT FLIPS only on ACCEPTANCE: a close beyond it, the window's POC following, AND value migrated that way against N bars earlier - so a POC hopping inside a balanced range does not flip it. The broken floor becomes the ceiling. Beyond it without all three is a PROBE - price outside value that the market has not accepted yet - and its first bar gets a gold ×.\n\nCOLOUR - one question per channel: HUE is the trail's side. INTENSITY is the conviction tape in the trail's direction: solid past the outer zone, strong past the inner zone, moderate on its side, faint against it. GOLD when the value tape is stretched past θ in the trail's direction - the move is already paid for, so it is late.\n\nLAG: none of averaging - the level is the edge of where the market traded 70% of its volume. The wait is acceptance. Committed on closed bars; it never repaints.\n\nFrozen in docs/auction-trail-spec.md before any result was seen; its tests decide what it may claim.", display=display.none)
+bool   inpRibbon  = input.bool(true, "    Value ribbon", group=G_AT, tooltip="The rolling value area behind the trail - the band where 70% of the last Lookback bars' participation traded (volume over its own baseline, capped as the conviction engine caps it) - in its own identity slate - not the session profile's blue, so the two value areas never read as one - with its POC dotted. Hue marks identity, never direction, as on the profile. The last 1,500 closed bars.\n\nPrice inside the band is IN VALUE; above or below it, price the window has not yet accepted.", display=display.none)
+bool   inpProbe   = input.bool(true, "    Probe marks", group=G_AT, tooltip="A gold × at the close of the FIRST bar of each probe - a close beyond the trail the market had not accepted (the POC not following, or value not migrated). A probe lasts about four bars; marking every bar of it turned a quarter of the chart gold. Gold means what it means everywhere here: read with caution. The latest 40 are kept.", display=display.none)
 bool   inpAlTrail = input.bool(false, "Alert on trail flips", group=G_AT, tooltip="Adds trail flips to the one 'Any alert() function call' alert, with the level and the chart's state. OFF by default: the trail is unmeasured, and a flip alert invites trading it.", display=display.none)
 
 // ── 6 · Readout · price chart ─────────────────────────────────────────────────
@@ -2903,7 +2932,12 @@ bool impDn = ta.crossunder(hist, -thr)
 // ═══════════════════════════════════════════════════════════════════════════
 bool  mtfCOk  = multi and ladReady
 bool  mtfVOk  = tpReady
-bool  stackOk = ready and mtfCOk and mtfVOk
+// G1 (v9.6) · A NON-STANDARD CHART pauses every family. Heikin Ashi, Renko,
+// Kagi, Point & Figure and range bars hand every engine synthetic prices: the
+// ▲▼ were measured on real bars, and on these they would fire on numbers that
+// never traded. The reason is named like every other pause.
+bool  stdChart = chart.is_standard
+bool  stackOk = stdChart and ready and mtfCOk and mtfVOk
 // THE ▲▼ NEED WHAT THEY READ (v9.3): both level tapes and conviction's own
 // warm-up - the grid - and not the TRACE, which they never read. stackOk used
 // to gate them, so the trace's warm-up (the blend waits 200 bars more for its
@@ -2911,7 +2945,7 @@ bool  stackOk = ready and mtfCOk and mtfVOk
 // On the Conviction trace ready and cvReady are the same count, so there this
 // gate is v9.2's exactly. The ◆ and R H read the trace or conviction's pivots
 // and keep stackOk.
-bool  triOk   = mtfCOk and mtfVOk and cvReady
+bool  triOk   = stdChart and mtfCOk and mtfVOk and cvReady
 float mC      = ladAgree
 float mV      = tpBias
 
@@ -2931,7 +2965,7 @@ float rhoV = ta.correlation(tpBias,   osc, inpNorm)
 int    svNeed   = holdOut + 10
 f_why() =>
     string bld = "value model building · " + str.tostring(math.min(anchN, svNeed)) + "/" + str.tostring(svNeed) + " periods"
-    string tape = not mtfCOk ? (inpTape == "Off" ? "conviction tape off" : multi ? "conviction warming" : "no conviction frames on this chart") :
+    string tape = not stdChart ? "non-standard chart - synthetic prices" : not mtfCOk ? (inpTape == "Off" ? "conviction tape off" : multi ? "conviction warming" : "no conviction frames on this chart") :
          not mtfVOk ? (inpVLad == "Off" ? "value tape off" : not tpOn ? "no value frames on this chart" : not modelBuilt ? bld : "value warming") : ""
     // each from ITS OWN gate: triOk adds conviction's warm-up, stackOk the trace's
     string tw  = tape != "" ? tape : not cvReady ? "chart warming" : ""
@@ -3109,7 +3143,12 @@ int    vpTfSec    = timeframe.in_seconds()
 // nothing to explain why, and the panel still read "Volume" because it reported the
 // user's INTENT rather than what happened. Index spot and most TVC symbols are
 // exactly that case. The share of bars carrying real volume decides it now.
-float  vpVolShare = ta.cum((na(volume) or volume == 0.0) ? 0.0 : 1.0) / (bar_index + 1)
+// v9.6 · RECENT, not lifetime: the share of the last 500 bars that carry a
+// print (lifetime until 500 exist). A feed that gained volume partway through
+// history - common on index CFDs - used to stay 'time at price' for years
+// after its bars began printing, because the lifetime share lagged.
+float  vpVolBar   = (na(volume) or volume == 0.0) ? 0.0 : 1.0
+float  vpVolShare = nz(ta.sma(vpVolBar, 500), ta.cum(vpVolBar) / (bar_index + 1))
 bool   vpVolUsable= vpVolShare >= 0.5
 bool   vpVolOff   = not inpVpUseVol or not vpVolUsable
 bool   vpVolOk    = not vpVolOff          // what ACTUALLY happened, not what was asked
@@ -4216,10 +4255,14 @@ oiPrevChar := oiHas ? oiChar : ""
 //  on every setting, stationary across twenty years, rebuildable in Python. It
 //  spends no request and adds no tuning input.
 //
-//  1 · ROLLING COMPOSITE PROFILE - the last N = Lookback bars, each bar's volume
-//      spread evenly across its range in bins of ATR(20)/4 (at most 300); time at
-//      price where the symbol carries no volume. The POC (ties toward the middle)
-//      and a 70% value area walked out from it.
+//  1 · ROLLING COMPOSITE PROFILE - the last N = Lookback bars, each bar's
+//      PARTICIPATION WEIGHT (the conviction engine's own w: volume over its
+//      baseline, capped - relative range where there is no print) spread evenly
+//      across its range, on an ABSOLUTE grid of bins a power of two of the tick
+//      near ATR(20)/4 (at most 300). The POC (ties toward the middle) and a 70%
+//      value area walked out from it. (Spec v2, from the v9.6 audit: raw volume
+//      let one expiry print own the POC for N bars and flip the trail as it
+//      left; a grid anchored at the window's low moved when the market had not.)
 //  2 · MIGRATION - this window's value against the window that ended N bars ago:
 //      MIGRATING when the value areas no longer overlap, SHIFTING when only the
 //      POC has left the old value, BALANCE otherwise.
@@ -4229,15 +4272,17 @@ oiPrevChar := oiHas ? oiChar : ""
 //      or migrates its way AND conviction's histogram confirms a push that way -
 //      the gate the grid moves a row by - and it holds flat through pullbacks.
 //      It FLIPS only when price closes beyond it AND the window's POC has
-//      followed: accepted. A close beyond it without the POC following is a
-//      PROBE - price outside value, not accepted - a gold ×. The broken floor
+//      followed AND value has migrated that way (v2: a POC hopping between two
+//      clusters of a balanced range is not acceptance - it halved whipsaw in
+//      ranges). Beyond it without all three is a PROBE - price outside value,
+//      not accepted - whose first bar is marked with a gold ×. The broken floor
 //      becomes the ceiling. Committed on closed bars: it never repaints.
 //      (A draft that stepped to the current POC sat ON value and whipsawed -
 //      a flip every 16 bars on synthetic data against Supertrend(10,3)'s 43;
 //      the value edge flips every 45. Logged in the spec, §4.3.)
 //
-//  LAG. None of averaging: the level is the edge of where the market traded 70%
-//  of its volume. The wait is ACCEPTANCE - the time the market takes to agree - which is
+//  LAG. None of averaging: the level is the edge of where 70% of the window's
+//  participation traded. The wait is ACCEPTANCE - the time the market takes to agree - which is
 //  the information. Its colours carry the engines' own smoothing.
 //
 //  WHAT IT DOES NOT CLAIM. Unmeasured. A trend state on daily stocks fights the
@@ -4247,7 +4292,7 @@ oiPrevChar := oiHas ? oiChar : ""
 // ══════════════════════════════════════════════════════════════════════════════
 
 // Computed whenever anything reads it, whatever the view; drawn in Full view.
-bool   aucOn      = inpTrail or inpRibbon or inpAucRow or inpAlTrail
+bool   aucOn      = chart.is_standard and (inpTrail or inpRibbon or inpAucRow or inpAlTrail)
 
 // §3 · the rolling composite profile of the last N bars. Loops only - no ta.*
 // call - so evaluating it conditionally is safe.
@@ -4262,18 +4307,27 @@ f_aucProfile() =>
         for i = 1 to n - 1
             lo := math.min(lo, low[i])
             hi := math.max(hi, high[i])
-        float bw = math.max(vpATR / 4.0, syminfo.mintick)
-        int   nb = int(math.floor((hi - lo) / bw)) + 1
-        if nb > 300
-            bw := (hi - lo) / 299.0
-            nb := 300
+        // v2 · AN ABSOLUTE GRID: bins are multiples of a width that is a power
+        // of two of the tick, nearest ATR(20)/4 - so a bin edge moves only when
+        // volatility moves by about √2, never because the window's low did.
+        float bw  = syminfo.mintick * math.pow(2.0, math.round(math.log(math.max(vpATR / 4.0, syminfo.mintick) / syminfo.mintick) / math.log(2.0)))
+        int   kLo = int(math.floor(lo / bw))
+        int   nb  = int(math.floor(hi / bw)) - kLo + 1
+        while nb > 300
+            bw  := 2.0 * bw
+            kLo := int(math.floor(lo / bw))
+            nb  := int(math.floor(hi / bw)) - kLo + 1
+        float base = kLo * bw
         array<float> vb = array.new_float(nb, 0.0)
         float tot = 0.0
         for i = 0 to n - 1
-            float v = vpVolUsable ? math.max(nz(volume[i]), 0.0) : 1.0
+            // v2 · THE CONVICTION ENGINE'S OWN WEIGHT: participation relative to
+            // its baseline, capped - so one expiry or block print cannot own the
+            // window's POC for N bars and flip the trail as it leaves
+            float v = nz(w[i])
             if v > 0.0 and not na(low[i]) and not na(high[i])
-                int kA = math.max(0, math.min(nb - 1, int(math.floor((low[i]  - lo) / bw))))
-                int kB = math.max(0, math.min(nb - 1, int(math.floor((high[i] - lo) / bw))))
+                int kA = math.max(0, math.min(nb - 1, int(math.floor(low[i]  / bw)) - kLo))
+                int kB = math.max(0, math.min(nb - 1, int(math.floor(high[i] / bw)) - kLo))
                 int k0 = math.min(kA, kB)
                 int k1 = math.max(kA, kB)
                 float per = v / (k1 - k0 + 1)
@@ -4306,9 +4360,9 @@ f_aucProfile() =>
                 else
                     kl  -= 1
                     acc += vd
-            oPoc := lo + (kp + 0.5) * bw
-            oVal := lo + kl * bw
-            oVah := lo + (kh + 1) * bw
+            oPoc := base + (kp + 0.5) * bw
+            oVal := base + kl * bw
+            oVah := base + (kh + 1) * bw
     [oVal, oPoc, oVah]
 
 // §4.1 · migration: this window's value against the window that ended N bars ago
@@ -4329,6 +4383,7 @@ type Trail
     int             since    // bar it started or last flipped
     bool            probe    // the last closed bar was a probe
     bool            flip     // the last closed bar flipped
+    bool            pprobe   // the bar before it was a probe
     array<int>      rx       // ribbon: bar,
     array<float>    rh       //   value-area high,
     array<float>    rl       //   value-area low,
@@ -4336,13 +4391,14 @@ type Trail
     array<label>    pr       // probe marks
     array<polyline> pl       // ribbon drawings
 
-var Trail TS = Trail.new(0, na, na, false, false, array.new<int>(), array.new<float>(), array.new<float>(), array.new<float>(), array.new<label>(), array.new<polyline>())
+var Trail TS = Trail.new(0, na, na, false, false, false, array.new<int>(), array.new<float>(), array.new<float>(), array.new<float>(), array.new<label>(), array.new<polyline>())
 
 // One closed bar of the trail, exactly as the spec words it (§4.2). Each rule is
 // a boolean and each field is set once, so no if/else chain carries a value: a
 // function's last statement is its return, and a chain whose branches ended in
 // an int, a bool and a float has no single type (CE10235).
 f_trailStep(Trail s, int mig, float cVal, float cPoc, float cVah, float push) =>
+    s.pprobe := s.probe
     s.probe := false
     s.flip  := false
     if not na(mig) and not na(cPoc)
@@ -4352,9 +4408,11 @@ f_trailStep(Trail s, int mig, float cVal, float cPoc, float cVah, float push) =>
         // start: value shifted or migrating, a push that way, price on that side
         bool  upIn  = d == 0 and mig >= 1 and pu > 0.0 and close >= cVal
         bool  dnIn  = d == 0 and not upIn and mig <= -1 and pu < 0.0 and close <= cVah
-        // flip: a close beyond the trail AND the window's POC following - accepted
-        bool  flipD = d == 1  and close < t and cPoc < t
-        bool  flipU = d == -1 and close > t and cPoc > t
+        // flip: a close beyond the trail AND the window's POC following AND value
+        // migrated that way against N bars ago - accepted (v2: a POC hopping
+        // between two clusters of a balanced range is not acceptance)
+        bool  flipD = d == 1  and close < t and cPoc < t and mig <= -1
+        bool  flipU = d == -1 and close > t and cPoc > t and mig >= 1
         // probe: a close beyond the trail without the POC following
         bool  prb   = (d == 1 and close < t and not flipD) or (d == -1 and close > t and not flipU)
         // step: value shifts or migrates its way, a push that way, never past price
@@ -4380,7 +4438,9 @@ f_aucStore(Trail s) =>
             array.shift(s.rh)
             array.shift(s.rl)
             array.shift(s.rp)
-    if s.probe and inpProbe and not coreView
+    // only a probe's FIRST bar is marked: a probe lasts about four bars, and a
+    // mark on each turned a quarter of all bars gold
+    if s.probe and not s.pprobe and inpProbe and not coreView
         array.push(s.pr, label.new(bar_index, close, "", xloc = xloc.bar_index, yloc = yloc.price, color = C_GOLD,
              style = label.style_xcross, size = size.tiny, force_overlay = true,
              tooltip = "PROBE - this bar closed beyond the acceptance trail, but the window's POC did not follow: a break the market had not accepted. It may be rejected back, or accepted and flip the trail."))
@@ -4590,9 +4650,12 @@ f_readout() =>
         color  aTone  = na(aMig) or aMig == 0 ? C_SOFT : aMig > 0 ? C_BULL : C_BEAR
         bool   aProbe = TS.dir != 0 and not na(aPoc) and (TS.dir > 0 ? close < TS.lvl and aPoc >= TS.lvl : close > TS.lvl and aPoc <= TS.lvl)
         string aLoc   = na(aVal) ? "" : close > aVah ? "above value" : close < aVal ? "below value" : "in value"
-        string aWhy   = (TS.dir == 0 ? "no trail yet" : TS.dir > 0 ? "trail ↑" : "trail ↓") +
+        // Before conviction's histogram is calibrated (≈ 450 bars at the defaults:
+        // 1.8 years daily, 8.7 weekly) the push gate cannot open, so the trail
+        // cannot start - said, not left to look like a fault.
+        string aWhy   = (TS.dir == 0 ? (na(gGate) ? "push gate warming" : "no trail yet") : TS.dir > 0 ? "trail ↑" : "trail ↓") +
              (aProbe ? " · probe, POC not following" : aLoc != "" ? " · " + aLoc : "")
-        f_rd(0, rA, " AUCTION", C_SOFT, text.align_left, na, "THE AUCTION ENGINE (v9.4) - where volume was ACCEPTED, which no other part of Pragati measures. A rolling volume profile of the last " + str.tostring(inpLen) + " bars (the conviction lookback), built from this chart's own bars - not the session profile, which is a display - compared with the same window " + str.tostring(inpLen) + " bars earlier.\n\nDisplay-only and UNMEASURED: frozen in docs/auction-trail-spec.md, whose H1 asks whether it says anything the tapes do not, and whose H2 whether it tells a capitulation that works from one that does not.")
+        f_rd(0, rA, " AUCTION", C_SOFT, text.align_left, na, "THE AUCTION ENGINE (v9.4, spec v2 since v9.6) - where participation was ACCEPTED, which no other part of Pragati measures. A rolling volume profile of the last " + str.tostring(inpLen) + " bars (the conviction lookback), built from this chart's own bars - not the session profile, which is a display - compared with the same window " + str.tostring(inpLen) + " bars earlier.\n\nDisplay-only and UNMEASURED: frozen in docs/auction-trail-spec.md, whose H1 asks whether it says anything the tapes do not, and whose H2 whether it tells a capitulation that works from one that does not.")
         f_rd(1, rA, " " + aSt + " ", aTone, text.align_left, color.new(aTone, 86), "MIGRATING ↑ / ↓ - this window's value area no longer overlaps the one " + str.tostring(inpLen) + " bars ago: value has moved.\nSHIFTING ↑ / ↓ - the value areas still overlap, but the POC has left the old value.\nBALANCE - neither: value is where it was.\n\nValue area " + f_px(aVal) + " – " + f_px(aVah) + ", POC " + f_px(aPoc) + ".")
         f_rd(2, rA, " " + aWhy + " ", aProbe ? C_GOLD : C_SOFT, text.align_left, na, "THE TRAIL'S SIDE, and where the close sits against the rolling value area. PROBE, in gold: the close is beyond the trail but the window's POC has not followed - a break not yet accepted; the trail flips only when the POC follows. Live on the forming bar; the trail itself moves only at the close.")
         f_rd(3, rA, " " + gPushTxt + " ", gPushCol, text.align_center, na, "CONVICTION'S HISTOGRAM - the grid's push, the same gate the trail steps by: it steps only when value shifts its way AND this pushes its way.")
@@ -4818,7 +4881,8 @@ f_paneLabels() =>
     // Each family pauses on what IT reads: the ▲▼ on triWhy; the ◆ and R H on
     // stackWhy, which adds the trace - named apart while the ▲▼ already run.
     string fam  = (inpCon ? "◆ " : "") + (inpDiv ? "R " : "") + (inpHid ? "H " : "")
-    string pTxt = inpState and not triOk ? "SIGNALS PAUSED · " + triWhy :
+    string pTxt = not stdChart ? "NON-STANDARD CHART · synthetic prices - nothing on this pane was measured on them" :
+         inpState and not triOk ? "SIGNALS PAUSED · " + triWhy :
          (inpCon or inpDiv or inpHid) and not stackOk ? (inpState ? fam + "PAUSED · " : "SIGNALS PAUSED · ") + stackWhy : ""
     if pTxt != ""
         array.push(paneLbs, label.new(bar_index + 2, 0.0, pTxt, style = label.style_label_left,

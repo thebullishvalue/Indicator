@@ -1,7 +1,9 @@
-# Pragati v9.4 · Auction engine and Acceptance Trail — frozen specification
+# Pragati · Auction engine and Acceptance Trail — frozen specification, **v2**
 
-**Status: FROZEN on 2026-11-02, before any market result was seen** (one
-design revision on synthetic data is logged in §4.3).
+**Status: v2 FROZEN on 2026-11-02, before any market result was seen.** v1
+(Pragati v9.4) was revised twice on synthetic data during design, and once more
+by the v9.6 engine audit, also on synthetic data only. All three revisions are
+logged in §4.3 and §4.4. No hypothesis in §6 has been run on either version.
 The Pine implementation (`pragati.pine`, section *AUCTION ENGINE · ACCEPTANCE
 TRAIL*) and the Python reference in the audit port are both built from this
 text and must agree bar for bar on §2–§4. Changing any definition or constant
@@ -36,7 +38,7 @@ years, and can be rebuilt in Python.
 | OHLCV | the chart's own bars |
 | *N* | the conviction **Lookback** input (default 20); no separate input |
 | ATR20 | `ta.atr(20)` (Wilder RMA of true range), floored at `syminfo.mintick`; `mintick` where undefined |
-| *usesVolume* | the share of bars so far (expanding, from bar 0) carrying `volume > 0` is ≥ 0.5 |
+| *w* | the conviction engine's **participation weight** (`f_convCore`): volume over its EMA(Participation baseline), the last good print carried through hollow bars, relative true range where there is no print (per the *Participation* setting), capped at *Participation cap* (default 3). `participation()` in the reference reproduces it. |
 | *push* | the Conviction-Value Grid's push gate `gGate` ∈ {+1, 0, −1}, built from conviction's own histogram (not the trace's); undefined counts as 0 |
 
 ## 3 · Rolling composite profile (window = bars *t−N+1 … t*)
@@ -44,13 +46,16 @@ years, and can be rebuilt in Python.
 Defined from bar index *N−1* onwards.
 
 1. `lo` = lowest low, `hi` = highest high over the window.
-2. Bin width `b = max(ATR20_t / 4, mintick)`. Bin count `nb = floor((hi − lo) / b) + 1`.
-   If `nb > 300`: `b = (hi − lo) / 299`, `nb = 300`.
-3. Each bar's weight `w` = `max(volume, 0)` (na → 0) if *usesVolume*, else `1`
-   (time at price). Bars with `w = 0` contribute nothing.
-4. Bin of a price `x`: `clamp(floor((x − lo) / b), 0, nb − 1)`. Each bar's
-   weight is spread **evenly** over the bins from its low's bin to its high's
-   bin inclusive (swapped if inverted).
+2. **An absolute grid.** Bin width `b = mintick · 2^round(log2(max(ATR20_t / 4,
+   mintick) / mintick))`, where `round` takes ties up: the power of two of the
+   tick nearest ATR/4. `kLo = floor(lo / b)`, `nb = floor(hi / b) − kLo + 1`.
+   While `nb > 300`, double `b` and recompute. A bin edge therefore moves only
+   when volatility changes by about √2, never because the window's low did.
+3. Each bar's weight is its participation weight *w* (§2). Bars with `w = 0`
+   contribute nothing.
+4. Bin of a price `x`: `clamp(floor(x / b) − kLo, 0, nb − 1)`. Each bar's weight
+   is spread **evenly** over the bins from its low's bin to its high's bin
+   inclusive (swapped if inverted).
 5. If the total weight is 0, the profile is undefined for that bar.
 6. **POC bin**: the bin with the largest weight. Ties (relative tolerance 1e−9)
    go to the bin whose index is nearest `(nb − 1) / 2`; if still tied, the lower
@@ -59,7 +64,8 @@ Defined from bar index *N−1* onwards.
    70% of the total and a neighbour exists, add the next bin above or below,
    whichever holds more weight. A missing side counts as −1; the upper bin wins
    ties.
-8. `POC_t = lo + (kPOC + 0.5)·b`, `VAL_t = lo + kLow·b`, `VAH_t = lo + (kHigh + 1)·b`.
+8. With `base = kLo·b`: `POC_t = base + (kPOC + 0.5)·b`, `VAL_t = base + kLow·b`,
+   `VAH_t = base + (kHigh + 1)·b`.
 
 ## 4 · Migration state and Acceptance Trail
 
@@ -88,22 +94,25 @@ Nothing happens on a bar where *M_t* or `POC_t` is undefined.
   *D* = +1 and *T* = `VAL_t`. If `M_t ≤ −1` and `push < 0` and `close ≤ VAH_t`,
   then *D* = −1 and *T* = `VAH_t`.
 - **Up** (*D* = +1), checked in this order:
-  1. **Flip**: `close < T` and `POC_t < T` → *D* = −1, *T* unchanged (the broken
-     floor becomes the ceiling). *flip* = true.
-  2. **Probe**: `close < T` (and `POC_t ≥ T`) → *probe* = true; nothing else changes.
+  1. **Flip**: `close < T` and `POC_t < T` and `M_t ≤ −1` → *D* = −1, *T*
+     unchanged (the broken floor becomes the ceiling). *flip* = true.
+  2. **Probe**: `close < T` without the flip's other two conditions → *probe* =
+     true; nothing else changes. A probe's **onset** is a probe bar whose
+     previous bar was not one.
   3. **Step**: `M_t ≥ +1` and `push > 0` and `VAL_t > T` and `close ≥ VAL_t`
      → *T* = `VAL_t`. A floor is never lifted above price.
-- **Down** (*D* = −1): the mirror image (flip on `close > T` and `POC_t > T`;
-  probe on `close > T` alone; step on `M_t ≤ −1`, `push < 0`, `VAH_t < T`,
+- **Down** (*D* = −1): the mirror image (flip on `close > T` and `POC_t > T`
+  and `M_t ≥ +1`; probe on `close > T` without them; step on `M_t ≤ −1`, `push < 0`, `VAH_t < T`,
   `close ≤ VAH_t` → *T* = `VAH_t`).
 
 So the trail is the **ratcheted far edge of value**: the value-area low while
 up, the value-area high while down, which is the floor or ceiling of where the
 market has accepted price. It steps only when value shifts or migrates its way
 **and** conviction confirms a push that way, which is the same gate by which the
-grid moves a row. It flips only on **acceptance**: price beyond it *and* the
-market's value (the POC) following. Price beyond it without that is a probe,
-which in Market Profile terms is price outside value that has not been accepted.
+grid moves a row. It flips only on **acceptance**: price beyond it, the
+market's value (the POC) following, *and* value having migrated that way
+against *N* bars earlier. Price beyond it without all three is a probe, which in
+Market Profile terms is price outside value that has not been accepted.
 
 ### 4.3 Design-validation log (before any market data)
 
@@ -129,7 +138,28 @@ criterion. A second check on the same data found a step could lift the floor
 above the close on 0.2% of bars; steps now also require the close on the
 trail's side of the new level (`close ≥ VAL_t` up, `≤ VAH_t` down), and so
 does the start. No market
-data was used, so both revisions precede the freeze. From here on, §7 applies.
+data was used, so both revisions precede the freeze.
+
+### 4.4 v2 · the v9.6 engine audit (synthetic data only)
+
+The audit treated the trail's inputs as suspects and built synthetic data to
+provoke each one. The data were regime-switching walks with two-cluster ranges
+and expiry-like volume spikes (12–30× normal, about one bar in 55). Each defect
+was confirmed on 8 seeds and **replicated on 24 fresh ones** (3,000 bars each)
+before its fix was adopted.
+
+| Defect | Evidence (24 fresh seeds) | Fix in v2 |
+|---|---|---|
+| **W1** Raw volume let one print own the POC for *N* bars | Flips were 2.02× likelier on the bar a spike *left* the window, a pure artifact; the POC jumped 1.87× more there | Weights are the conviction engine's capped participation *w*, the cap Pragati already measured for exactly this (artifact → 1.48×; 1.65× with the grid fix) |
+| **W2** Bins anchored at the window's low and re-derived from ATR every bar | 29.4% of bin-sized moves of VAL were phantom: a fine reference grid barely moved | Absolute power-of-two grid (phantom → 25.7%; flips 31.1 → 26.3 per 1,000 bars; range whipsaw 46.9 → 38.1) |
+| **W4** A POC hopping between two clusters of a balanced range counted as acceptance | Range whipsaw 41.0 flips per 1,000 range bars after W1+W2 | A flip also needs `M_t` that way: whipsaw → 18.8, all flips 27.2 → 14.9, trend agreement 83.2% → 84.2% |
+| Probe marks on every probe bar | 22–27% of bars were probe bars; a gold × on a quarter of the chart means nothing | Display marks only onsets: about 55 per 1,000 bars, a median episode of 4 bars |
+
+**Cost, stated:** requiring migration adds about 6 bars of median lag on
+genuine reversals (18 → 24; p90 47 → 51). Supertrend(10, 3) on the same data
+lags 13 at the median but flips more. The lag is the "acceptance" the trail is
+for. No constant was searched: each fix was adopted on principle and kept
+because it replicated. From here on, §7 applies.
 
 ## 5 · Display (Pine only; not part of any hypothesis)
 
@@ -141,7 +171,10 @@ data was used, so both revisions precede the freeze. From here on, §7 applies.
 - **Value ribbon**: the rolling value area (`VAL_t`…`VAH_t`) as a band in the
   trail's own identity slate (distinct from the session profile's blue), with the rolling POC dotted, over the last 1,500
   closed bars.
-- **Probe marks**: a gold × at the close of each probe bar (the latest 40).
+- **Probe marks**: a gold × at the close of each probe **onset** (the latest 40).
+- **Chart type**: on a non-standard chart (Heikin Ashi, Renko, Kagi, Point &
+  Figure, range bars) the engine stands down; every price it would read is
+  synthetic.
 - **AUCTION row** in the readout: STATE = *M_t*'s name; WHY = trail direction and
   where the close sits against the value area (or the live probe); PUSH = the
   grid's push; CHART = the trail level; SPAN = bars since the trail started or
