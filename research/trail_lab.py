@@ -204,6 +204,24 @@ def v_ts_t20(b):
     return [None if x is None else (x * 0.5 if d[t] != 0 and (d[t] > 0) != (x > 0) else x) for t, x in enumerate(s)]
 
 
+@variant("T126+TS", 3, False, "The trail gives the side, momentum the size: (TRAIL126 + S)/2, so the sign is the 6-month trail's and TSMOM sets the size from ~0 to 1.")
+def v_t126_ts(b):
+    s, d = mom(b.d["close"], b.vol), b.trail(126)["dir"]
+    return [None if y is None else (x + y) / 2.0 for x, y in zip(d, s)]
+
+
+@variant("T63126+TS", 3, False, "Horizon diversification without the failed 12-month leg: (mean(TRAIL63, TRAIL126) + S)/2.")
+def v_t63126_ts(b):
+    s, d1, d2 = mom(b.d["close"], b.vol), b.trail(63)["dir"], b.trail(126)["dir"]
+    return [None if y is None else ((x1 + x2) / 2.0 + y) / 2.0 for x1, x2, y in zip(d1, d2, s)]
+
+
+@variant("T126xTS", 3, False, "Consensus only: TRAIL126's side sized max(0, S*side); flat when the two definitions of trend disagree.")
+def v_t126xts(b):
+    s, d = mom(b.d["close"], b.vol), b.trail(126)["dir"]
+    return [None if y is None else x * max(0.0, x * y) for x, y in zip(d, s)]
+
+
 # ── null test (Amendment 1): driftless walks, volume 1.3x on up days ─────────
 def null_walks(folder, n=8, bars=6000):
     import random

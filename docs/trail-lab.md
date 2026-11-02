@@ -205,3 +205,41 @@ horizon lengthens, and TSMOM's strength is spreading across horizons.
 | TS+T20 | Momentum crashes happen at turning points (Daniel & Moskowitz 2016; Garg et al. 2021). TSMOM's size is halved while Pragati's 20-bar trail points against it, which uses the current trail as the fast leg |
 
 Budget after Round 2: 8 of 15.
+
+### Amendment 1 · null-test results
+
+Run on every variant before Round 2 was scored. Only PMOM fails, at +0.26.
+TSMOM scores −0.008, the trails +0.001 to −0.082, and the blends −0.008 to
+−0.015.
+
+### Round 2 · results and review
+
+| Variant | DEV Sharpe | 2006–13 | 2014–19 | Timing SR (t) | Turnover/yr |
+|---|---|---|---|---|---|
+| TRAIL252 | +0.10 | +0.40 | +0.10 | −0.09 (−0.5) | 1.2 |
+| TRAILX | +0.41 | +0.45 | +0.52 | +0.20 (1.0) | 0.9 |
+| TRAILX+TS | **+0.52** | +0.60 | +0.44 | +0.19 (1.0) | 1.4 |
+| TS+T20 | +0.43 | +0.59 | +0.11 | +0.17 (0.9) | 2.1 |
+
+**The council's review:**
+- **Twelve months is past the trail's horizon.** TRAIL252 flips about 7 times
+  in 6,000 null bars, and on DEV its timing is negative. Its slot in TRAILX is
+  dead weight.
+- **Blending two definitions of trend works as theorised.**
+  - TRAILX+TS is the best eligible variant, strong in both eras.
+  - The acceptance trail carried 2014–19, where TSMOM stalled.
+  - TSMOM carried 2006–13.
+- **The 20-bar trail is not a useful fast leg** (TS+T20): halving at its
+  disagreements cost 2014–19.
+- **Timing is the unsolved part.** Every blend's timing component is t ≈ 1.
+  Only TRAIL126 alone reached t 2.0.
+
+### Round 3 · proposals (written before running)
+
+| Variant | Hypothesis |
+|---|---|
+| T126+TS | **The trail gives the side, momentum gives the size.** (TRAIL126 + S)/2 with S in [−1, 1]: the sign is always the 6-month trail's, and the size runs from ≈ 0 (TSMOM strongly against) to 1 (strongly with). It keeps TRAIL126's timing, the best in the lab, and adds TSMOM's continuous size, whose value BOUND showed. It also has the simplest trail to draw |
+| T63126+TS | Horizon diversification without the failed 12-month leg: (mean(TRAIL63, TRAIL126) + S)/2 |
+| T126×TS | Consensus only. TRAIL126's side, sized max(0, S·side): flat whenever the two definitions disagree. It tests whether disagreement is better spent flat than small |
+
+Budget after Round 3: 11 of 15.
