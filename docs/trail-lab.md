@@ -243,3 +243,56 @@ TSMOM scores −0.008, the trails +0.001 to −0.082, and the blends −0.008 to
 | T126×TS | Consensus only. TRAIL126's side, sized max(0, S·side): flat whenever the two definitions disagree. It tests whether disagreement is better spent flat than small |
 
 Budget after Round 3: 11 of 15.
+
+### Round 3 · results, selection and the decision to stop
+
+| Variant | DEV Sharpe | 2006–13 | 2014–19 | Timing SR (t) | Turnover/yr | Null mean |
+|---|---|---|---|---|---|---|
+| T126+TS | +0.508 | +0.60 | +0.47 | +0.31 (1.6) | 1.3 | −0.007 |
+| T63126+TS | +0.521 | +0.53 | +0.51 | +0.25 (1.3) | 1.4 | −0.003 |
+| T126×TS | +0.513 | +0.68 | +0.30 | +0.24 (1.4) | 1.6 | −0.008 |
+
+**Selection, by §3's rule.** It was applied in code to every logged trial.
+- Eligible: positive in both eras, a positive timing component, and passing
+  the null test.
+- Top DEV Sharpe: T63126+TS, at +0.521.
+- Within 0.02 of it: T126×TS, T126+TS, T63126+TS and TRAILX+TS.
+- Fewest moving parts: T126×TS and T126+TS, with two each.
+- Between equal parts, the rule's own order applies, the higher DEV Sharpe.
+  T126×TS has +0.513 against +0.508.
+
+**The rule picks T126×TS.** The council would have leaned toward T126+TS, for
+its better timing and steadier eras. It records that preference and does
+**not** act on it, because the rule exists to keep preference out.
+
+**The council stops at 11 of 15 trials.** The four best blends sit within 0.02
+of each other on DEV, which is well inside noise. More rounds would mine that
+noise, not find skill.
+
+**A harness bug was found and fixed before the freeze.** A dry run of the final
+command on the null walks showed TSMOM at Sharpe −1.37.
+- **Cause:** the walks' generated dates sorted out of order within each month,
+  scrambling the bars.
+- **Fix:** consecutive calendar dates. The null test was rerun on the corrected
+  walks.
+- **Result:** the conclusion is unchanged. Only PMOM fails, at +0.39; every
+  other variant lies within ±0.06.
+- **Confirmed on the corrected walks:** every strategy's Sharpe has |t| < 1.1
+  and the pass marks fail, as they should.
+
+### The frozen engine: T126×TS, the *Accepted Momentum* trail
+
+- **Side:** the acceptance trail (spec v2) on a 126-bar, six-month,
+  participation-weighted profile. It is +1 while value has migrated up and
+  ratcheted, and −1 while it has migrated down.
+- **Size:** `side × max(0, side × S)`, where S is TSMOM's multi-horizon score.
+  The engine is **long only while both definitions of trend say up, short only
+  while both say down, and flat whenever they disagree.**
+- **Trail on the chart:** two lines.
+  - The six-month acceptance trail.
+  - TSMOM's decision boundary *C\**, the close at which S would be 0. Without
+    clipping, *C\** is the 1/√h-weighted geometric mean of the closes 21, 63,
+    126 and 252 bars ago.
+
+  Price beyond both lines means a position, and its size is S. Price between
+  them means flat.

@@ -17,6 +17,7 @@ Subcommands:
     final  --data D --classes C --ha-data D2 --ha-classes C2 --cache K
         Runs the frozen winner once on HA and HB. It refuses to run unless
         results/lab/frozen.json names the winner and matches this file's hash.
+        It also refuses once final.md exists.
 """
 from __future__ import annotations
 
@@ -240,7 +241,7 @@ def null_walks(folder, n=8, bars=6000):
             hi = max(o, c) * (1 + abs(rng.gauss(0, 0.005)))
             lo = min(o, c) * (1 - abs(rng.gauss(0, 0.005)))
             v = 1e6 * (1.3 if r > 0 else 1.0) * math.exp(rng.gauss(0, 0.3))
-            rows.append((f"{2000 + i // 250:04d}-{1 + (i % 250) // 21:02d}-{1 + i % 21:02d}", o, hi, lo, c, v))
+            rows.append(((dt.date(2005, 1, 3) + dt.timedelta(days=i)).isoformat(), o, hi, lo, c, v))
         with open(p, "w", newline="") as f:
             w = csv.writer(f)
             w.writerow(["date", "open", "high", "low", "close", "volume"])
@@ -306,11 +307,11 @@ def centred(w, n=250):
 
 
 def _one(job):
-    path, cache, cls, names, prior = job
+    path, cache, cls, names, prior, cmult = job
     b = Base(path, cache)
     if len(b.d["close"]) < 600:
         return None
-    cost = COST_BPS.get(cls, 10)
+    cost = COST_BPS.get(cls, 10) * cmult
     years = len(b.d["close"]) / 252
     res = {}
     for name in names:
@@ -325,8 +326,8 @@ def _one(job):
     return os.path.basename(path)[:-4], cls, res
 
 
-def evaluate(data, classes, cache, names, prior=False, procs=4):
-    jobs = [(os.path.join(data, f), cache, classes.get(f[:-4], "index"), names, prior)
+def evaluate(data, classes, cache, names, prior=False, procs=4, cmult=1.0):
+    jobs = [(os.path.join(data, f), cache, classes.get(f[:-4], "index"), names, prior, cmult)
             for f in sorted(os.listdir(data)) if f.endswith(".csv")]
     with Pool(procs) as p:
         out = [x for x in p.map(_one, jobs) if x]
@@ -430,6 +431,61 @@ def cmd_dev(a, classes, prior=False):
     write_md(log)
 
 
+FROZEN = os.path.join(LOG_DIR, "frozen.json")
+FINAL = os.path.join(LOG_DIR, "final.md")
+
+
+def file_sha(path):
+    return hashlib.sha256(open(path, "rb").read()).hexdigest()
+
+
+def cmd_final(a, classes):
+    """The holdout, once. HB: DEV's markets from 2020-01-01. HA: the unseen markets, all dates."""
+    if os.path.exists(FINAL):
+        sys.exit("final.md exists: the holdout is spent")
+    fz = json.load(open(FROZEN))
+    if file_sha(os.path.abspath(__file__)) != fz["lab_sha256"]:
+        sys.exit("trail_lab.py changed since the freeze")
+    win = fz["winner"]
+    with open(a.ha_classes, newline="") as f:
+        ha_classes = {r["symbol"]: r["class"] for r in csv.DictReader(f)}
+    sets = {"HB": (a.data, classes, HB_START, "9999"), "HA": (a.ha_data, ha_classes, "0000", "9999")}
+    L = [f"# Trail lab · holdout, run once ({dt.datetime.now(dt.timezone.utc).isoformat(timespec='seconds')})", "",
+         f"Frozen winner: **{win}** (freeze commit {fz['commit']}, trail_lab.py sha256 {fz['lab_sha256'][:16]}…).", ""]
+    verdict = {}
+    for sname, (data, cl, x, y) in sets.items():
+        rows = evaluate(data, cl, a.cache, [win, "TSMOM"])
+        rows2 = evaluate(data, cl, a.cache, [win], cmult=2.0)
+        prior = evaluate(data, cl, a.cache, ["T-LS", "BH"], prior=True)
+        eras = [(f"{x[:4]}..", x, y)] if sname == "HA" else [("2020-26", x, y)]
+        res = {}
+        for n, rr in ((win, rows), ("TSMOM", rows), ("T-LS", prior), ("BH", prior)):
+            res[n], _ = summarise(rr, n, x, y, eras)
+        res[win + " @2x cost"], _ = summarise(rows2, win, x, y, eras)
+        pw = portfolio([r[win]["net"] for _, _, r in rows])
+        pt = portfolio([r["TSMOM"]["net"] for _, _, r in rows])
+        diff = [pw[k] - pt[k] for k in sorted(pw) if k in pt and x <= k <= y]
+        dt_ = nw_t(diff)
+        m = res[win]
+        edge = m["sharpe"] > 0 and m["t"] >= 2.0 and m["timing_sharpe"] > 0 and m["timing_t"] >= 2.0
+        better = dt_ >= 2.0
+        verdict[sname] = (edge, better)
+        L += [f"## {sname} · {'DEV markets, ' + x + ' on' if sname == 'HB' else 'unseen markets, full history'} ({m['markets']} markets)", "",
+              "| Strategy | Sharpe | t | CAGR | Max DD | Timing SR (t) | Breadth | Turnover/yr |", "|---|---|---|---|---|---|---|---|"]
+        for n, v in res.items():
+            L.append(f"| {n} | {v['sharpe']:+.2f} | {v['t']:+.2f} | {v['cagr']:+.1%} | {v['mdd']:.1%} | {v['timing_sharpe']:+.2f} ({v['timing_t']:+.1f}) | {v['breadth']:.0%} | {v['turnover']:.1f} |")
+        L += ["", f"Per class ({win}): " + ", ".join(f"{c} {v:+.2f}" for c, v in by_class(rows, win, x, y).items()),
+              f"Per class (TSMOM): " + ", ".join(f"{c} {v:+.2f}" for c, v in by_class(rows, "TSMOM", x, y).items()), "",
+              f"- **Edge** (net Sharpe > 0, t ≥ 2; timing Sharpe > 0, t ≥ 2): **{'PASS' if edge else 'FAIL'}**",
+              f"- **Improves on TSMOM** (daily difference t ≥ 2): **{'PASS' if better else 'FAIL'}** (t {dt_:+.2f})", ""]
+    e = all(v[0] for v in verdict.values())
+    b = all(v[1] for v in verdict.values())
+    L += ["## Verdict", "", f"- **{win} has an edge: {'YES' if e else 'NO'}** (needs HA and HB)",
+          f"- **{win} improves on plain TSMOM: {'YES' if b else 'NO'}**"]
+    open(FINAL, "w").write("\n".join(L) + "\n")
+    print("\n".join(L))
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("cmd", choices=["prior", "dev", "null", "final"])
@@ -451,7 +507,7 @@ def main():
     elif a.cmd == "null":
         cmd_null(a)
     else:
-        sys.exit("final: see cmd_final, added at freeze")
+        cmd_final(a, classes)
 
 
 if __name__ == "__main__":
