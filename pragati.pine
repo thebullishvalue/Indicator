@@ -104,6 +104,11 @@
 //      · MONTHLY bars anchor a 12-month session (each bar was its own session);
 //        the Initial Balance is drawn intraday only (12 daily bars swallowed the
 //        week); the session line reads TWAP when volume is off.
+//      · RE10045 (array.get out of bounds in the profile's render). The rows
+//        assumed the bin keys sorted, and on TradingView they were not: the
+//        binary search's midpoint, (lo + hi) / 2, is now explicitly whole, and
+//        the render scans for its span and clamps every row. If the midpoint
+//        was the cause, value areas before v9.9 walked unsorted bins too.
 //      · THE PANEL: 'declaration' says OFF when the ▲▼ are off, not 'none yet';
 //        Profile Mode reports the session's intrabar share, not the last bar's,
 //        and is neutral when it delivered - green is a direction here.
@@ -3271,7 +3276,10 @@ f_vpLocate(array<int> keys, int k) =>
     int  pos   = 0
     bool found = false
     while lo <= hi
-        int mid = (lo + hi) / 2
+        // v9.9 · a WHOLE midpoint under any division rule: were int / int not
+        // truncated, a fractional mid would carry into lo and the insert index,
+        // land one place off and leave the keys out of order (RE10045)
+        int mid = int(math.floor((lo + hi) / 2.0))
         int mk  = array.get(keys, mid)
         if mk == k
             pos   := mid
@@ -3574,8 +3582,10 @@ f_vpRender() =>
             // Grouped by array position, a row bridged any gap in the session and
             // drew volume across prices that never traded.
             int ROWS_MAX = 110
-            int k0   = array.get(vpKey, 0)
-            int kSpan = array.get(vpKey, nB - 1) - k0 + 1
+            // the span is read by scanning, not from the array's ends, and every
+            // row index is clamped: no ordering of the keys can index past a row
+            int k0   = array.min(vpKey)
+            int kSpan = array.max(vpKey) - k0 + 1
             int step = math.max(1, int(math.ceil(kSpan / float(ROWS_MAX))))
             int nR   = int(math.ceil(kSpan / float(step)))
             array<float> rV  = array.new<float>(nR, 0.0)
@@ -3584,7 +3594,7 @@ f_vpRender() =>
             array<bool>  rP  = array.new<bool>(nR, false)
             [pIdx, pFound] = f_vpLocate(vpKey, pocKey)
             for i = 0 to nB - 1
-                int rr = int(math.floor((array.get(vpKey, i) - k0) / float(step)))
+                int rr = math.min(nR - 1, math.max(0, int(math.floor((array.get(vpKey, i) - k0) / float(step)))))
                 array.set(rV, rr, array.get(rV, rr) + array.get(vpVol, i))
                 array.set(rB, rr, array.get(rB, rr) + array.get(vpBuy, i))
                 array.set(rS, rr, array.get(rS, rr) + array.get(vpSell, i))
