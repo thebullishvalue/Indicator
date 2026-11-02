@@ -3,7 +3,7 @@
 
 //@version=6
 // ═══════════════════════════════════════════════════════════════════════════
-//  PRAGATI · प्रगति  ·  MULTI-TIMEFRAME CONVICTION OSCILLATOR            v9.8
+//  PRAGATI · प्रगति  ·  MULTI-TIMEFRAME CONVICTION OSCILLATOR            v9.9
 //  "Is this move paid for - and is it paid for on every timeframe?"
 //
 //  ═══ v9 · A FRESH AUDIT, AND THE SIGNALS MOVED TO WHERE THE EDGE IS ════════
@@ -86,6 +86,27 @@
 //      style). The tapes: each tape and its momentum band sit one point apart,
 //      and their names carry the reading, not the frame list, coloured by what
 //      the tape says. No engine or signal number changed.
+//
+//  v9.9 · THE VOLUME PROFILE AND THE PANEL AUDITED (docs/audit-vp-panel-v9.9.md),
+//      as the readout was: every element traced, every claim checked, each
+//      suspicion a test. No engine or signal changed.
+//      · NAKED POCs THAT WERE NOT. The touch check ran before the new session's
+//        POC joined the ledger, so the session's first bar could never trade
+//        through it. On 119 markets 39% of weekly POCs are touched on that bar;
+//        98 of the 367 naked POCs drawn had in fact been traded through. Now
+//        added first: 0 of 320.
+//      · A BAR WIDER THAN 200 BINS filled only its lowest 200 and left its top
+//        uncounted - routine in Fixed-ticks mode with small ticks. Now spread
+//        over the whole range.
+//      · HISTOGRAM ROWS BY PRICE: above 110 bins rows were grouped by position,
+//        so a row bridged a gap and drew volume where nothing traded.
+//      · NON-STANDARD CHARTS (v9.6's G1) pause the profile, VWAP and IB too.
+//      · MONTHLY bars anchor a 12-month session (each bar was its own session);
+//        the Initial Balance is drawn intraday only (12 daily bars swallowed the
+//        week); the session line reads TWAP when volume is off.
+//      · THE PANEL: 'declaration' says OFF when the ▲▼ are off, not 'none yet';
+//        Profile Mode reports the session's intrabar share, not the last bar's,
+//        and is neutral when it delivered - green is a direction here.
 //
 //  v9.8 · THE READOUT AUDITED - the OI, CVG and AUCTION rows, cell by cell,
 //      against the engines they describe (docs/audit-readout-v9.8.md). No engine,
@@ -1164,7 +1185,7 @@ bool   inpVpNaked     = input.bool(true,  "    Naked POC (untouched)", group=G_V
 int    inpVpNakedMax  = input.int(5,      "        Naked POC · max kept", minval=1, maxval=20, group=G_VP, tooltip="How many untouched POCs the ledger carries. The oldest is dropped when the ledger is full.\n\nThe original ceiling was twelve, and on a long chart twelve dotted POC lines stop being a reference and become the chart. A level you cannot count is not a level. Five is enough to see the unfinished business above and below without burying the price action; raise it only if you are actually trading to the older ones.", display=display.none)
 int    inpVpNakedAge  = input.int(250,    "        Naked POC · max age (bars)", minval=50, maxval=1000, step=25, group=G_VP, tooltip="A naked POC older than this is dropped whether or not price ever traded through it, and no line starts further back than this. A point of control from four hundred bars ago describes a market that no longer exists.", display=display.none)
 bool   inpVpVwap      = input.bool(true,  "    Session VWAP", group=G_VP, display=display.none)
-bool   inpVpIb        = input.bool(true,  "    Initial Balance (IBH / IBL)", group=G_VP, display=display.none)
+bool   inpVpIb        = input.bool(true,  "    Initial Balance (IBH / IBL)", group=G_VP, tooltip="The session's first span of bars (below), intraday charts only: on daily and weekly bars the span covers the whole session, so IBH / IBL would only restate its high and low.", display=display.none)
 int    inpVpIbBars    = input.int(12,     "        Initial Balance span (bars)", minval=3, maxval=60, group=G_VP, display=display.none)
 
 // ── 8 · Information panel ─────────────────────────────────────────────────────
@@ -3179,7 +3200,7 @@ color oscCol = not ready ? C_NEUT : osc >= 0 ? C_BULL : C_BEAR
 //
 //  Sorted-key bins, O(1) POC, value-area walk outward from the POC, optional
 //  intrabar distribution and inferred buy/sell delta. Session anchor = D intraday,
-//  W on daily, M above. request.security_lower_tf history depth is plan-dependent;
+//  W on daily, M on weekly, 12M above (v9.9: monthly bars were one-bar sessions). request.security_lower_tf history depth is plan-dependent;
 //  the profile falls back to a uniform bar-range spread when it is unavailable.
 // ══════════════════════════════════════════════════════════════════════════════
 bool   vpMono         = inpVpStyle == "Monochrome"
@@ -3187,7 +3208,7 @@ bool   inpVpDelta     = not vpMono     // the buy/sell split is computed only wh
 
 // ── gates, resolved once ────────────────────────────────────────────────────────
 bool   coreView   = inpView == "Core"
-bool   vpChartOn  = inpVpMaster and not coreView
+bool   vpChartOn  = inpVpMaster and not coreView and stdChart   // v9.9 · G1: no profile of prices that never traded
 // THE MASTER NOW GATES COMPUTE AS WELL AS DRAWING. Before this it only silenced
 // the chart objects while the accumulation loop, the row inserts and the value-
 // area walk all still ran on every bar. A switch that turns the picture off and
@@ -3213,7 +3234,7 @@ bool   vpVolUsable= vpVolShare >= 0.5
 bool   vpVolOff   = not inpVpUseVol or not vpVolUsable
 bool   vpVolOk    = not vpVolOff          // what ACTUALLY happened, not what was asked
 bool   vpTpoAuto  = inpVpUseVol and not vpVolUsable
-string vpAnchorTf = vpIsIntra ? "D" : timeframe.isdaily ? "W" : "M"
+string vpAnchorTf = vpIsIntra ? "D" : timeframe.isdaily ? "W" : timeframe.isweekly ? "M" : "12M"
 // The first bar opens a session too. Without it the first partial session had no
 // frozen bin width and no session start, so it drew no profile and its Initial
 // Balance stretched across the whole of it. The flip is evaluated on its own line
@@ -3228,7 +3249,7 @@ bool   vpNakedOn  = vpChartOn and inpVpNaked and vpCtxOn
 bool   vpPrevOn   = vpChartOn and inpVpPrev  and vpCtxOn
 bool   vpTrailOn  = vpChartOn and inpVpTrail and vpCtxOn
 bool   vpVwapOn   = vpChartOn and inpVpVwap
-bool   vpIbOn     = vpChartOn and inpVpIb
+bool   vpIbOn     = vpChartOn and inpVpIb and vpIsIntra   // v9.9 · on daily bars the span swallows the session
 
 // ATR floor. Floored to mintick so the session-start bin freeze never freezes to
 // na and blanks the first session. ta.* must be evaluated on EVERY bar, never
@@ -3287,6 +3308,8 @@ var float prevPoc = na
 var float prevVah = na
 var float prevVal = na
 var bool  vpIntraOk = false
+var int   vpSesN    = 0      // v9.9 · bars in this session, and how many intrabars built
+var int   vpIntN    = 0
 
 // intrabar distribution (falls back automatically when unavailable)
 // On a chart at or below one minute there is no lower timeframe worth spreading
@@ -3346,25 +3369,32 @@ f_vpBuild(float tot0, int key0, float vol0, bool used0, float poc0, float vah0, 
                         prevC := ic
                     if not na(ih) and not na(il)
                         int kl = int(math.floor(il / vpBin))
-                        int kh = int(math.floor(ih / vpBin))
-                        int nb = math.max(1, math.min(kh - kl + 1, 200))
-                        float per  = iv  / nb
-                        float perB = bvn / nb
-                        float perS = svn / nb
-                        for k = kl to kl + nb - 1
+                        int nb = math.max(1, int(math.floor(ih / vpBin)) - kl + 1)
+                        int st = int(math.ceil(nb / 200.0))
+                        int nv = int(math.ceil(nb / float(st)))
+                        float per  = iv  / nv
+                        float perB = bvn / nv
+                        float perS = svn / nv
+                        for q = 0 to nv - 1
+                            int   k   = kl + q * st
                             float tot = f_vpAdd(vpKey, vpVol, vpBuy, vpSell, k, per, perB, perS)
                             sTot += per
                             if tot > sVol
                                 sVol := tot
                                 sKey := k
         if not usedIntrabar
+            // v9.9 · a bar wider than 200 bins is spread over its WHOLE range, on
+            // every st-th bin; it used to fill only its lowest 200 and leave the
+            // top of the bar empty - routine in Fixed-ticks mode with small ticks
             int kl = int(math.floor(low  / vpBin))
-            int kh = int(math.floor(high / vpBin))
-            int nb = math.max(1, math.min(kh - kl + 1, 200))
-            float per  = vpBarV / nb
-            float perB = vpBarB / nb
-            float perS = vpBarS / nb
-            for k = kl to kl + nb - 1
+            int nb = math.max(1, int(math.floor(high / vpBin)) - kl + 1)
+            int st = int(math.ceil(nb / 200.0))
+            int nv = int(math.ceil(nb / float(st)))
+            float per  = vpBarV / nv
+            float perB = vpBarB / nv
+            float perS = vpBarS / nv
+            for q = 0 to nv - 1
+                int   k   = kl + q * st
                 float tot = f_vpAdd(vpKey, vpVol, vpBuy, vpSell, k, per, perB, perS)
                 sTot += per
                 if tot > sVol
@@ -3409,12 +3439,16 @@ if vpCtxOn
         vpTotal := 0.0
         pocKey  := na
         pocVol  := 0.0
+        vpSesN  := 0
+        vpIntN  := 0
         vpBin   := inpVpBinMode == "Fixed ticks" ? math.max(syminfo.mintick, inpVpBinTicks * syminfo.mintick) : math.max(syminfo.mintick, vpATR / inpVpBinsPerAtr)
     [bTot, bKey, bVol, bUsed, bPoc, bVah, bVal] = f_vpBuild(vpTotal, pocKey, pocVol, vpIntraOk, poc, vah, vaLow)
     vpTotal   := bTot
     pocKey    := bKey
     pocVol    := bVol
     vpIntraOk := bUsed
+    vpSesN    += 1
+    vpIntN    += bUsed ? 1 : 0
     poc       := bPoc
     vah       := bVah
     vaLow     := bVal
@@ -3424,13 +3458,9 @@ if vpCtxOn
 //  long chart stop being a reference and become the chart.
 var array<float> vpNpY = array.new_float()
 var array<int>   vpNpX = array.new<int>()
-if barstate.isconfirmed and array.size(vpNpY) > 0
-    int kn = array.size(vpNpY) - 1
-    while kn >= 0
-        if high >= array.get(vpNpY, kn) and low <= array.get(vpNpY, kn)
-            array.remove(vpNpY, kn)
-            array.remove(vpNpX, kn)
-        kn -= 1
+// v9.9 · ADDED BEFORE THE TOUCH CHECK, so the new session's first bar can trade
+// through the POC it inherits: 39% of weekly POCs are touched on that bar, and
+// 27.5% of the naked POCs drawn had in fact been traded through.
 if vpCtxOn and vpNewSess and not na(prevPoc)
     bool dupN = false
     if array.size(vpNpY) > 0
@@ -3444,6 +3474,13 @@ if vpCtxOn and vpNewSess and not na(prevPoc)
         while array.size(vpNpY) > inpVpNakedMax
             array.shift(vpNpY)
             array.shift(vpNpX)
+if barstate.isconfirmed and array.size(vpNpY) > 0
+    int kn = array.size(vpNpY) - 1
+    while kn >= 0
+        if high >= array.get(vpNpY, kn) and low <= array.get(vpNpY, kn)
+            array.remove(vpNpY, kn)
+            array.remove(vpNpX, kn)
+        kn -= 1
 while array.size(vpNpX) > 0
     if bar_index - array.get(vpNpX, 0) > inpVpNakedAge
         array.shift(vpNpY)
@@ -3525,25 +3562,24 @@ f_vpRender() =>
         int maxRight = vpLeft
         int nB = array.size(vpKey)
         if nB > 0
+            // v9.9 · ROWS BY PRICE: step bins of price each, from the lowest key.
+            // Grouped by array position, a row bridged any gap in the session and
+            // drew volume across prices that never traded.
             int ROWS_MAX = 110
-            int step = math.max(1, int(math.ceil(nB / float(ROWS_MAX))))
-            int nR   = int(math.ceil(nB / float(step)))
+            int k0   = array.get(vpKey, 0)
+            int kSpan = array.get(vpKey, nB - 1) - k0 + 1
+            int step = math.max(1, int(math.ceil(kSpan / float(ROWS_MAX))))
+            int nR   = int(math.ceil(kSpan / float(step)))
             array<float> rV  = array.new<float>(nR, 0.0)
             array<float> rB  = array.new<float>(nR, 0.0)
             array<float> rS  = array.new<float>(nR, 0.0)
-            array<float> rLo = array.new<float>(nR, 0.0)
-            array<float> rHi = array.new<float>(nR, 0.0)
             array<bool>  rP  = array.new<bool>(nR, false)
             [pIdx, pFound] = f_vpLocate(vpKey, pocKey)
             for i = 0 to nB - 1
-                int rr = int(math.floor(i / float(step)))
+                int rr = int(math.floor((array.get(vpKey, i) - k0) / float(step)))
                 array.set(rV, rr, array.get(rV, rr) + array.get(vpVol, i))
                 array.set(rB, rr, array.get(rB, rr) + array.get(vpBuy, i))
                 array.set(rS, rr, array.get(rS, rr) + array.get(vpSell, i))
-                if i % step == 0
-                    array.set(rLo, rr, array.get(vpKey, i) * vpBin)
-                if i % step == step - 1 or i == nB - 1
-                    array.set(rHi, rr, (array.get(vpKey, i) + 1.0) * vpBin)
                 if pFound and i == pIdx
                     array.set(rP, rr, true)
             // Row width is normalised by the WIDEST RENDERED ROW, not by the raw
@@ -3583,8 +3619,8 @@ f_vpRender() =>
                 float tV = array.get(rV, r)
                 int wTot = tV > 0 and rMax > 0 ? int(math.round(inpVpWidth * tV / rMax)) : 0
                 if wTot > 0
-                    float yB    = array.get(rLo, r)
-                    float ySpan = array.get(rHi, r) - yB
+                    float yB    = (k0 + r * step) * vpBin
+                    float ySpan = step * vpBin
                     float yT    = yB + ySpan * 0.85
                     float pc    = yB + ySpan / 2.0
                     bool  isPoc = array.get(rP, r)
@@ -3657,7 +3693,7 @@ f_vpLevels() =>
     f_vpTag(poc,    "POC",  C_POC,    vpPocOn)
     f_vpTag(vah,    "VAH",  C_VA,     vpVaOn)
     f_vpTag(vaLow,  "VAL",  C_VA,     vpVaOn)
-    f_vpTag(vpVwap, "VWAP", C_VWAP,   vpVwapOn)
+    f_vpTag(vpVwap, vpVolOff ? "TWAP" : "VWAP", C_VWAP, vpVwapOn)
     f_vpTag(vpIbh,  "IBH",  C_VIOLET, vpIbOn)
     f_vpTag(vpIbl,  "IBL",  C_VIOLET, vpIbOn)
     // Session-anchored. Pine refuses drawings placed more than 10,000 bars into
@@ -4031,10 +4067,10 @@ f_panel() =>
 
     f_sep(tb, 1, "SIGNALS · " + str.tostring(inpLen) + "b")
     f_row(tb, 2, " declaration",
-         not triOk ? "paused · " + triWhy :
+         not inpState ? "off" : not triOk ? "paused · " + triWhy :
          (decl ==  1 ? "▲ capitulation · " + str.tostring(bar_index - declBar) + "b ago" :
           decl == -1 ? "▼ distribution · " + str.tostring(bar_index - declBar) + "b ago" : "none yet"),
-         not triOk ? C_GOLD : decl == 1 ? C_BULL : decl == -1 ? C_BEAR : C_SOFT,
+         not inpState ? C_SOFT : not triOk ? C_GOLD : decl == 1 ? C_BULL : decl == -1 ? C_BEAR : C_SOFT,
          "The last ▲ or ▼ and how many bars ago: ▲ a CAPITULATION TURN, ▼ DISTRIBUTION, both read from the grid. It stands until the opposite event and has no exit; as a held position it carried no edge, so read the grid row for where the name stands now.\n\nPAUSED means a layer the ▲▼ read is missing - a level tape, or conviction still warming - so no ▲▼ can fire; the reason is named, and drawn at the pane's right edge. The trace is not one of their layers: the 'Trace' setting never pauses or moves them.")
     f_row(tb, 3, " value · chart",
          f_num(unified_osc, "+#;-#") + " vs ±" + f_num(osc_entry, "#") + (svTradable ? "" : " · basket settling"),
@@ -4106,9 +4142,9 @@ f_panel() =>
         if vpChartOn
             f_sep(tb, 18, "PROFILE · " + vpAnchorTf)
             f_row(tb, 19, " Profile Mode",
-                 (vpVolOk ? "Volume" : vpTpoAuto ? "TPO · auto" : "TPO") + " · " + (vpIntraOk ? vpLtf : "bar"),
-                 vpVolOk and vpIntraOk ? C_BULL : C_GOLD,
-                 "WHAT THE PROFILE ACTUALLY DID, not what was requested of it.\n\nLeft: volume-weighted, or time-at-price. TPO · AUTO means volume weighting was ASKED FOR and could not be delivered - fewer than half the bars on this symbol carry real volume, so the profile fell back to a time-at-price distribution rather than filling every row with zero and vanishing. Right: the intrabar resolution actually being distributed, or 'bar' when that data is unavailable and volume is spread across each bar's range.\n\nThis row is deliberately a report and not an echo. A panel that repeats your settings back to you cannot tell you when a setting did not take.")
+                 (vpVolOk ? "Volume" : vpTpoAuto ? "TPO · auto" : "TPO") + " · " + (vpIntN == 0 ? "bar" : vpIntN == vpSesN ? vpLtf : vpLtf + " " + f_num(100.0 * vpIntN / vpSesN, "#") + "%"),
+                 vpVolOk and vpIntN == vpSesN ? C_SOFT : C_GOLD,
+                 "WHAT THE PROFILE ACTUALLY DID, not what was requested of it.\n\nLeft: volume-weighted, or time-at-price. TPO · AUTO means volume weighting was ASKED FOR and could not be delivered - fewer than half the bars on this symbol carry real volume, so the profile fell back to a time-at-price distribution rather than filling every row with zero and vanishing. Right: the intrabar resolution distributed this session - with the share of its bars it built when that is not all of them (intrabar history is plan-limited) - or 'bar' when none, volume then spread across each bar's range. Neutral when it delivered what was asked, GOLD when not.\n\nThis row is deliberately a report and not an echo. A panel that repeats your settings back to you cannot tell you when a setting did not take.")
             f_row(tb, 20, " Location",
                  na(poc) ? "no profile" : vpLocTxt + " · POC " + f_px(poc),
                  vpLocCol,
