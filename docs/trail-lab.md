@@ -103,3 +103,40 @@ If the winner fails, the holdout is spent. No variant is rescued on it.
 ## 5 · Lab notebook
 
 (Rounds are appended below, each written before it runs.)
+
+### Round 0 · reference (outside the budget)
+
+The eight earlier candidates, rescored on DEV (`research/results/lab/trials.md`).
+TSMOM's DEV eras (+0.62, +0.15) reproduce the tradability report exactly.
+
+One **harness bug** was found and fixed before any variant ran. The timing
+component centred each weight over a window that counted the warm-up's zeros.
+That gave buy-and-hold, a constant position, a spurious timing Sharpe of +0.56.
+The window now starts at the first live weight, and a constant position scores
+exactly zero.
+
+On DEV, no engine's timing component reaches t 2: TSMOM +0.18 (t 1.0),
+Supertrend +0.34 (t 1.9), T-LS +0.19 (t 1.0). **Most of what every trend
+engine earned on DEV was drift.** That is the bar Round 1 faces.
+
+### Round 1 · proposals (written before running)
+
+**Diagnosis**, from the evidence in hand:
+1. The acceptance trail works at 20 bars, where no engine shows timing skill.
+2. The POC adds nothing over the close.
+3. Every engine's DEV return is mostly drift.
+
+Round 1 tests the three levers that could create timing skill: **horizon**,
+**sizing**, and **the information used**.
+
+| Variant | Lever | Hypothesis | Seat that proposed it |
+|---|---|---|---|
+| TSMOM | — | Reference, the engine to beat (lab parity check; not budget) | — |
+| BOUND | sizing | A trail is binary. Does sign(S), the side of TSMOM's decision boundary, keep its edge? The literature says continuous beats sign (Baltas & Kosowski 2013) | Pine engineer: the trail must be drawable |
+| TRAIL126 | horizon | The acceptance trail re-horizoned to a 126-bar (6-month) profile, where trend premia live. Spec v2 otherwise | Inventor: give the trail its fair test |
+| SKIP21 | horizon | Single stocks reverse at one month (Jegadeesh 1990). Drop the 21-bar horizon | Quant |
+| PMOM | information | Weight each return by participation *w*. Moves on high participation carry more information (Pragati's premise; Gervais, Kaniel & Mingelgrin 2001) | Conviction-engine seat |
+
+Statistician's note: with timing t ≈ 1 on DEV even for TSMOM, a variant that
+"wins" by 0.05 in Sharpe is noise. Round 2 is designed from *patterns* across
+classes and eras, not from the top line.
