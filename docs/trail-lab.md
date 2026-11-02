@@ -396,8 +396,24 @@ group 5.
 | Readout | The AUCTION row's fifth cell shows LONG, SHORT or FLAT with the size. Its tooltip gives the trail's level, S, and the close at which S turns: the uncapped *C\**, the 1/√h-weighted geometric mean of the closes 21, 63, 126 and 252 bars ago |
 | Alert | Opt-in. With the engine on, it fires on each change of the position's side. Off, it fires on trail flips as before |
 
-**What it costs:** about 500 lexical tokens, an estimated 98.8k compiled
-against the 100,256 ceiling.
+**What it costs.** The first build compiled to **101,346 tokens, over the
+100,256 ceiling (CE10117)**. My estimate of 3.17 compiled tokens per lexical
+token was low; the measured ratio is 3.25.
+
+The fix removed no feature:
+- **Our own additions, slimmed:** one readout call in place of two, a static
+  tooltip in place of the live *C\** figure, a shorter alert, and one colour
+  call.
+- **Six mechanical compressions of existing code:**
+  - the readout helper's alignment and background became default parameters;
+  - the profile tags and profile boxes each push through one helper;
+  - the pane labels share one helper;
+  - the five value-rung constructors share one factory;
+  - `array.new<float>()` became `array.new_float()`;
+  - arguments that restated Pine's defaults were dropped.
+
+**After the fix:** 30,475 lexical tokens, fewer than v9.6's 30,705, for an
+estimated 98,970 compiled at the measured ratio.
 
 **Not verified here:** a TradingView compile. The one known difference from
 the lab is that Pine bins on the symbol's own tick, while the CSV test

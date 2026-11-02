@@ -107,6 +107,11 @@
 //        and drawdown. The edge is a portfolio's: on ONE market the median
 //        Sharpe was +0.23 to +0.38 and a quarter lost. Size every market alike -
 //        weight = size × 10% ÷ annualised volatility - and paper-trade first.
+//      · TOKENS. The first build compiled to 101,346 (over 100,256). Recovered
+//        without removing a feature: the engine's own readout and alert slimmed,
+//        and the readout, profile-tag, profile-box, pane-label and rung
+//        constructors each routed through one helper; arguments restating
+//        Pine's defaults dropped. Now fewer lexical tokens than v9.6.
 //
 //  v9.6 · THE ENGINE AUDIT - every engine checked for what the acceptance trail
 //      leans on, each suspicion provoked on synthetic data built to break it,
@@ -2749,11 +2754,13 @@ if tpMultiDn
         tpD3 := f_tpInside(request.security_lower_tf(syminfo.tickerid, dn3, f_breadth()))
 
 // ── higher rungs: the whole composite at each frame ──────────────────────────
-var TpRung tpR1 = TpRung.new(array.new_float(0), array.new_float(5, na), array.new_float(5, 0.0), array.new_float(5, 0.0))
-var TpRung tpR2 = TpRung.new(array.new_float(0), array.new_float(5, na), array.new_float(5, 0.0), array.new_float(5, 0.0))
-var TpRung tpR3 = TpRung.new(array.new_float(0), array.new_float(5, na), array.new_float(5, 0.0), array.new_float(5, 0.0))
-var TpRung tpR4 = TpRung.new(array.new_float(0), array.new_float(5, na), array.new_float(5, 0.0), array.new_float(5, 0.0))
-var TpRung tpR5 = TpRung.new(array.new_float(0), array.new_float(5, na), array.new_float(5, 0.0), array.new_float(5, 0.0))
+// One rung's state, empty: its frames and its five weights' running sums.
+f_tpRung() => TpRung.new(array.new_float(0), array.new_float(5, na), array.new_float(5, 0.0), array.new_float(5, 0.0))
+var TpRung tpR1 = f_tpRung()
+var TpRung tpR2 = f_tpRung()
+var TpRung tpR3 = f_tpRung()
+var TpRung tpR4 = f_tpRung()
+var TpRung tpR5 = f_tpRung()
 float tpRv1 = f_tpStep(tpR1, tpT1)
 float tpRv2 = f_tpStep(tpR2, tpT2)
 float tpRv3 = f_tpStep(tpR3, tpT3)
@@ -3236,9 +3243,9 @@ f_vpAdd(array<int> keys, array<float> vols, array<float> buys, array<float> sell
 
 // ── profile state ────────────────────────────────────────────────────────────
 var array<int>   vpKey  = array.new<int>()
-var array<float> vpVol  = array.new<float>()
-var array<float> vpBuy  = array.new<float>()
-var array<float> vpSell = array.new<float>()
+var array<float> vpVol  = array.new_float()
+var array<float> vpBuy  = array.new_float()
+var array<float> vpSell = array.new_float()
 var float vpBin   = na
 var float vpTotal = 0.0
 var int   pocKey  = na
@@ -3385,7 +3392,7 @@ if vpCtxOn
 // ── naked POC ledger (measured) ──────────────────────────────────────────────
 //  Capped by input rather than at a hard twelve: twelve dotted POC lines on a
 //  long chart stop being a reference and become the chart.
-var array<float> vpNpY = array.new<float>()
+var array<float> vpNpY = array.new_float()
 var array<int>   vpNpX = array.new<int>()
 if barstate.isconfirmed and array.size(vpNpY) > 0
     int kn = array.size(vpNpY) - 1
@@ -3442,7 +3449,8 @@ int VP_OFFSET = 3             // extra bars of air between the last candle and t
 int vpLeft    = bar_index + 3 + VP_OFFSET
 int vpRight   = vpLeft + inpVpWidth
 var int tagX  = 0
-var array<float> tagRows = array.new<float>()
+var array<float> tagRows = array.new_float()
+var array<label> vpLvTags  = array.new<label>()
 
 f_rowFree(float y) =>
     float minGap = vpATR * 0.30
@@ -3454,14 +3462,13 @@ f_rowFree(float y) =>
                 break
     free
 
-f_vpTag(label lb, float y, string txt, color col, bool on) =>
-    label.delete(lb)
-    bool draw = on and not na(y) and f_rowFree(y)
-    if draw
+// Draws one level's tag where its row is free and keeps it for the next rebuild.
+f_vpTag(float y, string txt, color col, bool on) =>
+    if on and not na(y) and f_rowFree(y)
         array.push(tagRows, y)
-    draw ? label.new(tagX, y, txt + "  " + str.tostring(y, format.mintick),
+        array.push(vpLvTags, label.new(tagX, y, txt + "  " + str.tostring(y, format.mintick),
               xloc.bar_index, yloc.price, color.new(col, 88), label.style_label_left,
-              col, size.tiny, force_overlay = true) : label(na)
+              col, size.tiny, force_overlay = true))
 
 // ── developing-level trails + VWAP curve (force_overlay) ──────────────────────
 // Blank on the session-open bar so yesterday's finals never connect to today.
@@ -3474,6 +3481,9 @@ plot(vpVwapOn ? vpVwap : na, "VP · Session VWAP", color.new(C_VWAP, 0), 1, plot
 
 // ── histogram (render aggregation into ≤110 rows) ─────────────────────────────
 var array<box> vpBoxes = array.new<box>()
+// One profile box on the price chart, kept for the next rebuild.
+f_vpBox(int l, float t, int r, float b, color bc, color bg) =>
+    array.push(vpBoxes, box.new(l, t, r, b, border_color = bc, bgcolor = bg, force_overlay = true))
 // Drawn by a function, out of the script's main body; it returns where the
 // tag column starts.
 f_vpRender() =>
@@ -3530,7 +3540,7 @@ f_vpRender() =>
             float hvSd  = hvCnt > 0 ? math.sqrt(hvVar / hvCnt) : 0.0
             float hvnTh = hvMean + 1.2 * hvSd
             float lvnTh = hvMean - 0.6 * hvSd
-            array<float> srtV = array.new<float>()
+            array<float> srtV = array.new_float()
             for r0 = 0 to nR - 1
                 if array.get(rV, r0) > 0
                     array.push(srtV, array.get(rV, r0))
@@ -3557,7 +3567,7 @@ f_vpRender() =>
                         // out-of-value tails. POC row is a denser neutral FILL.
                         color rowCol = isPoc ? C_POC : inVa ? C_VA : C_NODE
                         int   rowFd  = isPoc ? 25 : fade
-                        array.push(vpBoxes, box.new(vpLeft, yT, vpLeft + wTot, yB, xloc = xloc.bar_index, border_color = na, bgcolor = color.new(rowCol, rowFd), force_overlay = true))
+                        f_vpBox(vpLeft, yT, vpLeft + wTot, yB, na, color.new(rowCol, rowFd))
                     else
                         // DELTA SPLIT: green inferred-buy / red inferred-sell, with
                         // the POC row marked by a bright neutral OUTLINE so the split keeps
@@ -3565,11 +3575,11 @@ f_vpRender() =>
                         float bV = array.get(rB, r)
                         int   wB = tV > 0 ? int(math.round(wTot * bV / tV)) : 0
                         if wB > 0
-                            array.push(vpBoxes, box.new(vpLeft, yT, vpLeft + wB, yB, xloc = xloc.bar_index, border_color = na, bgcolor = color.new(C_BULL, fade), force_overlay = true))
+                            f_vpBox(vpLeft, yT, vpLeft + wB, yB, na, color.new(C_BULL, fade))
                         if wTot - wB > 0
-                            array.push(vpBoxes, box.new(vpLeft + wB, yT, vpLeft + wTot, yB, xloc = xloc.bar_index, border_color = na, bgcolor = color.new(C_BEAR, fade), force_overlay = true))
+                            f_vpBox(vpLeft + wB, yT, vpLeft + wTot, yB, na, color.new(C_BEAR, fade))
                         if isPoc
-                            array.push(vpBoxes, box.new(vpLeft, yT, vpLeft + wTot, yB, xloc = xloc.bar_index, border_color = color.new(C_POC, 0), border_width = 1, bgcolor = na, force_overlay = true))
+                            f_vpBox(vpLeft, yT, vpLeft + wTot, yB, color.new(C_POC, 0), na)
                     if vpNodesOn and r > 0 and r < nR - 1 and not isPoc and tV > 0
                         float vL = array.get(rV, r - 1)
                         float vR = array.get(rV, r + 1)
@@ -3582,9 +3592,9 @@ f_vpRender() =>
                         // colour reads in either style. Form still separates them:
                         // full-height block = node, centred tick = vacuum.
                         if tV >= hvnTh and peak
-                            array.push(vpBoxes, box.new(vpLeft - 2, yT, vpLeft - 1, yB, xloc = xloc.bar_index, border_color = na, bgcolor = color.new(C_HVN, 40), force_overlay = true))
+                            f_vpBox(vpLeft - 2, yT, vpLeft - 1, yB, na, color.new(C_HVN, 40))
                         else if tV <= lvnTh and trough
-                            array.push(vpBoxes, box.new(vpLeft - 2, pc - vpBin * 0.08, vpLeft - 1, pc + vpBin * 0.08, xloc = xloc.bar_index, border_color = na, bgcolor = color.new(C_LVN, 40), force_overlay = true))
+                            f_vpBox(vpLeft - 2, pc - vpBin * 0.08, vpLeft - 1, pc + vpBin * 0.08, na, color.new(C_LVN, 40))
             if maxRight > vpLeft
                 tx := maxRight + VP_GUTTER
     tx
@@ -3597,7 +3607,6 @@ if barstate.islast
 // whose length Pine caps - so every tag, line and box is kept in an array
 // rather than a variable of its own. The live tags come first, as before, so
 // the collision control seats them ahead of the prior session's.
-var array<label> vpLvTags  = array.new<label>()
 var array<line>  vpLvLines = array.new<line>()
 var array<box>   vpLvBoxes = array.new<box>()
 // One managed level line: horizontal, on the price chart, kept in vpLvLines so
@@ -3615,12 +3624,12 @@ f_vpLevels() =>
         box.delete(bx)
     array.clear(vpLvBoxes)
     array.clear(tagRows)
-    array.push(vpLvTags, f_vpTag(label(na), poc,    "POC",  C_POC,    vpPocOn))
-    array.push(vpLvTags, f_vpTag(label(na), vah,    "VAH",  C_VA,     vpVaOn))
-    array.push(vpLvTags, f_vpTag(label(na), vaLow,  "VAL",  C_VA,     vpVaOn))
-    array.push(vpLvTags, f_vpTag(label(na), vpVwap, "VWAP", C_VWAP,   vpVwapOn))
-    array.push(vpLvTags, f_vpTag(label(na), vpIbh,  "IBH",  C_VIOLET, vpIbOn))
-    array.push(vpLvTags, f_vpTag(label(na), vpIbl,  "IBL",  C_VIOLET, vpIbOn))
+    f_vpTag(poc,    "POC",  C_POC,    vpPocOn)
+    f_vpTag(vah,    "VAH",  C_VA,     vpVaOn)
+    f_vpTag(vaLow,  "VAL",  C_VA,     vpVaOn)
+    f_vpTag(vpVwap, "VWAP", C_VWAP,   vpVwapOn)
+    f_vpTag(vpIbh,  "IBH",  C_VIOLET, vpIbOn)
+    f_vpTag(vpIbl,  "IBL",  C_VIOLET, vpIbOn)
     // Session-anchored. Pine refuses drawings placed more than 10,000 bars into
     // history; every x in this block is bounded by VP_XBACK well inside that. The
     // old bound of 400 cited max_bars_back, which does not govern drawings, and
@@ -3640,9 +3649,9 @@ f_vpLevels() =>
         f_vpLine(xA, prevPoc, tagX, color.new(C_POC, 55), 1, line.style_dotted)
         f_vpLine(xA, prevVah, tagX, color.new(C_VA, 55), 1, line.style_dotted)
         f_vpLine(xA, prevVal, tagX, color.new(C_VA, 55), 1, line.style_dotted)
-        array.push(vpLvTags, f_vpTag(label(na), prevPoc, "pPOC", C_POC, vpPrevOn))
-        array.push(vpLvTags, f_vpTag(label(na), prevVah, "pVAH", C_VA,  vpPrevOn))
-        array.push(vpLvTags, f_vpTag(label(na), prevVal, "pVAL", C_VA,  vpPrevOn))
+        f_vpTag(prevPoc, "pPOC", C_POC, vpPrevOn)
+        f_vpTag(prevVah, "pVAH", C_VA,  vpPrevOn)
+        f_vpTag(prevVal, "pVAL", C_VA,  vpPrevOn)
     if vpNakedOn and array.size(vpNpY) > 0
         int xMinN = math.max(0, bar_index - math.min(inpVpNakedAge, VP_XBACK))
         int nN    = array.size(vpNpY)
@@ -4203,7 +4212,7 @@ float oiShare = oiPair ? math.abs(oiDlt) / oiPrev : 0.0
 // the last OI_BASE non-structural log changes, measured BEFORE this bar joins it,
 // so a bar is judged against its past and never against itself. RMS rather than
 // stdev keeps zero at zero: the sign of oiZ is the sign of ΔOI.
-var array<float> oiSq = array.new<float>()
+var array<float> oiSq = array.new_float()
 float oiRms = array.size(oiSq) >= 10 ? math.sqrt(array.avg(oiSq)) : na
 float oiZ   = nz(oiRms, 0.0) > 1e-12 ? oiLog / oiRms : 0.0
 
@@ -4420,7 +4429,7 @@ type Trail
     array<label>    pr       // probe marks
     array<polyline> pl       // ribbon drawings
 
-var Trail TS = Trail.new(0, na, na, false, false, false, array.new<int>(), array.new<float>(), array.new<float>(), array.new<float>(), array.new<label>(), array.new<polyline>())
+var Trail TS = Trail.new(0, na, na, false, false, false, array.new<int>(), array.new_float(), array.new_float(), array.new_float(), array.new<label>(), array.new<polyline>())
 
 // One closed bar of the trail, exactly as the spec words it (§4.2). Each rule is
 // a boolean and each field is set once, so no if/else chain carries a value: a
@@ -4470,7 +4479,7 @@ f_aucStore(Trail s) =>
     // only a probe's FIRST bar is marked: a probe lasts about four bars, and a
     // mark on each turned a quarter of all bars gold
     if s.probe and not s.pprobe and inpProbe and not coreView
-        array.push(s.pr, label.new(bar_index, close, "", xloc = xloc.bar_index, yloc = yloc.price, color = C_GOLD,
+        array.push(s.pr, label.new(bar_index, close, "", color = C_GOLD,
              style = label.style_xcross, size = size.tiny, force_overlay = true,
              tooltip = "PROBE - this bar closed beyond the acceptance trail, but the window's POC did not follow: a break the market had not accepted. It may be rejected back, or accepted and flip the trail."))
         if array.size(s.pr) > 40
@@ -4501,12 +4510,12 @@ float amPos = inpAM and TS.dir != 0 ? TS.dir * math.max(0.0, TS.dir * amS) : na
 // its way - the move already paid for.
 f_trailCol(Trail s) =>
     float agree = s.dir * mC
-    int   t     = not mtfCOk ? 40 : agree >= inpZ2 ? 0 : agree >= inpZ1 ? 15 : agree > 0.0 ? 40 : 65
-    bool  paid  = mtfVOk and s.dir * mV >= osc_entry
+    // v9.7 · Accepted momentum: intensity is the size (solid ≥ 0.5, strong ≥
+    // 0.25, faint below), neutral when flat; no gold - the size already says it
     float z     = math.abs(nz(amPos))
-    // v9.7 · Accepted momentum: hue the side, intensity the size, neutral when flat
-    inpAM ? (z == 0.0 ? color.new(C_NEUT, 35) : color.new(s.dir > 0 ? C_BULL : C_BEAR, z >= 0.5 ? 0 : z >= 0.25 ? 25 : 50)) :
-         color.new(paid ? C_GOLD : s.dir > 0 ? C_BULL : C_BEAR, paid ? math.min(t, 25) : t)
+    int   t     = inpAM ? (z >= 0.5 ? 0 : z >= 0.25 ? 25 : 50) : not mtfCOk ? 40 : agree >= inpZ2 ? 0 : agree >= inpZ1 ? 15 : agree > 0.0 ? 40 : 65
+    bool  paid  = not inpAM and mtfVOk and s.dir * mV >= osc_entry
+    color.new(paid ? C_GOLD : inpAM and z == 0.0 ? C_NEUT : s.dir > 0 ? C_BULL : C_BEAR, paid ? math.min(t, 25) : t)
 
 // One plot, its colour a series: it spends the two counts the Data Window's
 // effort and rebuild-error rows used to hold (both now live in the panel).
@@ -4526,13 +4535,13 @@ f_aucRender(Trail s) =>
             array.push(band, chart.point.from_index(array.get(s.rx, i), array.get(s.rh, i)))
         for i = n - 1 to 0
             array.push(band, chart.point.from_index(array.get(s.rx, i), array.get(s.rl, i)))
-        array.push(s.pl, polyline.new(band, curved = false, closed = true, xloc = xloc.bar_index,
+        array.push(s.pl, polyline.new(band, closed = true,
              line_color = color.new(C_RIB, 100), fill_color = color.new(C_RIB, 88), force_overlay = true))
         array<chart.point> pocs = array.new<chart.point>()
         for i = 0 to n - 1
             array.push(pocs, chart.point.from_index(array.get(s.rx, i), array.get(s.rp, i)))
-        array.push(s.pl, polyline.new(pocs, curved = false, closed = false, xloc = xloc.bar_index,
-             line_color = color.new(C_RIB, 35), line_style = line.style_dotted, line_width = 1, force_overlay = true))
+        array.push(s.pl, polyline.new(pocs,
+             line_color = color.new(C_RIB, 35), line_style = line.style_dotted, force_overlay = true))
 if barstate.islast and aucOn
     f_aucRender(TS)
 
@@ -4612,7 +4621,7 @@ if (inpOi or inpGrid or inpAucRow) and not coreView and barstate.islast and na(r
 // One readout cell. Every cell is tiny text, so a call passes only what differs:
 // column, row, text, colour, alignment, background, tooltip. Twenty-four calls
 // spelled out in full were weight the compiled-token ceiling could not carry.
-f_rd(int c, int r, string t, color tc, string ha, color bg, string tip) =>
+f_rd(int c, int r, string t, color tc, string tip, string ha = text.align_center, color bg = na) =>
     table.cell(rdTb, c, r, t, text_color = tc, text_size = size.tiny, text_halign = ha, bgcolor = bg, tooltip = tip)
 
 f_readout() =>
@@ -4660,12 +4669,12 @@ f_readout() =>
     color  gChTone = not gChOk ? C_SOFT : gChD > 0 ? C_BULL : gChD < 0 ? C_BEAR : C_SOFT
 
     color rdHead = color.new(C_NEUT, 25)
-    f_rd(0, 0, "", na, text.align_center, na, "")
-    f_rd(1, 0, " STATE", rdHead, text.align_left, na, "")
-    f_rd(2, 0, " WHY", rdHead, text.align_left, na, "")
-    f_rd(3, 0, " PUSH ", rdHead, text.align_center, na, "")
-    f_rd(4, 0, " CHART ", rdHead, text.align_center, na, "")
-    f_rd(5, 0, "SPAN ", rdHead, text.align_right, na, "")
+    f_rd(0, 0, "", na, "")
+    f_rd(1, 0, " STATE", rdHead, "", text.align_left)
+    f_rd(2, 0, " WHY", rdHead, "", text.align_left)
+    f_rd(3, 0, " PUSH ", rdHead, "")
+    f_rd(4, 0, " CHART ", rdHead, "")
+    f_rd(5, 0, "SPAN ", rdHead, "", text.align_right)
 
     if inpOi
         // An untrusted series is still shown, but faded: it describes two
@@ -4674,21 +4683,21 @@ f_readout() =>
         color  oiStC  = oiFade ? color.new(oiCharCol, 50) : oiCharCol
         color  oiTxC  = oiFade ? color.new(C_SOFT, 55) : C_SOFT
         string oiBook = oiHas and not na(oiRank) ? " · book " + f_num(oiRank, "#") + " pct" : ""
-        f_rd(0, 1, " OI", C_SOFT, text.align_left, na, "WHAT KIND of positioning this bar represents, which volume cannot tell you. Volume answers how much traded; open interest answers whether the trading created open risk or destroyed it.\n\nLONG BUILDUP   price up, book growing — new longs, risk committed.\nSHORT BUILDUP  price down, book growing — new shorts, risk committed.\nSHORT COVERING price up, book shrinking — a rally paid for by exits.\nLONG UNWINDING price down, book shrinking — a decline paid for by exits.\nBALANCED       the change is inside " + f_num(OI_DEAD, "0.0") + "σ of zero; nothing to read.\nEXPIRY / ROLLOVER  the book moved more than " + f_num(OI_STRU * 100, "#") + "% in one bar, or more than " + f_num(OI_ROLL, "0.0") + "σ AND more than " + f_num(OI_ROLL_ABS * 100, "#") + "%. Structural, not positioning - and kept out of the statistics.\n\nThe word always agrees with the book: BUILDUP means open interest ROSE on this bar, COVERING and UNWINDING mean it FELL.\n\nTHE COLOUR FOLLOWS GENUINENESS, NOT DIRECTION. Builds take the side's own colour. Covering and unwinding take GOLD even though one of them is a rally, because closing flow is finite — the move is consuming the very positions propelling it. That is a practitioner reading: the academic open-interest evidence (Hong & Yogo 2012) is monthly and aggregate. MEASURED (v9 audit, 187 NSE F&O stocks, 2019-26): short-covering rallies lagged in both halves - the gold is borne out; but LONG and SHORT BUILDUPS did not predict continuation either - 'genuine' here means risk was committed, not that the move will carry on. Gold here means what it means everywhere in this script: read with caution. Painting short covering green reads as a bullish claim and is close to the opposite one.\n\nDisplay-only: nothing here reaches the oscillator below.")
-        f_rd(1, 1, " " + oiState + " ", oiStC, text.align_left, color.new(oiCharCol, 86), "")
-        f_rd(2, 1, " " + oiWho + oiBook + " ", oiCrowd and not oiFade ? C_GOLD : oiTxC, text.align_left, na, "WHO IS DOING IT - new longs, new shorts, shorts exiting, longs exiting, or no net change; STRUCTURAL for an expiry or a roll.\n\nBOOK — where total open interest sits against its own last " + str.tostring(OI_PCT) + " bars. This is the context the character cannot give you: a long buildup at the 95th percentile is a crowded trade being added to, and the same buildup at the 20th is fresh positioning into a cleaned-out book. They resolve differently and they look identical one bar at a time. GOLD from the 80th percentile: crowded.\n\nFEED — named in STATE when it is not live. STALE FEED means the series exists but fewer than " + f_num(OI_ACT * 100, "#") + "% of bars carry a change, which on an intraday chart usually means an end-of-day feed: the z-scores are degenerate and the character is withheld rather than repeated. DAILY ONLY means TradingView carries open interest for this symbol but not at your timeframe. NO SYMBOL means the chart carries a modifier whose ticker cannot be turned into an OI companion. NO OI means this instrument has no open interest at all, which is the correct answer for cash equity and spot.\n\nρ(|ΔOI|, activity) = " + f_num(oiRho, "+0.00;-0.00") + " over " + str.tostring(OI_BASE) + " bars - whether the SIZE of the book's change tracks " + (vpVolUsable ? "volume" : "true range") + ". The row DIMS below " + f_num(OI_RHO, "0.00") + ": the character is then describing two series that do not move together and should not be traded from.\n\nWhy not ρ(Δprice, ΔOI)? Open interest rises on long AND short buildups, so on a perfectly informative series the SIGNED correlation with price sits near zero. That test dimmed the readout exactly where it worked.")
-        f_rd(3, 1, oiHas ? " " + f_num(oiZ, "+0.0;-0.0") + "σ " : "", oiTxC, text.align_center, na, "BUILD — the push on the book this bar: its log change in open interest, in units of the typical (RMS) change over the last " + str.tostring(OI_BASE) + " non-structural bars. ZERO-CENTRED: its sign is the sign of the change, so +1.8σ always means the book grew. Log, so a halving and a doubling of the book are equal and opposite rather than the second dwarfing the first. Inside ±" + f_num(OI_DEAD, "0.0") + "σ the character reads BALANCED.")
-        f_rd(4, 1, "", na, text.align_center, na, "")
-        f_rd(5, 1, f_span(oiSpan) + " ", oiTxC, text.align_right, na, "How long the book has shown this character - days on a daily chart, weeks on a weekly, otherwise bars. Counted at each close, never twice on a live bar.")
+        f_rd(0, 1, " OI", C_SOFT, "WHAT KIND of positioning this bar represents, which volume cannot tell you. Volume answers how much traded; open interest answers whether the trading created open risk or destroyed it.\n\nLONG BUILDUP   price up, book growing — new longs, risk committed.\nSHORT BUILDUP  price down, book growing — new shorts, risk committed.\nSHORT COVERING price up, book shrinking — a rally paid for by exits.\nLONG UNWINDING price down, book shrinking — a decline paid for by exits.\nBALANCED       the change is inside " + f_num(OI_DEAD, "0.0") + "σ of zero; nothing to read.\nEXPIRY / ROLLOVER  the book moved more than " + f_num(OI_STRU * 100, "#") + "% in one bar, or more than " + f_num(OI_ROLL, "0.0") + "σ AND more than " + f_num(OI_ROLL_ABS * 100, "#") + "%. Structural, not positioning - and kept out of the statistics.\n\nThe word always agrees with the book: BUILDUP means open interest ROSE on this bar, COVERING and UNWINDING mean it FELL.\n\nTHE COLOUR FOLLOWS GENUINENESS, NOT DIRECTION. Builds take the side's own colour. Covering and unwinding take GOLD even though one of them is a rally, because closing flow is finite — the move is consuming the very positions propelling it. That is a practitioner reading: the academic open-interest evidence (Hong & Yogo 2012) is monthly and aggregate. MEASURED (v9 audit, 187 NSE F&O stocks, 2019-26): short-covering rallies lagged in both halves - the gold is borne out; but LONG and SHORT BUILDUPS did not predict continuation either - 'genuine' here means risk was committed, not that the move will carry on. Gold here means what it means everywhere in this script: read with caution. Painting short covering green reads as a bullish claim and is close to the opposite one.\n\nDisplay-only: nothing here reaches the oscillator below.", text.align_left)
+        f_rd(1, 1, " " + oiState + " ", oiStC, "", text.align_left, color.new(oiCharCol, 86))
+        f_rd(2, 1, " " + oiWho + oiBook + " ", oiCrowd and not oiFade ? C_GOLD : oiTxC, "WHO IS DOING IT - new longs, new shorts, shorts exiting, longs exiting, or no net change; STRUCTURAL for an expiry or a roll.\n\nBOOK — where total open interest sits against its own last " + str.tostring(OI_PCT) + " bars. This is the context the character cannot give you: a long buildup at the 95th percentile is a crowded trade being added to, and the same buildup at the 20th is fresh positioning into a cleaned-out book. They resolve differently and they look identical one bar at a time. GOLD from the 80th percentile: crowded.\n\nFEED — named in STATE when it is not live. STALE FEED means the series exists but fewer than " + f_num(OI_ACT * 100, "#") + "% of bars carry a change, which on an intraday chart usually means an end-of-day feed: the z-scores are degenerate and the character is withheld rather than repeated. DAILY ONLY means TradingView carries open interest for this symbol but not at your timeframe. NO SYMBOL means the chart carries a modifier whose ticker cannot be turned into an OI companion. NO OI means this instrument has no open interest at all, which is the correct answer for cash equity and spot.\n\nρ(|ΔOI|, activity) = " + f_num(oiRho, "+0.00;-0.00") + " over " + str.tostring(OI_BASE) + " bars - whether the SIZE of the book's change tracks " + (vpVolUsable ? "volume" : "true range") + ". The row DIMS below " + f_num(OI_RHO, "0.00") + ": the character is then describing two series that do not move together and should not be traded from.\n\nWhy not ρ(Δprice, ΔOI)? Open interest rises on long AND short buildups, so on a perfectly informative series the SIGNED correlation with price sits near zero. That test dimmed the readout exactly where it worked.", text.align_left)
+        f_rd(3, 1, oiHas ? " " + f_num(oiZ, "+0.0;-0.0") + "σ " : "", oiTxC, "BUILD — the push on the book this bar: its log change in open interest, in units of the typical (RMS) change over the last " + str.tostring(OI_BASE) + " non-structural bars. ZERO-CENTRED: its sign is the sign of the change, so +1.8σ always means the book grew. Log, so a halving and a doubling of the book are equal and opposite rather than the second dwarfing the first. Inside ±" + f_num(OI_DEAD, "0.0") + "σ the character reads BALANCED.")
+        f_rd(4, 1, "", na, "")
+        f_rd(5, 1, f_span(oiSpan) + " ", oiTxC, "How long the book has shown this character - days on a daily chart, weeks on a weekly, otherwise bars. Counted at each close, never twice on a live bar.", text.align_right)
 
     if inpGrid
         int rGr = inpOi ? 2 : 1
-        f_rd(0, rGr, " CVG", C_SOFT, text.align_left, na, "THE CONVICTION-VALUE GRID - the portfolio style Pragyam builds from this indicator, read for this chart. v9's ▲▼ are read from it: ▲ when Buy · capitulation turns (value momentum reverting), ▼ on entering Exit · distribution.\n\nTHE 3 × 3 FAMILIES. Rows by the conviction tape: UP past +inner zone, DOWN past −inner zone, FAINT between. Columns by the value tape: CHEAP past −θ, RICH past +θ, FAIR between. Each is named for what it says to do, at its own units - the word is the weight:\n                 cheap · fair · rich\n   UP      Buy 3 · Hold 1.5 · Trim 0.75\n   FAINT   Accumulate 1.5 · Wait 1 · Trim 0.75\n   DOWN    Buy 4 · Accumulate 1.5 · Exit 0.25\n(v8's units, measured: sellers in control at a cheap or fair price was followed by gains in both eras on every class but crypto; buyers in control at a fair price lagged.)\nEvery name is held: the action says how much, never whether.\n\nCONVICTION'S HISTOGRAM RUNS THE ROWS: a row changes only while conviction's own histogram - Pragyam's gate, the pane's own on the Conviction trace - confirms a push that way - on the move's side, not TURNING, not QUIET. Otherwise the row is HELD against its tape.\n\nTHE 5 × 5. Each momentum tape confirms its own instrument's edge; an unconfirmed edge sits half-way to the middle (WHY says which).\n\nThe defaults - conviction on Ladder down, value on W · D - are what Pragyam sizes from. Measured (v9 audit, scored without look-ahead): the graded units positive in all three eras (2006-13, 2014-19, 2020-26) outside crypto; Buy · capitulation +0.06 to +0.08σ over 10-20 bars in each, daily and weekly; Exit · distribution followed by underperformance in each. The other cells are near zero. In Pragyam's allocator the v8 units beat the seed in both eras on Nifty 50 and Dow 30.")
-        f_rd(1, rGr, " " + gState + " ", gTone, text.align_left, color.new(gTone, 86), gRead ? "PRAGYAM'S FAMILY  " + gName + "\n5 × 5 CELL  " + gR5 + "  ×  " + gC5 + "\n\n" + f_num(gUnits, "0.00") + " UNITS - what Pragyam sizes this name from, before the book normalises across its universe: the family's units read at the name's position on the map, shaded inside its cell by how intensely each tape is drawn, half a cell toward the middle for an unconfirmed edge" + (gHeld ? ", and between half and all of the HELD row by how firmly the push holding it is drawn" : "") + ". The cell itself, unshaded, holds " + f_num(gCell, "0.00") + ".\n\nColoured by the side the action works: green buying, red selling, neutral for Hold and Wait, which change nothing." :                   "The grid reads once both level tapes are ready.")
-        f_rd(2, rGr, " " + gWhy + " ", gHeld ? C_GOLD : C_SOFT, text.align_left, na, "WHAT SEPARATES THIS CELL FROM ITS NEIGHBOURS - each momentum tape's phase on its own edge, in plain words.\n\nTHE ROW'S EDGE, conviction momentum. BUYERS / SELLERS RUNNING - the faster view stands on the row's side: the edge is confirmed and the name holds the full row. PAUSING - a pullback against it: half-way to the middle.\n\nTHE COLUMN'S EDGE, value momentum. TURNING UP from cheap, TURNING DOWN from rich - the fast end has turned back toward fair: confirmed, the full column. STILL CHEAPENING / STILL RICHENING - widening: half-way to the middle.\n\nA momentum changes side only past its own knee. NO EDGE - faint and fair, nothing to confirm. The family's own name alone - its momentum has no reading yet, and the cell is the 3 × 3's.\n\nHELD, in gold - the conviction tape has left the row and conviction's histogram has not confirmed a push that way, so the row holds.")
-        f_rd(3, rGr, " " + gPushTxt + " ", gPushCol, text.align_center, na, "CONVICTION'S HISTOGRAM, AS IT RUNS THE ROWS - the one Pragyam reads. On the Conviction trace it is the pane's own; on the others it can differ from the columns drawn.\n   ↑↑  an impulse - growing past its impulse gate\n   ↑   a push - above zero, pressing or decelerating\n   TURNING  shrinking with the trace flat or against it - no push\n   QUIET  conviction amplifying a quiet regime - no push, gold\n   ↓  ↓↓  mirrored\nA row moves to its tape only on a push that way - any push, impulse or not; with no push it holds.\n\nREAD IT AS WHICH WAY THE ROW MAY MOVE NEXT. Measured in v8: inside the capitulation cell the push's direction made no consistent difference, so a Buy there does not wait for a push ↑.")
-        f_rd(4, rGr, " " + gChTxt + " ", gChTone, text.align_center, na, "WHERE THIS CHART ALONE WOULD PUT THE NAME - this chart's conviction (" + f_num(cvOsc, "+#;-#") + ", against the inner zone) and Samanvaya's value on this chart (" + f_num(unified_osc, "+#;-#") + ", against θ), on the tapes' own cuts. Each is one rung of its tape, so the chart moves first.\n\n↑ - the chart's family carries MORE units than the state's: the chart has moved into a better cell before the ladder. ↓ - fewer. = - the same units in another family. SAME - the chart agrees with the ladder.")
-        f_rd(5, rGr, (gRead ? f_span(gDays) : "") + " ", C_SOFT, text.align_right, na, "How long the name has stood in this action - its family. Days on a daily chart, weeks on a weekly, otherwise bars. Counted at each close, never twice on a live bar.")
+        f_rd(0, rGr, " CVG", C_SOFT, "THE CONVICTION-VALUE GRID - the portfolio style Pragyam builds from this indicator, read for this chart. v9's ▲▼ are read from it: ▲ when Buy · capitulation turns (value momentum reverting), ▼ on entering Exit · distribution.\n\nTHE 3 × 3 FAMILIES. Rows by the conviction tape: UP past +inner zone, DOWN past −inner zone, FAINT between. Columns by the value tape: CHEAP past −θ, RICH past +θ, FAIR between. Each is named for what it says to do, at its own units - the word is the weight:\n                 cheap · fair · rich\n   UP      Buy 3 · Hold 1.5 · Trim 0.75\n   FAINT   Accumulate 1.5 · Wait 1 · Trim 0.75\n   DOWN    Buy 4 · Accumulate 1.5 · Exit 0.25\n(v8's units, measured: sellers in control at a cheap or fair price was followed by gains in both eras on every class but crypto; buyers in control at a fair price lagged.)\nEvery name is held: the action says how much, never whether.\n\nCONVICTION'S HISTOGRAM RUNS THE ROWS: a row changes only while conviction's own histogram - Pragyam's gate, the pane's own on the Conviction trace - confirms a push that way - on the move's side, not TURNING, not QUIET. Otherwise the row is HELD against its tape.\n\nTHE 5 × 5. Each momentum tape confirms its own instrument's edge; an unconfirmed edge sits half-way to the middle (WHY says which).\n\nThe defaults - conviction on Ladder down, value on W · D - are what Pragyam sizes from. Measured (v9 audit, scored without look-ahead): the graded units positive in all three eras (2006-13, 2014-19, 2020-26) outside crypto; Buy · capitulation +0.06 to +0.08σ over 10-20 bars in each, daily and weekly; Exit · distribution followed by underperformance in each. The other cells are near zero. In Pragyam's allocator the v8 units beat the seed in both eras on Nifty 50 and Dow 30.", text.align_left)
+        f_rd(1, rGr, " " + gState + " ", gTone, gRead ? "PRAGYAM'S FAMILY  " + gName + "\n5 × 5 CELL  " + gR5 + "  ×  " + gC5 + "\n\n" + f_num(gUnits, "0.00") + " UNITS - what Pragyam sizes this name from, before the book normalises across its universe: the family's units read at the name's position on the map, shaded inside its cell by how intensely each tape is drawn, half a cell toward the middle for an unconfirmed edge" + (gHeld ? ", and between half and all of the HELD row by how firmly the push holding it is drawn" : "") + ". The cell itself, unshaded, holds " + f_num(gCell, "0.00") + ".\n\nColoured by the side the action works: green buying, red selling, neutral for Hold and Wait, which change nothing." :                   "The grid reads once both level tapes are ready.", text.align_left, color.new(gTone, 86))
+        f_rd(2, rGr, " " + gWhy + " ", gHeld ? C_GOLD : C_SOFT, "WHAT SEPARATES THIS CELL FROM ITS NEIGHBOURS - each momentum tape's phase on its own edge, in plain words.\n\nTHE ROW'S EDGE, conviction momentum. BUYERS / SELLERS RUNNING - the faster view stands on the row's side: the edge is confirmed and the name holds the full row. PAUSING - a pullback against it: half-way to the middle.\n\nTHE COLUMN'S EDGE, value momentum. TURNING UP from cheap, TURNING DOWN from rich - the fast end has turned back toward fair: confirmed, the full column. STILL CHEAPENING / STILL RICHENING - widening: half-way to the middle.\n\nA momentum changes side only past its own knee. NO EDGE - faint and fair, nothing to confirm. The family's own name alone - its momentum has no reading yet, and the cell is the 3 × 3's.\n\nHELD, in gold - the conviction tape has left the row and conviction's histogram has not confirmed a push that way, so the row holds.", text.align_left)
+        f_rd(3, rGr, " " + gPushTxt + " ", gPushCol, "CONVICTION'S HISTOGRAM, AS IT RUNS THE ROWS - the one Pragyam reads. On the Conviction trace it is the pane's own; on the others it can differ from the columns drawn.\n   ↑↑  an impulse - growing past its impulse gate\n   ↑   a push - above zero, pressing or decelerating\n   TURNING  shrinking with the trace flat or against it - no push\n   QUIET  conviction amplifying a quiet regime - no push, gold\n   ↓  ↓↓  mirrored\nA row moves to its tape only on a push that way - any push, impulse or not; with no push it holds.\n\nREAD IT AS WHICH WAY THE ROW MAY MOVE NEXT. Measured in v8: inside the capitulation cell the push's direction made no consistent difference, so a Buy there does not wait for a push ↑.")
+        f_rd(4, rGr, " " + gChTxt + " ", gChTone, "WHERE THIS CHART ALONE WOULD PUT THE NAME - this chart's conviction (" + f_num(cvOsc, "+#;-#") + ", against the inner zone) and Samanvaya's value on this chart (" + f_num(unified_osc, "+#;-#") + ", against θ), on the tapes' own cuts. Each is one rung of its tape, so the chart moves first.\n\n↑ - the chart's family carries MORE units than the state's: the chart has moved into a better cell before the ladder. ↓ - fewer. = - the same units in another family. SAME - the chart agrees with the ladder.")
+        f_rd(5, rGr, (gRead ? f_span(gDays) : "") + " ", C_SOFT, "How long the name has stood in this action - its family. Days on a daily chart, weeks on a weekly, otherwise bars. Counted at each close, never twice on a live bar.", text.align_right)
 
     if inpAucRow
         // AUCTION (v9.4) - the auction engine, display-only and unmeasured. Read
@@ -4703,18 +4712,14 @@ f_readout() =>
         // cannot start - said, not left to look like a fault.
         string aWhy   = (TS.dir == 0 ? (na(gGate) ? "push gate warming" : "no trail yet") : TS.dir > 0 ? "trail ↑" : "trail ↓") +
              (aProbe ? " · probe, POC not following" : aLoc != "" ? " · " + aLoc : "")
-        f_rd(0, rA, " AUCTION", C_SOFT, text.align_left, na, "THE AUCTION ENGINE (v9.4, spec v2 since v9.6) - where participation was ACCEPTED, which no other part of Pragati measures. A rolling volume profile of the last " + str.tostring(aN) + " bars (" + (inpAM ? "six months, Accepted momentum's tested window" : "the conviction lookback") + "), built from this chart's own bars - not the session profile, which is a display - compared with the same window " + str.tostring(aN) + " bars earlier.\n\nThe Lookback-window trail measured null as a trade (docs/trail-tradability.md §7); Accepted momentum, this trail on six months sized by momentum, passed a held-out test (docs/trail-lab.md).")
-        f_rd(1, rA, " " + aSt + " ", aTone, text.align_left, color.new(aTone, 86), "MIGRATING ↑ / ↓ - this window's value area no longer overlaps the one " + str.tostring(aN) + " bars ago: value has moved.\nSHIFTING ↑ / ↓ - the value areas still overlap, but the POC has left the old value.\nBALANCE - neither: value is where it was.\n\nValue area " + f_px(aVal) + " – " + f_px(aVah) + ", POC " + f_px(aPoc) + ".")
-        f_rd(2, rA, " " + aWhy + " ", aProbe ? C_GOLD : C_SOFT, text.align_left, na, "THE TRAIL'S SIDE, and where the close sits against the rolling value area. PROBE, in gold: the close is beyond the trail but the window's POC has not followed - a break not yet accepted; the trail flips only when the POC follows. Live on the forming bar; the trail itself moves only at the close.")
-        f_rd(3, rA, " " + gPushTxt + " ", gPushCol, text.align_center, na, "CONVICTION'S HISTOGRAM - the grid's push, the same gate the trail steps by: it steps only when value shifts its way AND this pushes its way.")
-        // v9.7 · the close at which S would be 0, uncapped: the 1/√h-weighted
-        // geometric mean of the closes 21, 63, 126 and 252 bars ago
-        float amB = math.exp((0.218218 * math.log(close[21]) + 0.125988 * math.log(close[63]) + 0.089087 * math.log(close[126]) + 0.062994 * math.log(close[252])) / 0.496287)
-        if inpAM
-            f_rd(4, rA, na(amPos) ? "—" : amPos == 0.0 ? " FLAT · disagree " : (amPos > 0 ? " LONG " : " SHORT ") + f_num(math.abs(amPos), "0.00") + " ", nz(amPos) > 0 ? C_BULL : nz(amPos) < 0 ? C_BEAR : C_SOFT, text.align_center, na, "ACCEPTED MOMENTUM - the tested engine (docs/trail-lab.md), its position as of this close.\n\nSIDE - the six-month acceptance trail, " + (TS.dir > 0 ? "UP, its floor at " : TS.dir < 0 ? "DOWN, its ceiling at " : "not started ") + f_px(TS.lvl) + ".\nSIZE - momentum's score S " + f_num(amS, "+0.00;-0.00") + "; it turns at a close of " + f_px(amB) + " (uncapped).\n\nLONG while both point up, SHORT while both point down, FLAT while they disagree; the number is the size, 0 to 1. Tested sizing: size × 10% ÷ annualised volatility, capped at 2, at the next open. An edge across many markets, small on any one - paper-trade it first.")
-        else
-            f_rd(4, rA, TS.dir == 0 ? "—" : " trail " + f_px(TS.lvl) + " ", TS.dir > 0 ? C_BULL : TS.dir < 0 ? C_BEAR : C_SOFT, text.align_center, na, "THE ACCEPTANCE TRAIL'S LEVEL - the ratcheted far edge of value (the value-area low while up, the high while down), drawn on the chart: below price as a floor while the trail is up, above it as a ceiling while it is down.")
-        f_rd(5, rA, (TS.dir != 0 and not na(TS.since) ? f_span(bar_index - TS.since) : "") + " ", C_SOFT, text.align_right, na, "How long the trail has stood on this side - since it started or last flipped.")
+        f_rd(0, rA, " AUCTION", C_SOFT, "THE AUCTION ENGINE (v9.4, spec v2 since v9.6) - where participation was ACCEPTED, which no other part of Pragati measures. A rolling volume profile of the last " + str.tostring(aN) + " bars (six months under Accepted momentum, else the conviction lookback), built from this chart's own bars - not the session profile, which is a display - compared with the same window " + str.tostring(aN) + " bars earlier.\n\nThe Lookback-window trail measured null as a trade (docs/trail-tradability.md §7); Accepted momentum, this trail on six months sized by momentum, passed a held-out test (docs/trail-lab.md).", text.align_left)
+        f_rd(1, rA, " " + aSt + " ", aTone, "MIGRATING ↑ / ↓ - this window's value area no longer overlaps the one " + str.tostring(aN) + " bars ago: value has moved.\nSHIFTING ↑ / ↓ - the value areas still overlap, but the POC has left the old value.\nBALANCE - neither: value is where it was.\n\nValue area " + f_px(aVal) + " – " + f_px(aVah) + ", POC " + f_px(aPoc) + ".", text.align_left, color.new(aTone, 86))
+        f_rd(2, rA, " " + aWhy + " ", aProbe ? C_GOLD : C_SOFT, "THE TRAIL'S SIDE, and where the close sits against the rolling value area. PROBE, in gold: the close is beyond the trail but the window's POC has not followed - a break not yet accepted; the trail flips only when the POC follows. Live on the forming bar; the trail itself moves only at the close.", text.align_left)
+        f_rd(3, rA, " " + gPushTxt + " ", gPushCol, "CONVICTION'S HISTOGRAM - the grid's push, the same gate the trail steps by: it steps only when value shifts its way AND this pushes its way.")
+        // v9.7 · Accepted momentum's position in this cell; else the trail's level
+        float aSd = inpAM ? nz(amPos) : TS.dir
+        f_rd(4, rA, inpAM ? (na(amPos) ? "—" : aSd == 0.0 ? " FLAT · disagree " : (aSd > 0 ? " LONG " : " SHORT ") + f_num(math.abs(aSd), "0.00") + " ") : TS.dir == 0 ? "—" : " trail " + f_px(TS.lvl) + " ", aSd > 0 ? C_BULL : aSd < 0 ? C_BEAR : C_SOFT, inpAM ? "ACCEPTED MOMENTUM - the tested engine (docs/trail-lab.md), its position as of this close.\n\nSIDE - the six-month acceptance trail drawn on the chart. SIZE - momentum's score S: the 1-, 3-, 6- and 12-month move of the close over its volatility. LONG while both point up, SHORT while both point down, FLAT while they disagree; the number is the size, 0 to 1.\n\nTested sizing: size × 10% ÷ annualised volatility, capped at 2, traded at the next open. An edge across many markets, small on any one - paper-trade it first." : "THE ACCEPTANCE TRAIL'S LEVEL - the ratcheted far edge of value (the value-area low while up, the high while down), drawn on the chart: below price as a floor while the trail is up, above it as a ceiling while it is down.")
+        f_rd(5, rA, (TS.dir != 0 and not na(TS.since) ? f_span(bar_index - TS.since) : "") + " ", C_SOFT, "How long the trail has stood on this side - since it started or last flipped.", text.align_right)
 
 if (inpOi or inpGrid or inpAucRow) and not coreView and barstate.islast
     f_readout()
@@ -4891,16 +4896,18 @@ string momTip = "MOMENTUM - the faster view minus the slower, on the outer band.
 // Kept in one array and rebuilt by a function on the last bar, so the labels'
 // text-building sits outside the script's main body, whose length Pine caps.
 var array<label> paneLbs = array.new<label>()
+// One pane label: right of the last bar, transparent, tiny, kept for the rebuild.
+f_pLbl(float y, string t, color tc, string tip) =>
+    array.push(paneLbs, label.new(bar_index + 2, y, t, style = label.style_label_left, color = color.new(C_NEUT, 100), textcolor = tc, size = size.tiny, tooltip = tip))
 f_paneLabels() =>
     string amgTip = "AMALGAMATED - one tape per instrument: its momentum's verdict is folded in. Past its edge the tape stands TALL (▮) while momentum CONFIRMS the edge - conviction RUNNING on the tape's side, value REVERTING toward fair - and short otherwise. Inside the edge it stays short; its faintness says there is nothing to confirm. TALL RED value under bright red conviction is the ▲'s condition."
     for lb in paneLbs
         label.delete(lb)
     array.clear(paneLbs)
-    array.push(paneLbs, label.new(bar_index + 2, trIn, (trConv ? "CONVICTION" : trVal ? "VALUE" : "CONVICTION × VALUE") + " TRACE" + (trConv ? "" : " · θ"),
-         style = label.style_label_left, color = color.new(C_NEUT, 100), textcolor = trDim ? C_GOLD : C_SOFT, size = size.tiny,
-         tooltip = "What the pane draws - the 'Trace' setting under 3 · Trace and MTF tapes. " +
+    f_pLbl(trIn, (trConv ? "CONVICTION" : trVal ? "VALUE" : "CONVICTION × VALUE") + " TRACE" + (trConv ? "" : " · θ"), trDim ? C_GOLD : C_SOFT,
+         "What the pane draws - the 'Trace' setting under 3 · Trace and MTF tapes. " +
          (trConv ? "The dotted rails are the conviction zones, the dashed the outer zone." : "The dotted rails are θ, the dashed ±60 a 3σ stretch.") +
-         (trDim ? " GOLD: the trace is dimmed - " + (trSplit ? "its ingredients point opposite ways." : "the value basket is settling.") : "")))
+         (trDim ? " GOLD: the trace is dimmed - " + (trSplit ? "its ingredients point opposite ways." : "the value basket is settling.") : ""))
     if inpTape != "Off"
         // name, reading, momentum - the frames live in the tooltip. Coloured by what the
         // tape says: green buyers / red sellers once past the inner zone, soft inside
@@ -4912,11 +4919,9 @@ f_paneLabels() =>
              (inpMomC ? "  ·  " + (ladMomReady ? ladMomTag + " " + f_num(ladMom, "+#;-#") : "warming") :
               inpMomCS == "Amalgamated" and ladReady ? cPh : "")
         color cCol = not multi ? C_GOLD : not ladReady ? C_SOFT : ladAgree >= inpZ1 ? C_BULL : ladAgree <= -inpZ1 ? C_BEAR : C_SOFT
-        array.push(paneLbs, label.new(bar_index + 2, lblYC, cTxt, style = label.style_label_left,
-             color = color.new(C_NEUT, 100), textcolor = cCol, size = size.tiny,
-             tooltip = "CONVICTION TAPE - " + inpTape + ": " + ladLbl + ". GREEN buyers / RED sellers in control past the inner zone (±" + f_num(inpZ1, "#") + "), soft inside it.\n\n" +
+        f_pLbl(lblYC, cTxt, cCol, "CONVICTION TAPE - " + inpTape + ": " + ladLbl + ". GREEN buyers / RED sellers in control past the inner zone (±" + f_num(inpZ1, "#") + "), soft inside it.\n\n" +
              (ladFallback ? "↺ FALLBACK - the chosen ladder direction has no frames on this chart, so the other direction is read.\n\n" : "") +
-             (inpMomC ? momTip : inpMomCS == "Amalgamated" ? amgTip : "")))
+             (inpMomC ? momTip : inpMomCS == "Amalgamated" ? amgTip : ""))
     if inpVLad != "Off"
         // coloured as the value tape: GREEN rich / RED cheap past θ, soft inside it.
         string vPh = gVPh == 0 ? "" : "  ·  " + (gCol == 0 ? (vTall ? "turning up ▮" : "still cheapening") : (vTall ? "turning down ▮" : "still richening"))
@@ -4927,11 +4932,9 @@ f_paneLabels() =>
              (inpMomV and tpOn ? "  ·  " + (tpReady ? (tpRev ? "reverting " : "widening ") + f_num(tpMom, "+#;-#") : "warming") :
               inpMomVS == "Amalgamated" and tpReady ? vPh : "")
         color vCol = not tpOn ? C_GOLD : not tpReady ? C_SOFT : tpBias >= osc_entry ? C_BULL : tpBias <= -osc_entry ? C_BEAR : C_SOFT
-        array.push(paneLbs, label.new(bar_index + 2, -lblYV, vTxt, style = label.style_label_left,
-             color = color.new(C_NEUT, 100), textcolor = vCol, size = size.tiny,
-             tooltip = "VALUE TAPE - " + inpVLad + ": " + tpLadLbl + ". GREEN rich / RED cheap past θ (±" + f_num(osc_entry, "#") + "), soft inside it.\n\n" +
+        f_pLbl(-lblYV, vTxt, vCol, "VALUE TAPE - " + inpVLad + ": " + tpLadLbl + ". GREEN rich / RED cheap past θ (±" + f_num(osc_entry, "#") + "), soft inside it.\n\n" +
              (tpFallback ? "↺ FALLBACK - the chosen ladder direction has no frames on this chart, so the other direction is read.\n\n" : "") +
-             (inpMomV ? momTip : inpMomVS == "Amalgamated" ? amgTip : "")))
+             (inpMomV ? momTip : inpMomVS == "Amalgamated" ? amgTip : ""))
     // Each family pauses on what IT reads: the ▲▼ on triWhy; the ◆ and R H on
     // stackWhy, which adds the trace - named apart while the ▲▼ already run.
     string fam  = (inpCon ? "◆ " : "") + (inpDiv ? "R " : "") + (inpHid ? "H " : "")
@@ -4939,8 +4942,7 @@ f_paneLabels() =>
          inpState and not triOk ? "SIGNALS PAUSED · " + triWhy :
          (inpCon or inpDiv or inpHid) and not stackOk ? (inpState ? fam + "PAUSED · " : "SIGNALS PAUSED · ") + stackWhy : ""
     if pTxt != ""
-        array.push(paneLbs, label.new(bar_index + 2, 0.0, pTxt, style = label.style_label_left,
-             color = color.new(C_NEUT, 100), textcolor = C_GOLD, size = size.tiny))
+        f_pLbl(0.0, pTxt, C_GOLD, "")
 if barstate.islast
     f_paneLabels()
 
@@ -5046,7 +5048,7 @@ f_alerts() =>
         // v9.4 · the acceptance trail's flips - opt-in, since the trail is unmeasured
         // v9.7 · with Accepted momentum, the position's side changes instead
         if inpAlTrail and inpAM and math.sign(nz(amPos)) != math.sign(nz(amPos[1]))
-            alert("Pragati · accepted momentum " + (amPos > 0 ? "LONG" : amPos < 0 ? "SHORT" : "FLAT") + " · size " + f_num(math.abs(nz(amPos)), "0.00") + ctx + ". The tested engine (docs/trail-lab.md): an edge across many markets, small on one. Size × 10% ÷ annualised volatility, at the next open.", alert.freq_once_per_bar_close)
+            alert("Pragati · accepted momentum " + (amPos > 0 ? "LONG " : amPos < 0 ? "SHORT " : "FLAT ") + f_num(math.abs(nz(amPos)), "0.00") + ctx, alert.freq_once_per_bar_close)
         if inpAlTrail and TS.flip and not inpAM
             alert("Pragati · acceptance trail flipped " + (TS.dir > 0 ? "UP" : "DOWN") + " at " + str.tostring(TS.lvl, format.mintick) + ctx + ". Price closed beyond the trail and the window's POC followed - accepted. Unmeasured structure, not a trade.", alert.freq_once_per_bar_close)
 f_alerts()
