@@ -41,8 +41,24 @@ session, so they were **not** re-verified. They are marked *external* below.
 | **S1** | All | Low: inconsistent units | SPAN read "1 bar" but then "2d" on a daily chart. AUCTION counted the flip bar as 0, so a fresh flip showed a blank span, while OI and CVG count their first bar as 1 | Code: `f_span`, and `bar_index − TS.since` | One unit throughout ("1d", "2d"; "1 bar", "2 bars" intraday). AUCTION counts its first bar as 1 | By construction |
 | **H1** | Header | Low: undocumented | The column CHART means different things on the CVG and AUCTION rows, against the section's own rule that "every column means the same thing on every row". The header cells had no tooltips | Code | Each header cell defines its column row by row. The section comment says CHART is "one more reading per row" | Visual |
 
-**Cost.** The compiled-token estimate rises from ≈ 98,970 to ≈ 99,450,
-against the 100,256 ceiling. No plot, request or drawing count changed.
+**Cost and the token fix.** v9.8 first compiled to **101,736**, over the
+100,256 ceiling (CE10117). Code tokens alone cannot explain it: v9.8 had
+**fewer** code tokens than v9.7, which compiled to 101,346. The only quantity
+that grew was string text, +1,775 characters of new tooltips.
+
+Fitted to the three reported counts (v9.4 102,222; v9.7 101,346; v9.8
+101,736), compiled ≈ 1.57 per code token + 0.74 per string character. That
+reproduces v9.4 to within 1.1%. A model built on comments instead misses by 6%,
+and the lexical ratio drifts from 3.17 to 3.32.
+
+The 27 longest tooltips were rewritten. They keep every fact and threshold and
+drop the history and repetition, which makes them **10,518 characters
+shorter**, for an estimate of **≈ 93,900**. The model rests on three points; if
+Pine counted code alone, this change would do nothing.
+
+| ID | Row | Defect | Fix |
+|---|---|---|---|
+| K1 | Inputs (CVG) | **The 'Impulse k' tooltip said the grid's rows move only on a push past k·σ.** The code moves them on any push that is not turning or quiet, and the readout's PUSH tooltip says so; the two contradicted each other | Corrected. k sets the ↑↑ impulse, the conviction momentum's knee, the ◆'s cross and the brightest shading; it does not gate the rows |
 
 ## 2 · Checked and sound
 
