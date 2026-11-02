@@ -318,3 +318,66 @@ Listing-day jumps of up to 200× (ALICE, UNI and others) fall inside every
 engine's warm-up and take no position, so they are left as they are.
 
 Nothing about the frozen engine changes.
+
+## 6 · Holdout result (run once, 2026-11-02; `research/results/lab/final.md`)
+
+| Holdout | Engine | Net Sharpe (t) | Timing Sharpe (t) | Max DD | Turnover/yr | Markets positive |
+|---|---|---|---|---|---|---|
+| HB · DEV markets 2020–26 (119) | **T126×TS** | **+1.21 (3.70)** | **+0.72 (2.2)** | −2.5% | 1.6 | 80% |
+| | TSMOM | +1.13 (3.39) | +0.56 (1.7) | −3.5% | 2.3 | 77% |
+| | T-LS (Pragati's 20-bar trail) | +0.88 (2.70) | +0.50 (1.5) | −5.8% | 3.0 | 70% |
+| HA · unseen markets (391 NSE stocks, 20 crypto) | **T126×TS** | **+0.79 (3.96)** | **+0.77 (4.1)** | −3.7% | 0.9 | 79% |
+| | TSMOM | +0.72 (3.63) | +0.60 (3.1) | −4.6% | 1.4 | 80% |
+| | T-LS | +0.60 (3.02) | +0.51 (2.5) | −9.3% | 1.9 | 77% |
+
+At twice the costs, T126×TS still makes +1.11 on HB and +0.69 on HA.
+
+### Verdict under §4
+
+- **The engine has an edge: PASS on both holdouts.** Its net Sharpe has t ≥ 2,
+  and its timing component, the part not explained by leaning long, has t 2.2
+  on HB and t 4.1 on HA.
+  - HA is the clean test: 411 markets no variant had seen.
+  - This is the first engine in this work whose edge survived data it was not
+    built on.
+- **It improves on plain TSMOM: FAIL.** The daily return difference has t −1.12
+  on HB and −0.94 on HA.
+  - On both holdouts, T126×TS has the higher Sharpe, the larger timing
+    component, the shallower drawdown and the lower turnover.
+  - But the pre-registered test compares *raw* daily returns. An engine that
+    stands flat when its two signals disagree holds less risk, so it earns less
+    in raw terms.
+  - That is a flaw in how §4 wrote the test, recorded here, not reinterpreted.
+  - **The honest label: an edge at least as good as TSMOM's, at about
+    two-thirds of its turnover. Superiority is unproven.** Testing it fairly
+    (on Sharpe, or at matched risk) needs a fresh holdout, such as live data
+    or Sanket's markets.
+
+### What a single chart should expect
+
+The portfolio's Sharpe comes from breadth. Per market on HA, the median net
+Sharpe is +0.23, the 25th percentile +0.05 and the 10th −0.13. HB is similar:
+median +0.38, 10th percentile −0.20.
+
+On one chart, about one market in four loses money over the whole period. The
+edge belongs to the engine applied with the same sizing across **many**
+markets, not to any one of them.
+
+### Limits that still apply
+
+1. **One country.** HA is 95% NSE stocks: the same country and years as DEV, so
+   it is not independent of DEV's regime. Crypto alone is flat (HA −0.04,
+   HB +0.29), and FX is negative (HB −0.17).
+2. **HB is not clean for TSMOM itself**, since its 2020–26 strength was already
+   known. It is clean for the engine's difference from TSMOM, which was not
+   significant.
+3. **Survivorship.** The NSE stocks are today's listings. The sign of the bias
+   on timing is unclear: delisted decliners are exactly where the short side
+   would have earned.
+4. **Implementation.**
+   - Shorting Indian cash equities overnight is not possible; the short side
+     needs stock futures (F&O names only) or index futures.
+   - The equal-risk portfolio's volatility is about 1.6%. Reaching a useful
+     risk level needs futures-style leverage, not cash.
+5. **Paper first.** §4 of `docs/trail-tradability.md` still governs capital:
+   six months of paper trading, then one-tenth size, then the kill rule.
