@@ -4340,39 +4340,34 @@ type Trail
 
 var Trail TS = Trail.new(0, na, na, false, false, array.new<int>(), array.new<float>(), array.new<float>(), array.new<float>(), array.new<label>(), array.new<polyline>())
 
-// One closed bar of the trail, exactly as the spec words it.
+// One closed bar of the trail, exactly as the spec words it (§4.2). Each rule is
+// a boolean and each field is set once, so no if/else chain carries a value: a
+// function's last statement is its return, and a chain whose branches ended in
+// an int, a bool and a float has no single type (CE10235).
 f_trailStep(Trail s, int mig, float val, float poc, float vah, float push) =>
     s.probe := false
     s.flip  := false
     if not na(mig) and not na(poc)
-        float pu = nz(push, 0.0)
-        if s.dir == 0
-            if mig >= 1 and pu > 0.0 and close >= val
-                s.dir   := 1
-                s.lvl   := val
-                s.since := bar_index
-            else if mig <= -1 and pu < 0.0 and close <= vah
-                s.dir   := -1
-                s.lvl   := vah
-                s.since := bar_index
-        else if s.dir == 1
-            if close < s.lvl and poc < s.lvl
-                s.dir   := -1
-                s.flip  := true
-                s.since := bar_index
-            else if close < s.lvl
-                s.probe := true
-            else if mig >= 1 and pu > 0.0 and val > s.lvl and close >= val
-                s.lvl := val
-        else
-            if close > s.lvl and poc > s.lvl
-                s.dir   := 1
-                s.flip  := true
-                s.since := bar_index
-            else if close > s.lvl
-                s.probe := true
-            else if mig <= -1 and pu < 0.0 and vah < s.lvl and close <= vah
-                s.lvl := vah
+        float pu    = nz(push, 0.0)
+        int   d     = s.dir
+        float t     = s.lvl
+        // start: value shifted or migrating, a push that way, price on that side
+        bool  upIn  = d == 0 and mig >= 1 and pu > 0.0 and close >= val
+        bool  dnIn  = d == 0 and not upIn and mig <= -1 and pu < 0.0 and close <= vah
+        // flip: a close beyond the trail AND the window's POC following - accepted
+        bool  flipD = d == 1  and close < t and poc < t
+        bool  flipU = d == -1 and close > t and poc > t
+        // probe: a close beyond the trail without the POC following
+        bool  prb   = (d == 1 and close < t and not flipD) or (d == -1 and close > t and not flipU)
+        // step: value shifts or migrates its way, a push that way, never past price
+        bool  stepU = d == 1  and not flipD and not prb and mig >= 1  and pu > 0.0 and val > t and close >= val
+        bool  stepD = d == -1 and not flipU and not prb and mig <= -1 and pu < 0.0 and vah < t and close <= vah
+        s.dir   := upIn or flipU ? 1 : dnIn or flipD ? -1 : d
+        s.lvl   := upIn or stepU ? val : dnIn or stepD ? vah : t
+        s.since := upIn or dnIn or flipU or flipD ? bar_index : s.since
+        s.probe := prb
+        s.flip  := flipU or flipD
+    s.dir
 
 // What the display keeps: the ribbon's last 1,500 closed bars, the latest 40
 // probe marks.
