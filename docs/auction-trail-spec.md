@@ -139,7 +139,7 @@ data was used, so both revisions precede the freeze. From here on, §7 applies.
   when the value tape is stretched past θ in the trail's direction
   (`D·V ≥ θ`): the move is already paid for, so it is late.
 - **Value ribbon**: the rolling value area (`VAL_t`…`VAH_t`) as a band in the
-  profile's identity blue, with the rolling POC dotted, over the last 1,500
+  trail's own identity slate (distinct from the session profile's blue), with the rolling POC dotted, over the last 1,500
   closed bars.
 - **Probe marks**: a gold × at the close of each probe bar (the latest 40).
 - **AUCTION row** in the readout: STATE = *M_t*'s name; WHY = trail direction and
