@@ -140,3 +140,68 @@ Round 1 tests the three levers that could create timing skill: **horizon**,
 Statistician's note: with timing t ≈ 1 on DEV even for TSMOM, a variant that
 "wins" by 0.05 in Sharpe is noise. Round 2 is designed from *patterns* across
 classes and eras, not from the top line.
+
+### Round 1 · results and review
+
+| Variant | DEV Sharpe | 2006–13 | 2014–19 | Timing SR (t) | Turnover/yr |
+|---|---|---|---|---|---|
+| TSMOM (ref) | +0.46 | +0.62 | +0.15 | +0.18 (1.0) | 2.3 |
+| BOUND | +0.49 | +0.40 | +0.05 | +0.27 (1.5) | 10.9 |
+| TRAIL126 | +0.41 | +0.43 | **+0.54** | **+0.38 (2.0)** | 1.4 |
+| SKIP21 | +0.45 | +0.55 | +0.26 | +0.17 (0.9) | 1.8 |
+| PMOM | **+0.75** | +0.80 | +0.39 | +0.29 (1.6) | 2.5 |
+
+Pooled DEV includes the pre-2006 years, so it is not the eras' average.
+
+**The council's review:**
+- **PMOM is built wrong, and its top line is an artifact.**
+  - All of its gain is in NSE stocks: +0.79 against TSMOM's +0.45. There it is
+    long 78% of the time, against 60%.
+  - On a driftless random walk with 1.3× volume on up days, its mean score is
+    **+0.44**; TSMOM's is −0.02.
+  - Weighting returns by participation turns the ordinary volume–return
+    asymmetry (Karpoff 1987) into a permanent long tilt. In a rising sample,
+    that tilt looks like skill.
+  - Pragati's participation premise is **not** confirmed by this.
+- **TRAIL126 is the round's real signal.**
+  - The user's own trail concept, moved to a 6-month horizon, has the best
+    timing component (t 2.0).
+  - It is the only engine positive and similar in both eras; in 2014–19,
+    where TSMOM nearly stalled, it made +0.54.
+  - Horizon was the trail's problem, as diagnosed.
+  - Its crypto Sharpe (−0.86) rests on about a year of post-warm-up DEV data.
+    That is noise, but it is noted.
+- **BOUND:** binary sizing costs five times the turnover and loses in both
+  eras. The engine's position should stay continuous; the trail displays it.
+- **SKIP21:** a wash. It gains in 2014–19 and commodities and loses in
+  2006–13.
+
+### Amendment 1 (before Round 2 runs): a null-test gate
+
+The selection rule as written would have picked PMOM, a drift artifact.
+Eligibility therefore gains a construction test that uses no market data.
+
+**The test.** Eight driftless random walks:
+- 6,000 bars each, daily σ 1%;
+- high and low extended by a half-normal of 0.5σ;
+- volume 1.3× on up days, with lognormal noise.
+
+A variant's **mean signal must lie within ±0.10**. Every signal lives in
+[−1, 1].
+
+The test applies to every variant, past and future, and is reported in
+`trials.md`.
+
+### Round 2 · proposals (written before running)
+
+The pattern to build on is horizon. The trail gains timing skill as its
+horizon lengthens, and TSMOM's strength is spreading across horizons.
+
+| Variant | Hypothesis |
+|---|---|
+| TRAIL252 | The horizon lever continued: a 12-month acceptance profile |
+| TRAILX | Horizon diversification, as TSMOM does it. The mean of the acceptance trail's state at 63, 126 and 252 bars, giving a continuous position in {±1/3, ±1} |
+| TRAILX+TS | Two different definitions of trend, each in [−1, 1]: where value is accepted (TRAILX) and where price has gone (TSMOM). If they err at different times, their mean is steadier than either |
+| TS+T20 | Momentum crashes happen at turning points (Daniel & Moskowitz 2016; Garg et al. 2021). TSMOM's size is halved while Pragati's 20-bar trail points against it, which uses the current trail as the fast leg |
+
+Budget after Round 2: 8 of 15.
