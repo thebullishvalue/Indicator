@@ -35,9 +35,36 @@ re-verified here.
 | **P2** | Panel · Profile Mode | Low: breaks the colour grammar | Painted **green** when the profile delivered volume and intrabar data. Green is a direction in this script (buyers, rich), not "data OK" | Code: `C_BULL` | Neutral when delivered; gold when degraded | Visual |
 | **P3** | Panel · Profile Mode | Low: claims more than it shows | The tooltip says "what the profile ACTUALLY did", but the right half reported only whether the **last bar** used intrabars. Intrabar history is plan-limited, so earlier bars of the session can be bar-spread | Code: `vpIntraOk` is the last bar's flag | Counts this session's bars and how many intrabars built. Shows the resolution, with its share when it is not every bar | By construction |
 
-**Cost.** At the fitted ratio (`docs/audit-readout-v9.8.md`), v9.9 is estimated at
-≈ 94,260 compiled tokens, against the 100,256 ceiling. No plot, request or
-drawing count changed; the boxes are at most what v9.8 drew.
+**Cost, and a model that was wrong.** v9.9 compiled to **100,306**, 50 over the
+ceiling. The v9.8 model (0.74 compiled tokens per string character) had
+predicted ≈ 94,260, so it was wrong.
+
+The one clean measurement is v9.8 to v9.9: tooltip text fell by 10,181
+characters, code barely moved, and the count fell by 1,430. That is about
+**0.14 per character**. Code tokens cost more and plainly vary in weight, so no
+model fitted to four reported counts predicts the count reliably.
+
+The recovery uses only cuts that save under any of them, and removes no
+feature:
+- **Code.** Eleven OI constants spliced into tooltips through `f_num` /
+  `str.tostring` became plain text (the constants' declaration says so), and
+  eleven settings spliced into tooltips became words such as "the Lookback".
+  Visible panel text keeps its live values. That is 142 code tokens and 32
+  string literals.
+- **Strings.** Two more tiers of the longest tooltips were rewritten: same facts,
+  fewer words, 7,706 characters fewer in all.
+
+The estimated saving is 1,200–1,550 tokens, landing near 98,800–99,100.
+Pessimistically, at 0.10 per character, it still lands at ≈ 99,400.
+
+Two tooltips found **stale** in that pass are now correct:
+
+| ID | Element | Defect | Fix |
+|---|---|---|---|
+| P4 | AUCTION row input | Said CHART is "the trail's level" and described the probe the pre-v9.8 way. Since v9.7, CHART is Accepted momentum's position | Describes the row as it now reads |
+| P5 | Readout position input | Described "the OI row and the Conviction-Value Grid row", omitting AUCTION | Names all three rows |
+
+No plot, request or drawing count changed.
 
 ## 2 · Checked and sound
 
