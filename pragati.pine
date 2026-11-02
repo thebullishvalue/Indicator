@@ -3,7 +3,7 @@
 
 //@version=6
 // ═══════════════════════════════════════════════════════════════════════════
-//  PRAGATI · प्रगति  ·  MULTI-TIMEFRAME CONVICTION OSCILLATOR            v9.6
+//  PRAGATI · प्रगति  ·  MULTI-TIMEFRAME CONVICTION OSCILLATOR            v9.7
 //  "Is this move paid for - and is it paid for on every timeframe?"
 //
 //  ═══ v9 · A FRESH AUDIT, AND THE SIGNALS MOVED TO WHERE THE EDGE IS ════════
@@ -86,6 +86,27 @@
 //      style). The tapes: each tape and its momentum band sit one point apart,
 //      and their names carry the reading, not the frame list, coloured by what
 //      the tape says. No engine or signal number changed.
+//
+//  v9.7 · A TRAIL WITH A TESTED EDGE - ACCEPTED MOMENTUM (docs/trail-lab.md).
+//      The 20-bar acceptance trail was put to a pre-registered test on 119
+//      markets (docs/trail-tradability.md §7) and failed every mark: no timing
+//      skill - what it earned was drift. A council then iterated on a
+//      development set only (eleven trials, every one logged), froze a winner by
+//      rule, and ran it ONCE on data no trial had seen: 411 unseen markets and
+//      2020-26. It passed both, net of costs - Sharpe +0.79 (t 4.0) and +1.21
+//      (t 3.7), the timing component beyond leaning long t 4.1 and 2.2.
+//      · THE ENGINE. SIDE: this same acceptance trail on a 126-bar (six-month)
+//        window - the horizon where trend premia live. SIZE: time-series
+//        momentum's score S, the volatility-scaled 1-, 3-, 6- and 12-month
+//        move of the close. LONG only while both say up, SHORT only while both
+//        say down, FLAT when they disagree. The trail draws it: hue its side,
+//        intensity its size, neutral when flat. On by default; off returns the
+//        Lookback-window trail, which is structure, not a trade.
+//      · WHAT IT DOES NOT CLAIM. It does not beat plain momentum (the
+//        pre-registered test of that failed); it matched it at lower turnover
+//        and drawdown. The edge is a portfolio's: on ONE market the median
+//        Sharpe was +0.23 to +0.38 and a quarter lost. Size every market alike -
+//        weight = size × 10% ÷ annualised volatility - and paper-trade first.
 //
 //  v9.6 · THE ENGINE AUDIT - every engine checked for what the acceptance trail
 //      leans on, each suspicion provoked on synthetic data built to break it,
@@ -315,7 +336,8 @@
 //      4 · Pane display             markers, histogram and its shading, the
 //                                   trace's intensity and fill
 //      5 · Acceptance trail         the auction engine on the price chart: the
-//                                   trail, value ribbon, probe marks, flip alert
+//                                   trail, Accepted momentum (v9.7, the tested
+//                                   engine), value ribbon, probe marks, alerts
 //      6 · Readout                  the price-chart table: where it sits, the
 //                                   OI, Conviction-Value Grid and AUCTION rows
 //      7 · Volume profile           price-chart overlay, display only: how it
@@ -1074,10 +1096,11 @@ bool   inpTraceZone = input.bool(true, "Trace intensity by zone", group=G_PANE, 
 bool   inpFill = input.bool(true, "Trace fill", group=G_PANE, tooltip="DISPLAY ONLY. A faint fill between the trace and zero, green above and red below.", display=display.none)
 
 // ── 5 · Acceptance trail · price chart ────────────────────────────────────────
-bool   inpTrail   = input.bool(true, "Acceptance trail", group=G_AT, tooltip="A stepped line on the PRICE chart: where value was last accepted. Display-only and unmeasured (v9.4) - read it as structure, not as a trade.\n\nTHE LEVEL is the ratcheted far edge of value - the value-area LOW while the trail is up, the HIGH while it is down - of a rolling volume profile over the last Lookback bars (the conviction horizon), built from this chart's own bars - not the session profile above, which is a display. It rides the value ribbon's edge and holds when the ribbon dips.\n\nIT STEPS only when value shifts or migrates its way AND conviction's own histogram confirms a push that way - the gate the Conviction-Value Grid moves a row by - so it holds flat through pullbacks.\n\nIT FLIPS only on ACCEPTANCE: a close beyond it, the window's POC following, AND value migrated that way against N bars earlier - so a POC hopping inside a balanced range does not flip it. The broken floor becomes the ceiling. Beyond it without all three is a PROBE - price outside value that the market has not accepted yet - and its first bar gets a gold ×.\n\nCOLOUR - one question per channel: HUE is the trail's side. INTENSITY is the conviction tape in the trail's direction: solid past the outer zone, strong past the inner zone, moderate on its side, faint against it. GOLD when the value tape is stretched past θ in the trail's direction - the move is already paid for, so it is late.\n\nLAG: none of averaging - the level is the edge of where the market traded 70% of its volume. The wait is acceptance. Committed on closed bars; it never repaints.\n\nFrozen in docs/auction-trail-spec.md before any result was seen; its tests decide what it may claim.", display=display.none)
+bool   inpTrail   = input.bool(true, "Acceptance trail", group=G_AT, tooltip="A stepped line on the PRICE chart: where value was last accepted. With Accepted momentum on (the default, v9.7) it draws the tested engine - its side, and its size as intensity; off, it is the Lookback-window trail, structure that measured null as a trade.\n\nTHE LEVEL is the ratcheted far edge of value - the value-area LOW while the trail is up, the HIGH while it is down - of a rolling volume profile over the last Lookback bars (the conviction horizon), built from this chart's own bars - not the session profile above, which is a display. It rides the value ribbon's edge and holds when the ribbon dips.\n\nIT STEPS only when value shifts or migrates its way AND conviction's own histogram confirms a push that way - the gate the Conviction-Value Grid moves a row by - so it holds flat through pullbacks.\n\nIT FLIPS only on ACCEPTANCE: a close beyond it, the window's POC following, AND value migrated that way against N bars earlier - so a POC hopping inside a balanced range does not flip it. The broken floor becomes the ceiling. Beyond it without all three is a PROBE - price outside value that the market has not accepted yet - and its first bar gets a gold ×.\n\nCOLOUR - one question per channel: HUE is the trail's side. INTENSITY is the conviction tape in the trail's direction: solid past the outer zone, strong past the inner zone, moderate on its side, faint against it. GOLD when the value tape is stretched past θ in the trail's direction - the move is already paid for, so it is late.\n\nLAG: none of averaging - the level is the edge of where the market traded 70% of its volume. The wait is acceptance. Committed on closed bars; it never repaints.\n\nFrozen in docs/auction-trail-spec.md before any result was seen; its tests decide what it may claim.", display=display.none)
+bool   inpAM      = input.bool(true, "    Accepted momentum · the tested engine", group=G_AT, tooltip="ON (default): the trail becomes ACCEPTED MOMENTUM, the one trail engine here with a tested edge (docs/trail-lab.md).\n\nSIDE - this acceptance trail on a 126-bar (six-month) window instead of Lookback: the horizon where trend premia live. SIZE - time-series momentum's score S: the 1-, 3-, 6- and 12-month move of the close, each over its volatility, capped at ±2σ, averaged. LONG while both say up, SHORT while both say down, FLAT while they disagree; the size runs 0 to 1 with S. The trail's hue is its side, its intensity the size, neutral when flat. The ribbon, probes and readout follow the 126-bar window.\n\nTESTED: eleven trials on a development set (119 markets to 2019), one winner frozen by rule, then run once on data none had seen. Net of costs: 411 unseen markets Sharpe +0.79 (t 4.0); 2020-26 +1.21 (t 3.7); its timing beyond leaning long t 4.1 and 2.2. It did NOT pass the test of beating plain momentum.\n\nHOW TO USE IT. The edge is a portfolio's: on one market the median Sharpe was +0.23 to +0.38, and a quarter of markets lost. Apply it to many markets alike, sizing each at size × 10% ÷ its annualised volatility (capped at 2), decided at the close, traded at the next open. Paper-trade it first. Shorting needs futures where cash shorts are barred.\n\nOFF: the Lookback-window trail - structure, measured null as a trade (docs/trail-tradability.md §7).", display=display.none)
 bool   inpRibbon  = input.bool(true, "    Value ribbon", group=G_AT, tooltip="The rolling value area behind the trail - the band where 70% of the last Lookback bars' participation traded (volume over its own baseline, capped as the conviction engine caps it) - in its own identity slate - not the session profile's blue, so the two value areas never read as one - with its POC dotted. Hue marks identity, never direction, as on the profile. The last 1,500 closed bars.\n\nPrice inside the band is IN VALUE; above or below it, price the window has not yet accepted.", display=display.none)
 bool   inpProbe   = input.bool(true, "    Probe marks", group=G_AT, tooltip="A gold × at the close of the FIRST bar of each probe - a close beyond the trail the market had not accepted (the POC not following, or value not migrated). A probe lasts about four bars; marking every bar of it turned a quarter of the chart gold. Gold means what it means everywhere here: read with caution. The latest 40 are kept.", display=display.none)
-bool   inpAlTrail = input.bool(false, "Alert on trail flips", group=G_AT, tooltip="Adds trail flips to the one 'Any alert() function call' alert, with the level and the chart's state. OFF by default: the trail is unmeasured, and a flip alert invites trading it.", display=display.none)
+bool   inpAlTrail = input.bool(false, "Alert on trail flips", group=G_AT, tooltip="Adds to the one 'Any alert() function call' alert, with the chart's state. With Accepted momentum on: each change of its position - LONG, SHORT or FLAT - with the size. Off: the Lookback trail's flips, with the level. OFF by default: an alert invites trading one chart, and the tested edge is a portfolio's.", display=display.none)
 
 // ── 6 · Readout · price chart ─────────────────────────────────────────────────
 string inpOiPos = input.string("Bottom left", "Readout position", options=["Bottom left", "Bottom centre", "Bottom right", "Middle left", "Top centre", "Top right"], group=G_OI, tooltip="Where the readout - the OI row and the Conviction-Value Grid row below, one table - sits on the price chart.\n\nDefault BOTTOM LEFT. The right-hand side is taken: the volume profile draws its histogram in the gutter past the last bar and hangs its POC/VAH/VAL/VWAP tags in a column beyond that. Bottom left is the one corner nothing else claims — top left belongs to the chart legend.\n\nMove it if you run the profile off.", display=display.none)
@@ -4285,14 +4308,20 @@ oiPrevChar := oiHas ? oiChar : ""
 //  participation traded. The wait is ACCEPTANCE - the time the market takes to agree - which is
 //  the information. Its colours carry the engines' own smoothing.
 //
-//  WHAT IT DOES NOT CLAIM. Unmeasured. A trend state on daily stocks fights the
-//  short-term reversal they show, and this script's own continuation ◆ failed
-//  (v9). Read the trail as structure - where value was last accepted - and as
-//  context for the ▲. The spec's H1-H4 decide what it may claim.
+//  WHAT IT CLAIMS, MEASURED (v9.7). On the Lookback window, nothing as a trade:
+//  the pre-registered test on 119 markets found no timing skill - its return was
+//  drift (docs/trail-tradability.md §7). Read that trail as structure. On a
+//  126-bar window, sized by time-series momentum and flat when the two disagree,
+//  it is ACCEPTED MOMENTUM, which passed a held-out test on 411 unseen markets
+//  and 2020-26 (docs/trail-lab.md §6) - an edge across many markets, small on
+//  any one, not shown to beat plain momentum.
 // ══════════════════════════════════════════════════════════════════════════════
 
 // Computed whenever anything reads it, whatever the view; drawn in Full view.
 bool   aucOn      = chart.is_standard and (inpTrail or inpRibbon or inpAucRow or inpAlTrail)
+// v9.7 · the window: six months for Accepted momentum, the tested horizon; the
+// conviction Lookback for the structural trail
+int    aN         = inpAM ? 126 : inpLen
 
 // §3 · the rolling composite profile of the last N bars. Loops only - no ta.*
 // call - so evaluating it conditionally is safe.
@@ -4300,7 +4329,7 @@ f_aucProfile() =>
     float oVal = na
     float oPoc = na
     float oVah = na
-    int   n    = inpLen
+    int   n    = aN
     if aucOn and bar_index >= n - 1
         float lo = low
         float hi = high
@@ -4373,7 +4402,7 @@ f_aucMig(float cVal, float cPoc, float cVah, float pVal, float pVah) =>
     m
 
 [aVal, aPoc, aVah] = f_aucProfile()
-int aMig = f_aucMig(aVal, aPoc, aVah, aVal[inpLen], aVah[inpLen])
+int aMig = f_aucMig(aVal, aPoc, aVah, aVal[aN], aVah[aN])
 
 // §4.2 · the trail's state, and what the display keeps of it, in one object -
 // one global in a main body Pine caps.
@@ -4451,6 +4480,22 @@ if aucOn and barstate.isconfirmed
     f_trailStep(TS, aMig, aVal, aPoc, aVah, gGate)
     f_aucStore(TS)
 
+// v9.7 · ACCEPTED MOMENTUM'S SIZE - time-series momentum's score S, exactly as
+// research/trail_lab.py tests it: for h = 21, 63, 126, 252 bars, ln(C / C[h])
+// over σ√h with σ the EWMA (span 60) daily volatility, each capped at ±2,
+// averaged and halved into [-1, 1]. The position is the trail's side sized by
+// S where they agree, and 0 where they do not. Read live; decided at the close.
+f_amS() =>
+    float r = math.log(close / close[1])
+    var float v = na
+    v := na(r) ? v : na(v) ? r * r : v + (r * r - v) * 2.0 / 61.0
+    float s = 0.0
+    for h in array.from(21, 63, 126, 252)
+        s += math.max(-2.0, math.min(2.0, math.log(close / close[h]) / math.sqrt(v * h)))
+    s / 8.0
+float amS   = f_amS()
+float amPos = inpAM and TS.dir != 0 ? TS.dir * math.max(0.0, TS.dir * amS) : na
+
 // The trail's colour, one question per channel: hue its side; intensity the
 // conviction tape in its direction; GOLD when the value tape is stretched past θ
 // its way - the move already paid for.
@@ -4458,7 +4503,10 @@ f_trailCol(Trail s) =>
     float agree = s.dir * mC
     int   t     = not mtfCOk ? 40 : agree >= inpZ2 ? 0 : agree >= inpZ1 ? 15 : agree > 0.0 ? 40 : 65
     bool  paid  = mtfVOk and s.dir * mV >= osc_entry
-    color.new(paid ? C_GOLD : s.dir > 0 ? C_BULL : C_BEAR, paid ? math.min(t, 25) : t)
+    float z     = math.abs(nz(amPos))
+    // v9.7 · Accepted momentum: hue the side, intensity the size, neutral when flat
+    inpAM ? (z == 0.0 ? color.new(C_NEUT, 35) : color.new(s.dir > 0 ? C_BULL : C_BEAR, z >= 0.5 ? 0 : z >= 0.25 ? 25 : 50)) :
+         color.new(paid ? C_GOLD : s.dir > 0 ? C_BULL : C_BEAR, paid ? math.min(t, 25) : t)
 
 // One plot, its colour a series: it spends the two counts the Data Window's
 // effort and rebuild-error rows used to hold (both now live in the panel).
@@ -4655,11 +4703,17 @@ f_readout() =>
         // cannot start - said, not left to look like a fault.
         string aWhy   = (TS.dir == 0 ? (na(gGate) ? "push gate warming" : "no trail yet") : TS.dir > 0 ? "trail ↑" : "trail ↓") +
              (aProbe ? " · probe, POC not following" : aLoc != "" ? " · " + aLoc : "")
-        f_rd(0, rA, " AUCTION", C_SOFT, text.align_left, na, "THE AUCTION ENGINE (v9.4, spec v2 since v9.6) - where participation was ACCEPTED, which no other part of Pragati measures. A rolling volume profile of the last " + str.tostring(inpLen) + " bars (the conviction lookback), built from this chart's own bars - not the session profile, which is a display - compared with the same window " + str.tostring(inpLen) + " bars earlier.\n\nDisplay-only and UNMEASURED: frozen in docs/auction-trail-spec.md, whose H1 asks whether it says anything the tapes do not, and whose H2 whether it tells a capitulation that works from one that does not.")
-        f_rd(1, rA, " " + aSt + " ", aTone, text.align_left, color.new(aTone, 86), "MIGRATING ↑ / ↓ - this window's value area no longer overlaps the one " + str.tostring(inpLen) + " bars ago: value has moved.\nSHIFTING ↑ / ↓ - the value areas still overlap, but the POC has left the old value.\nBALANCE - neither: value is where it was.\n\nValue area " + f_px(aVal) + " – " + f_px(aVah) + ", POC " + f_px(aPoc) + ".")
+        f_rd(0, rA, " AUCTION", C_SOFT, text.align_left, na, "THE AUCTION ENGINE (v9.4, spec v2 since v9.6) - where participation was ACCEPTED, which no other part of Pragati measures. A rolling volume profile of the last " + str.tostring(aN) + " bars (" + (inpAM ? "six months, Accepted momentum's tested window" : "the conviction lookback") + "), built from this chart's own bars - not the session profile, which is a display - compared with the same window " + str.tostring(aN) + " bars earlier.\n\nThe Lookback-window trail measured null as a trade (docs/trail-tradability.md §7); Accepted momentum, this trail on six months sized by momentum, passed a held-out test (docs/trail-lab.md).")
+        f_rd(1, rA, " " + aSt + " ", aTone, text.align_left, color.new(aTone, 86), "MIGRATING ↑ / ↓ - this window's value area no longer overlaps the one " + str.tostring(aN) + " bars ago: value has moved.\nSHIFTING ↑ / ↓ - the value areas still overlap, but the POC has left the old value.\nBALANCE - neither: value is where it was.\n\nValue area " + f_px(aVal) + " – " + f_px(aVah) + ", POC " + f_px(aPoc) + ".")
         f_rd(2, rA, " " + aWhy + " ", aProbe ? C_GOLD : C_SOFT, text.align_left, na, "THE TRAIL'S SIDE, and where the close sits against the rolling value area. PROBE, in gold: the close is beyond the trail but the window's POC has not followed - a break not yet accepted; the trail flips only when the POC follows. Live on the forming bar; the trail itself moves only at the close.")
         f_rd(3, rA, " " + gPushTxt + " ", gPushCol, text.align_center, na, "CONVICTION'S HISTOGRAM - the grid's push, the same gate the trail steps by: it steps only when value shifts its way AND this pushes its way.")
-        f_rd(4, rA, TS.dir == 0 ? "—" : " trail " + f_px(TS.lvl) + " ", TS.dir > 0 ? C_BULL : TS.dir < 0 ? C_BEAR : C_SOFT, text.align_center, na, "THE ACCEPTANCE TRAIL'S LEVEL - the ratcheted far edge of value (the value-area low while up, the high while down), drawn on the chart: below price as a floor while the trail is up, above it as a ceiling while it is down.")
+        // v9.7 · the close at which S would be 0, uncapped: the 1/√h-weighted
+        // geometric mean of the closes 21, 63, 126 and 252 bars ago
+        float amB = math.exp((0.218218 * math.log(close[21]) + 0.125988 * math.log(close[63]) + 0.089087 * math.log(close[126]) + 0.062994 * math.log(close[252])) / 0.496287)
+        if inpAM
+            f_rd(4, rA, na(amPos) ? "—" : amPos == 0.0 ? " FLAT · disagree " : (amPos > 0 ? " LONG " : " SHORT ") + f_num(math.abs(amPos), "0.00") + " ", nz(amPos) > 0 ? C_BULL : nz(amPos) < 0 ? C_BEAR : C_SOFT, text.align_center, na, "ACCEPTED MOMENTUM - the tested engine (docs/trail-lab.md), its position as of this close.\n\nSIDE - the six-month acceptance trail, " + (TS.dir > 0 ? "UP, its floor at " : TS.dir < 0 ? "DOWN, its ceiling at " : "not started ") + f_px(TS.lvl) + ".\nSIZE - momentum's score S " + f_num(amS, "+0.00;-0.00") + "; it turns at a close of " + f_px(amB) + " (uncapped).\n\nLONG while both point up, SHORT while both point down, FLAT while they disagree; the number is the size, 0 to 1. Tested sizing: size × 10% ÷ annualised volatility, capped at 2, at the next open. An edge across many markets, small on any one - paper-trade it first.")
+        else
+            f_rd(4, rA, TS.dir == 0 ? "—" : " trail " + f_px(TS.lvl) + " ", TS.dir > 0 ? C_BULL : TS.dir < 0 ? C_BEAR : C_SOFT, text.align_center, na, "THE ACCEPTANCE TRAIL'S LEVEL - the ratcheted far edge of value (the value-area low while up, the high while down), drawn on the chart: below price as a floor while the trail is up, above it as a ceiling while it is down.")
         f_rd(5, rA, (TS.dir != 0 and not na(TS.since) ? f_span(bar_index - TS.since) : "") + " ", C_SOFT, text.align_right, na, "How long the trail has stood on this side - since it started or last flipped.")
 
 if (inpOi or inpGrid or inpAucRow) and not coreView and barstate.islast
@@ -4990,6 +5044,9 @@ f_alerts() =>
         // The ◆, R and H - measured negative or null - keep their alertcondition()
         // entries only; repeating them here was weight the token ceiling refused.
         // v9.4 · the acceptance trail's flips - opt-in, since the trail is unmeasured
-        if inpAlTrail and TS.flip
+        // v9.7 · with Accepted momentum, the position's side changes instead
+        if inpAlTrail and inpAM and math.sign(nz(amPos)) != math.sign(nz(amPos[1]))
+            alert("Pragati · accepted momentum " + (amPos > 0 ? "LONG" : amPos < 0 ? "SHORT" : "FLAT") + " · size " + f_num(math.abs(nz(amPos)), "0.00") + ctx + ". The tested engine (docs/trail-lab.md): an edge across many markets, small on one. Size × 10% ÷ annualised volatility, at the next open.", alert.freq_once_per_bar_close)
+        if inpAlTrail and TS.flip and not inpAM
             alert("Pragati · acceptance trail flipped " + (TS.dir > 0 ? "UP" : "DOWN") + " at " + str.tostring(TS.lvl, format.mintick) + ctx + ". Price closed beyond the trail and the window's POC followed - accepted. Unmeasured structure, not a trade.", alert.freq_once_per_bar_close)
 f_alerts()

@@ -381,3 +381,24 @@ markets, not to any one of them.
      risk level needs futures-style leverage, not cash.
 5. **Paper first.** §4 of `docs/trail-tradability.md` still governs capital:
    six months of paper trading, then one-tenth size, then the kill rule.
+
+## 7 · In Pragati (v9.7, branch `pragati-v9.7`)
+
+**One switch, on by default:** *Accepted momentum · the tested engine*, in
+group 5.
+
+| Part | What it does |
+|---|---|
+| Window | The auction engine's window becomes 126 bars, against the Lookback otherwise. The trail, ribbon, probes and AUCTION row follow it. No second profile engine and no new request are needed |
+| Size | `f_amS()` computes S exactly as the lab does. A Python port of the Pine lines matches `research/trail_lab.py` to 5×10⁻¹⁴ on 34,501 bars of six markets |
+| Position | `TS.dir × max(0, TS.dir × S)`, decided on closed bars |
+| Trail colour | Hue is the side; intensity is the size (solid at ≥ 0.5, strong at ≥ 0.25, faint below). Neutral grey when flat. It reuses the trail's one plot, so the plot budget is unchanged |
+| Readout | The AUCTION row's fifth cell shows LONG, SHORT or FLAT with the size. Its tooltip gives the trail's level, S, and the close at which S turns: the uncapped *C\**, the 1/√h-weighted geometric mean of the closes 21, 63, 126 and 252 bars ago |
+| Alert | Opt-in. With the engine on, it fires on each change of the position's side. Off, it fires on trail flips as before |
+
+**What it costs:** about 500 lexical tokens, an estimated 98.8k compiled
+against the 100,256 ceiling.
+
+**Not verified here:** a TradingView compile. The one known difference from
+the lab is that Pine bins on the symbol's own tick, while the CSV test
+estimated the tick.
