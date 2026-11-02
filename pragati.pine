@@ -124,6 +124,15 @@
 //        trace's histogram - it reads neither; two alerts named the TURN
 //        source v9.2 removed; the repaint posture now discloses that the
 //        intrabar depth cap is a SLIDING window.
+//      · ONE TAPE PER INSTRUMENT, AS AN OPTION. Each momentum setting reads
+//        Separate band (as before, the default) · Amalgamated · Off.
+//        Amalgamated folds the momentum's VERDICT into its level tape the
+//        way the grid folds it: past its edge the tape stands TALL while
+//        momentum confirms that edge - conviction RUNNING, value REVERTING -
+//        and short otherwise. One rule, TALL = a confirmed edge, reads both
+//        instruments, where the separate bands confirm conviction by SAME
+//        hue and value by OPPOSITE hue. By category, never a sum (THE TAPES,
+//        AMALGAMATED). Drawing only: the same four plots, nothing read moves.
 //
 //  v8 (kept as the record): v5 with the grid's units re-weighted - DOWN · cheap
 //  Buy 3 (was Watch 1), DOWN · fair Accumulate 1.5 (was 0.5), UP · fair Hold
@@ -173,6 +182,8 @@
 //      −60   dashed rail · bullish R H                  divergence
 //      −82   MTF value tape                            rich or cheap on the ladder
 //      −90   MTF value momentum tape                   faster frames − slower
+//  AMALGAMATED, per instrument: no ±90 band; its tape stands tall over the
+//  space instead (±79 → ±92) while its momentum confirms the tape's edge.
 //  The rails follow the trace: the inner rail is the conviction zone (±30) on
 //  the Conviction trace and θ (±43 at the default 1.5) on the other two; the
 //  outer rail is ±60 on all three at the defaults.
@@ -188,7 +199,8 @@
 //                                   signal, impulse threshold k, normalization,
 //                                   participation
 //      2 · Trace and MTF tapes      the TRACE; which ladder each instrument
-//                                   reads, and each momentum tape on or off
+//                                   reads, and each momentum as its own
+//                                   band, folded into its tape, or off
 //      3 · Value model · Samanvaya  macro hedge, model clock, leg mix, θ, custom
 //                                   driver - everything that moves the value tape
 //      4 · Signals · ▲ ▼ ◆          the ▲▼, their cooldown, the ◆;
@@ -336,6 +348,37 @@
 //  phases, and v9's ▲ needs the value momentum reverting - so switching a
 //  momentum TAPE off hides the band, never the reading. Measured (v9): inside
 //  the capitulation cell, value momentum reverting beat widening in every era.
+//
+//  AMALGAMATED · ONE TAPE PER INSTRUMENT (v9.3, each momentum setting). The
+//  grid reads each instrument as ONE thing: its level's edge and whether its
+//  momentum confirms it - the 5 × 5. Drawn as two bands, the eye has to do
+//  that fold itself, under two opposite rules: conviction's edge is confirmed
+//  by the SAME hue outside it (running), value's by the OPPOSITE hue
+//  (reverting). Amalgamated, the fold is drawn: past its edge a tape stands
+//  TALL - out over the band it replaces - while momentum confirms the edge,
+//  and short - the level tape exactly - while it does not; inside its edge it
+//  stays short and faint, nothing to confirm. Hue and intensity are the level
+//  tape's. So the three states read off two channels:
+//
+//          short, faint     no edge                    FAINT row · FAIR column
+//          short, bright    an edge, unconfirmed       pausing · widening
+//          TALL, bright     an edge, confirmed         running · reverting
+//
+//          ▲ condition      bright red conviction tape over a TALL red value
+//                           tape: sellers in control, cheap, turning up
+//
+//  WHY A CATEGORY AND NOT A SUM. Momentum is built FROM the level: on Ladder up
+//  it is chart − tape, so tape + momentum is the chart's own reading exactly -
+//  the ladder vanishes; on Ladder down it is tape − chart, so the sum is
+//  2·tape − chart, an extrapolation past both. A z-space blend double-counts
+//  the level for the same reason. The fold keeps what is MEASURED - the phase
+//  on an edge - and drops what is not: the band's own shading and the early
+//  read inside the zone (TURNING INSIDE). Keep Separate for that read.
+//
+//  The verdict is the grid's own phase - value's exactly the gVPh the ▲ reads;
+//  conviction's against the tape's zone, not the grid's row, so the two can
+//  differ only while the row is HELD, which the readout marks. It appears once
+//  the grid reads - both level tapes ready.
 //
 //  ═══ TWO DIRECTIONS, ONE SETTING PER TAPE ════════════════════════════════
 //  Each tape has its own ladder input, so they can read opposite directions.
@@ -848,9 +891,11 @@ float  inpCap  = input.float(3.0, "Participation cap", minval=1.0, maxval=10.0, 
 // ── 2 · the trace, and which ladder each tape reads ─────────────────────────
 string inpTrace = input.string("Conviction × Value", "Trace", options=["Conviction × Value", "Conviction", "Value"], group=G_M, tooltip="WHAT THE PANE DRAWS. The histogram is always this trace minus its own signal EMA.\n\nCONVICTION × VALUE (default) - how far the move is STRETCHED on this chart, in one-sided effort and in price against fair value: conviction in σ and Samanvaya's value in σ, blended equally, their measured correlation restoring the blend's variance, and bounded once on Samanvaya's scale - Samanvaya's own recipe for its two legs, one level up. Read against θ (±43 at the default) and ±60, a 3σ stretch. It DIMS while its two ingredients point opposite ways - accumulation or distribution, not quiet - and while the value basket settles.\n\nCONVICTION - the single-frame engine alone, bit-identical to Nishchaya v3: every number in the evidence was measured on it, and with it the script reads exactly as it did before this setting. Read against the conviction zones.\n\nVALUE - Samanvaya's value on this chart alone, read against θ.\n\nWHAT FOLLOWS THE TRACE: the columns and their tiers, the impulse gate, the ◆ pullback and resume, the rails and the panel's headline. WHAT STAYS ON CONVICTION: the conviction ladder's chart rung and momentum tape, control for a ◆, the divergence pivots (off the Conviction trace their connectors move to the price chart), the quiet regime, and the Conviction-Value Grid - and with it v9's ▲▼ - which reads conviction's histogram as Pragyam does.\n\nThe blend is unmeasured.", display=display.none)
 string inpTape = input.string("Ladder down", "MTF conviction ladder", options=["Ladder down", "Ladder up", "Off"], group=G_M, tooltip="Which ladder of timeframes feeds the MTF CONVICTION tape (+82) - Pragati's own - and its MOMENTUM tape (+89). The MTF VALUE tapes have their own setting just below.\n\nv9.1 DEFAULTS TO LADDER DOWN. Measured head to head on the same daily charts (377 instruments, Nov 2024 - Sep 2026, the 1h and 4h rungs free data carries): the grid tied, and the ▲ capitulation turn was as good or better on Ladder down in every non-crypto class - significantly on indices, commodities and FX - and tied on stocks. Crypto read better on Ladder up. One ~2-year window: a lean, not a proof. Sanket and Pragyam read Ladder down too, from the intraday history yfinance carries.\n\nLADDER DOWN (default) - every standard frame BELOW the chart: 15m reads 1m · 3m · 5m · 15m, daily reads 1m through 4h, then D. Each lower frame is its conviction averaged across its own bars inside the chart bar, weighted by participation. Every lower frame's window is SHORTER than the chart's, so this is a FASTER read than chart conviction: whether the chart's conviction is BUILT from the bars inside it - it sees a turn inside the bars before the chart does.\n\nLADDER UP - the chart and the standard frames ABOVE it, up to 4h: 5m reads 4h · 1h · 30m · 15m · 5m, daily reads W · D. A SLOWER read: whether the conviction is HELD by the frames that contain the chart.\n\nThe signal rules are the same in both directions; what each condition MEANS follows the direction, and the header's SIGNALS section spells out both.\n\nFALLBACK - if the chosen direction has no frames on this chart (Ladder up on 4h or weekly, Ladder down on 1m), the other direction is read and the tape's label shows ↺. Nothing pauses silently.\n\nOFF - no conviction tapes. Every signal needs both level tapes, so with this Off no signal can fire.\n\nUnmeasured.", display=display.none)
-bool   inpMomC = input.bool(true, "    Conviction momentum tape  (+89)", group=G_M, tooltip="MTF CONVICTION MOMENTUM (+89) - Dhṛti's momentum tape, on the conviction ladder above: the faster view of conviction minus the slower, in the tape's own points.\n\nLADDER DOWN - the bar's insides minus the bar. Bright against chart conviction's side is the inside of the bars turning before the chart does (TURNING INSIDE); with it, BUILDING INSIDE.\nLADDER UP - the chart minus the frames that contain it. Bright in the conviction tape's hue is the chart RUNNING AHEAD; against it, a PULLBACK in progress.\n\nShaded on the pane's own three column tiers: near-solid while the pull grows past k·σ of its own history, moderate while it grows below it, pale while it shrinks.\n\nNo ▲▼ reads it. The grid's 5 × 5 reads its PHASE - the readout's WHY, buyers or sellers running or pausing - and so its units. Switching the band off hides it, never the reading. It requests no data. Unmeasured.", display=display.none)
+string inpMomCS = input.string("Separate band", "    Conviction momentum", options=["Separate band", "Amalgamated", "Off"], group=G_M, tooltip="MTF CONVICTION MOMENTUM - Dhṛti's momentum, on the conviction ladder above: the faster view of conviction minus the slower, in the tape's own points. How it is DRAWN - never what it reads:\n\nSEPARATE BAND (default) - its own band at +89, just outside the conviction tape. Hue: which way the faster view pulls. Shade, on the pane's three column tiers: near-solid while the pull grows past k·σ of its own history, moderate while it grows below it, pale while it shrinks. LADDER DOWN - the bar's insides minus the bar: against chart conviction's side is the inside of the bars turning before the chart does (TURNING INSIDE); with it, BUILDING INSIDE. LADDER UP - the chart minus the frames above: with the tape, RUNNING AHEAD; against it, a PULLBACK.\n\nAMALGAMATED - one conviction tape. The momentum gets no band of its own; its VERDICT on the tape's edge is folded into the tape, the way the grid folds it. While the tape is past the inner zone it stands TALL when momentum CONFIRMS that edge - buyers or sellers RUNNING - and short while they are PAUSING. Inside the zone there is no edge to confirm and the tape stays short; its faintness says so. The fold is the grid's own phase, so it appears once the grid reads - both level tapes ready. The value tape, set the same way, uses the same rule - TALL is a confirmed edge on both - where the separate bands ask the eye for two opposite rules (same hue confirms conviction, opposite hue confirms value). What it drops is the band's own shading and the early TURNING INSIDE read inside the zone - both unmeasured. Folded by category, never summed: on Ladder up the tape plus its momentum IS chart conviction, and the ladder would vanish.\n\nOFF - neither band nor fold.\n\nNo ▲▼ reads conviction momentum; the grid's 5 × 5 reads its phase whichever is chosen - drawing never changes the reading. It requests no data. Unmeasured.", display=display.none)
+bool   inpMomC  = inpMomCS == "Separate band"          // its own band at +89
 string inpVLad = input.string("Ladder up", "MTF value ladder", options=["Ladder up", "Ladder down", "Off"], group=G_M, tooltip="Which ladder of timeframes feeds the MTF VALUE tape (−82) and its MOMENTUM tape (−89) - Samanvaya's MTF bias and momentum, with Samanvaya's own rung choice.\n\nLADDER UP (default, as in Samanvaya) - the chart and the standard frames above it, 4h the intraday ceiling: 5m reads 4h · 1h · 30m · 15m · 5m, daily reads W · D, weekly reads M · W. Every higher rung is the WHOLE composite: the RV leg exactly and the breadth leg at its last closed bar. A SLOWER read: where the frames that contain the chart say price stands.\n\nLADDER DOWN - the three standard frames nearest below the chart, breadth leg only.\n\nWith the defaults both tapes read the chart and the frames above it (D · W on a daily chart) - what Pragyam reads. With conviction on Ladder down the stack reads three horizons: inside the bar, the chart, and above it.\n\nFALLBACK - if the chosen direction has no frames on this chart (Ladder up on 4h, 45m or monthly), the other direction is read and the label shows ↺.\n\nOFF - no value tapes; Samanvaya's chart-frame engine still runs. Every signal needs both level tapes, so with this Off no signal can fire.\n\nColours as set: GREEN = rich, RED = cheap.", display=display.none)
-bool   inpMomV = input.bool(true, "    Value momentum tape  (−89)", group=G_M, tooltip="MTF VALUE MOMENTUM (−89) - Samanvaya's momentum tape, on the value ladder above: the faster view of value minus the slower. Coloured as the value tape: GREEN toward rich, RED toward cheap.\n\nWIDENING when it agrees with the value tape - the faster frames are stretching the dislocation. REVERTING when it opposes it - the fast end has already turned back toward fair value. On Ladder down the value rungs are breadth only, so there it is partly breadth against the composite, not only fast against slow.\n\nShaded on three tiers as Samanvaya shades it: near-solid while the pull grows past 0.5σ of its own 200-bar history (measured once the value tape is ready), moderate while it grows below it, pale while it shrinks.\n\nTHE ▲ READS ITS PHASE: a capitulation turn needs value momentum REVERTING - measured in v9, inside the capitulation cell reverting beat widening in every era. The grid's 5 × 5 reads it too. Switching the BAND off hides it, never the reading, so nothing that fires changes. It requests no data.", display=display.none)
+string inpMomVS = input.string("Separate band", "    Value momentum", options=["Separate band", "Amalgamated", "Off"], group=G_M, tooltip="MTF VALUE MOMENTUM - Samanvaya's momentum, on the value ladder above: the faster view of value minus the slower. Positive toward rich. How it is DRAWN - never what it reads:\n\nSEPARATE BAND (default) - its own band at −89, just outside the value tape, coloured as the value tape is: GREEN toward rich, RED toward cheap. WIDENING when it agrees with the value tape - the faster frames stretching the dislocation; REVERTING when it opposes it - the fast end already turned back toward fair. Shaded on three tiers as Samanvaya shades it: near-solid while the pull grows past 0.5σ of its own 200-bar history (measured once the value tape is ready), moderate while it grows below it, pale while it shrinks. On Ladder down the value rungs are breadth only, so there it is partly breadth against the composite, not only fast against slow.\n\nAMALGAMATED - one value tape. The momentum gets no band of its own; its VERDICT on the tape's edge is folded into the tape, the way the grid folds it. While the tape is past θ it stands TALL when value momentum CONFIRMS the edge - REVERTING: TURNING UP from cheap, TURNING DOWN from rich - and short while the dislocation is still WIDENING. Inside θ there is nothing to confirm and the tape stays short; its faintness says so. The fold is the grid's own phase - the very one the ▲ reads - so it appears once the grid reads, both level tapes ready. A TALL RED value tape under a bright red conviction tape is the ▲'s condition, readable at a glance. What it drops is the band's shading - unmeasured. Folded by category, never summed: the tape plus its momentum is the chart's own value on Ladder up, and the ladder would vanish.\n\nOFF - neither band nor fold.\n\nTHE ▲ READS ITS PHASE whichever is chosen: a capitulation turn needs value momentum REVERTING - measured in v9, inside the capitulation cell reverting beat widening in every era. Drawing never changes the reading. It requests no data.", display=display.none)
+bool   inpMomV  = inpMomVS == "Separate band"          // its own band at −89
 
 // ── 3 · value model: Samanvaya's own inputs, the ones that move its composite ─
 string hedgeMode = input.string("Auto (measured)", "Macro hedge", options=["Auto (measured)", "Off", "Full"], group=G_S, tooltip="How much of the macro hedge to apply in the RV leg.\n\nAUTO scales it by the hedge's own rolling out-of-sample R², so the instrument decides. Across 24 targets this beat a full hedge on both mean and median.\n\nOFF removes the macro layer - the RV leg becomes Y's own cumulative return.\n\nFULL forces the complete hedge regardless of measured skill. Correct when you know the relationship holds.", display=display.none)
@@ -1376,8 +1421,9 @@ if multiDn
 //
 //  Ported line for line. Only what feeds the ladder was kept: the table, the
 //  pane, the OU / ADF diagnostics, the signals and Siddhi's line stayed behind.
-//  Names that collided with Pragati's were renamed (confirmed → svConfirmed,
-//  f_tanh → f_svTanh, b1..b3 → gb1..gb3).
+//  Names that collided with Pragati's were renamed (f_tanh → f_svTanh,
+//  b1..b3 → gb1..gb3); Samanvaya's 'confirmed' is barstate.isconfirmed inline,
+//  and its z_score / rv_z aliases are z_hp itself - three globals fewer.
 //  "The pane" in the comments below means Samanvaya's unified reading, which
 //  is not drawn here: it is the chart rung of the value ladder.
 //
@@ -1447,7 +1493,6 @@ int   varCorrLen = 200     // window for measuring ρ between the two legs
 // ══════════════════════════════════════════════════════════════════════════════
 //  1. DATA  ·  strict non-repainting fetch of Y and the 21-instrument universe
 // ══════════════════════════════════════════════════════════════════════════════
-bool svConfirmed = barstate.isconfirmed
 
 // DRIVER TIMING. A driver's bar is matched to the chart bar by date, and on a
 // daily chart many drivers close hours AFTER Y - TVC:US10Y about eleven hours
@@ -1472,7 +1517,7 @@ f_req(simple string sym) =>
 // Y is the chart's own close under the same confirmed-bar discipline - it used
 // to be fetched through a request of the chart's own symbol, which bought
 // nothing and spent one of the forty.
-float src_y = svConfirmed ? close : nz(close[1], close)
+float src_y = barstate.isconfirmed ? close : nz(close[1], close)
 
 [d_JP10Y, lf_JP10Y]   = f_req('TVC:JP10Y')
 [d_JP02Y, lf_JP02Y]   = f_req('TVC:JP02Y')
@@ -2196,7 +2241,6 @@ float m5 = f_member(spread, Z5, driftLen)
 // semantics, and being a monotone rescale it cannot change rank information.
 float ENS_SCALE = 0.887
 float z_hp    = (m1 + m2 + m3 + m4 + m5) / 5.0 / ENS_SCALE
-float z_score = z_hp
 
 f_softBound(float x) =>
     x / (1.0 + math.abs(x))
@@ -2306,8 +2350,7 @@ f_breadth() =>
 // lies in (-0.5, 0.5) and their mean ×10 in (-5, 5) — measured range over
 // 145,411 member-bars was -4.375 .. +4.481. In these units the mean has
 // sd ≈ 0.97, i.e. already a unit-variance score, so it blends against the RV
-// z directly with no rescale.
-float rv_z      = z_score
+// z (z_hp) directly with no rescale.
 
 // ══════════════════════════════════════════════════════════════════════════════
 //  INTEGRATION  ·  blend in z-space, restore variance by measurement, bound once
@@ -2319,14 +2362,14 @@ float rv_z      = z_score
 //  w = 0 or 1 it is exactly 1 because a single leg needs no restoration.
 //  The soft-bound is applied ONCE, after the blend — never to a leg first.
 // ══════════════════════════════════════════════════════════════════════════════
-float rho_legs = ta.correlation(rv_z, breadth_z, varCorrLen)
+float rho_legs = ta.correlation(z_hp, breadth_z, varCorrLen)
 float rho_c    = math.max(-0.90, math.min(0.99, nz(rho_legs, 0.71)))
 float wRV      = legMix
 float wBR      = 1.0 - legMix
 float mixVar   = wRV * wRV + wBR * wBR + 2.0 * wRV * wBR * rho_c
 float varCorr  = mixVar > 1e-9 ? 1.0 / math.sqrt(mixVar) : 1.0
 
-float unified_z   = (wRV * rv_z + wBR * breadth_z) * varCorr
+float unified_z   = (wRV * z_hp + wBR * breadth_z) * varCorr
 // Samanvaya's pane reading, on its ±100 scale - the value trace its ▲▼ read.
 float unified_osc = math.max(-100.0, math.min(100.0, f_softBound(unified_z * gain) * 100.0))
 
@@ -3834,8 +3877,8 @@ f_panel() =>
          C_SOFT,
          "The two tapes every signal reads. CONVICTION (" + inpTape + "): with Ladder down the inside of the bars, faster than chart conviction; with Ladder up the frames above, slower. VALUE (" + inpVLad + "): Samanvaya's MTF bias - rich (+) or cheap (−), judged against θ " + f_num(osc_entry, "#") + ".\n\n↺ means that tape fell back to the other ladder direction because the chosen one has no frames on this chart. — means the tape is off, warming, or has no frames at all; every signal needs both.")
     f_row(tb, 5, " MTF momentum",
-         (not inpMomC ? "off" : mtfCOk and ladMomReady ? f_num(ladMom, "+#;-#") + " " + ladMomTag : "—") + " · " +
-         (not inpMomV ? "off" : mtfVOk ? f_num(tpMom, "+#;-#") + (tpRev ? " reverting" : " widening") : "—"),
+         (inpMomCS == "Off" ? "off" : mtfCOk and ladMomReady ? f_num(ladMom, "+#;-#") + " " + ladMomTag : "—") + " · " +
+         (inpMomVS == "Off" ? "off" : mtfVOk ? f_num(tpMom, "+#;-#") + (tpRev ? " reverting" : " widening") : "—"),
          C_SOFT,
          "The two momentum tapes: each ladder's faster view minus its slower, in its tape's own points. The bands are context; the readings are not - the grid's 5 × 5 reads both phases, and the ▲ needs value momentum REVERTING.\n\nCONVICTION (" + inpTape + ", Dhṛti's): Ladder down is the bar's insides minus the bar - TURNING INSIDE when it points against chart conviction, the inside of the bars turning before the chart does; BUILDING INSIDE when with it. Ladder up is the chart minus the frames above - RUNNING AHEAD with the conviction tape, PULLBACK against it.\n\nVALUE (" + inpVLad + ", Samanvaya's): positive toward rich. WIDENING when it agrees with the value tape, REVERTING when it opposes it - the fast end already turning back toward fair value.")
     f_row(tb, 6, " impulse", f_num(hist, "+#.#;-#.#") + " vs ±" + f_num(thr, "#.#"),
@@ -4353,6 +4396,21 @@ plot(modelBuilt ? unified_osc : na, "Value · chart (Samanvaya)", display = disp
 //            conviction side uses the pane's own column gradients, as Dhṛti
 //            drew it; the value side Samanvaya's, in the value tape's colours.
 // A tape that is still warming is neutral grey - warming is not a direction.
+//
+// AMALGAMATED (each momentum setting, v9.3) - ONE TAPE PER INSTRUMENT. The
+//            momentum band stands down and its VERDICT folds into the level
+//            tape, the way the grid folds it: past its edge (inner zone, θ) the
+//            tape stands TALL - out over the band it replaces, 79 to 92 - while
+//            momentum CONFIRMS the edge (conviction RUNNING on the tape's side,
+//            value REVERTING toward fair), and short - the level tape's own
+//            79 to 85 - otherwise. Hue and intensity stay the level tape's.
+//            One rule, TALL = a confirmed edge, reads both instruments; the
+//            separate bands confirm conviction by SAME hue and value by
+//            OPPOSITE hue. By category, never a sum: on Ladder up tape +
+//            momentum is the chart's own reading exactly, and on Ladder down
+//            2·tape − chart, an extrapolation. The four plots are the same
+//            four, so the plot budget does not move: in this layout a momentum
+//            plot returns na and the level plot changes height.
 const float TAPE_Y   = 82.0
 const float TAPE_H   = 3.0
 const float TAPE_GAP = 1.0                                   // clear space between a tape and its momentum
@@ -4391,10 +4449,19 @@ color tpMBld = color.from_gradient(tpMA, 0.0, math.max(tpThr, 1e-9), color.new(t
 color tpMFad = color.from_gradient(tpMA, 0.0, tpHiM, color.new(tpMHue, 88), color.new(tpMHue, 62))
 color tpMCol = not tpReady ? color.new(C_NEUT, 80) : tpGrow and tpImp ? tpMImp : tpGrow ? tpMBld : tpMFad
 
-plot(multi ?  TAPE_Y + TAPE_H : na, "MTF conviction tape", tapeAg, 1, plot.style_columns,
+// TALL - the momentum's verdict on the tape's OWN edge: the grid's phases, read
+// against the tape's zone rather than the grid's row, so the tape describes
+// the tape; the two differ only while the row is HELD, which the readout marks.
+// Value's phase is the grid's gVPh exactly - the one the ▲ reads.
+bool  cTall = inpMomCS == "Amalgamated" and gRead and gTgt != 0 and gSideC == gTgt
+bool  vTall = inpMomVS == "Amalgamated" and gVPh == 1
+
+// Both level tapes grow OUTWARD from their inner edge (±79), so a TALL tape
+// reaches over the band it replaces and a short one is the level tape exactly.
+plot(multi ?  (cTall ? MOM_Y : TAPE_Y) + TAPE_H : na, "MTF conviction tape", tapeAg, 1, plot.style_columns,
      histbase =  TAPE_Y - TAPE_H, display = display.pane)
-plot(tpOn  ? -TAPE_Y + TAPE_H : na, "MTF value tape", tapeVa, 1, plot.style_columns,
-     histbase = -TAPE_Y - TAPE_H, display = display.pane)
+plot(tpOn  ? -(vTall ? MOM_Y : TAPE_Y) - TAPE_H : na, "MTF value tape", tapeVa, 1, plot.style_columns,
+     histbase = -TAPE_Y + TAPE_H, display = display.pane)
 plot(inpMomC and multi ?  MOM_Y + TAPE_H : na, "MTF conviction momentum tape", tapeLm, 1, plot.style_columns,
      histbase =  MOM_Y - TAPE_H, display = display.pane)
 plot(inpMomV and tpOn  ? -MOM_Y + TAPE_H : na, "MTF value momentum tape", tpMCol, 1, plot.style_columns,
@@ -4403,15 +4470,17 @@ plot(inpMomV and tpOn  ? -MOM_Y + TAPE_H : na, "MTF value momentum tape", tpMCol
 // Right-edge names, so a tape is never read without knowing what it spans - or
 // without knowing that it is not there. ↺ marks a FALLBACK ladder direction.
 // ONE label per ladder, carrying its tape's reading and then its momentum's,
-// centred on the pair while that ladder's momentum tape is on - two labels
-// eight points apart would overlap on any pane of ordinary height.
-float lblYC = inpMomC ? (TAPE_Y + MOM_Y) / 2.0 : TAPE_Y
-float lblYV = inpMomV ? (TAPE_Y + MOM_Y) / 2.0 : TAPE_Y
+// centred on the pair while that ladder's momentum is drawn - as a band or
+// folded into a tape that can stand over it - since two labels eight points
+// apart would overlap on any pane of ordinary height.
+float lblYC = inpMomCS != "Off" ? (TAPE_Y + MOM_Y) / 2.0 : TAPE_Y
+float lblYV = inpMomVS != "Off" ? (TAPE_Y + MOM_Y) / 2.0 : TAPE_Y
 string momTip = "MOMENTUM - the faster view minus the slower, on the outer band. Conviction: BUILDING / TURNING INSIDE on Ladder down (the bar's insides with or against chart conviction), RUNNING AHEAD / PULLBACK on Ladder up (the chart with or against the frames above). Value: WIDENING when it agrees with the value tape, REVERTING when it opposes it. The band is context; the reading is not - the grid reads both phases, and the ▲ needs value momentum REVERTING."
 // Kept in one array and rebuilt by a function on the last bar, so the labels'
 // text-building sits outside the script's main body, whose length Pine caps.
 var array<label> paneLbs = array.new<label>()
 f_paneLabels() =>
+    string amgTip = "AMALGAMATED - one tape per instrument: its momentum's verdict is folded in. Past its edge the tape stands TALL (▮) while momentum CONFIRMS the edge - conviction RUNNING on the tape's side, value REVERTING toward fair - and short otherwise. Inside the edge it stays short; its faintness says there is nothing to confirm. TALL RED value under bright red conviction is the ▲'s condition."
     for lb in paneLbs
         label.delete(lb)
     array.clear(paneLbs)
@@ -4424,28 +4493,33 @@ f_paneLabels() =>
         // name, reading, momentum - the frames live in the tooltip. Coloured by what the
         // tape says: green buyers / red sellers once past the inner zone, soft inside
         // it or warming, gold when there is no ladder at all.
+        // AMALGAMATED: the verdict the tape's height shows, in the readout's words.
+        string cPh = not gRead or gTgt == 0 or gSideC == 0.0 ? "" : "  ·  " + (gTgt > 0 ? "buyers " : "sellers ") + (cTall ? "running ▮" : "pausing")
         string cTxt = not multi ? "CONVICTION · no frames" :
              "CONVICTION" + (ladFallback ? " ↺" : "") + (ladReady ? "  " + f_num(ladAgree, "+#;-#") : "  warming") +
-             (inpMomC ? "  ·  " + (ladMomReady ? ladMomTag + " " + f_num(ladMom, "+#;-#") : "warming") : "")
+             (inpMomC ? "  ·  " + (ladMomReady ? ladMomTag + " " + f_num(ladMom, "+#;-#") : "warming") :
+              inpMomCS == "Amalgamated" and ladReady ? cPh : "")
         color cCol = not multi ? C_GOLD : not ladReady ? C_SOFT : ladAgree >= inpZ1 ? C_BULL : ladAgree <= -inpZ1 ? C_BEAR : C_SOFT
         array.push(paneLbs, label.new(bar_index + 2, lblYC, cTxt, style = label.style_label_left,
              color = color.new(C_NEUT, 100), textcolor = cCol, size = size.tiny,
              tooltip = "CONVICTION TAPE - " + inpTape + ": " + ladLbl + ". GREEN buyers / RED sellers in control past the inner zone (±" + f_num(inpZ1, "#") + "), soft inside it.\n\n" +
              (ladFallback ? "↺ FALLBACK - the chosen ladder direction has no frames on this chart, so the other direction is read.\n\n" : "") +
-             (inpMomC ? momTip : "")))
+             (inpMomC ? momTip : inpMomCS == "Amalgamated" ? amgTip : "")))
     if inpVLad != "Off"
         // coloured as the value tape: GREEN rich / RED cheap past θ, soft inside it.
+        string vPh = gVPh == 0 ? "" : "  ·  " + (gCol == 0 ? (vTall ? "turning up ▮" : "still cheapening") : (vTall ? "turning down ▮" : "still richening"))
         string vTxt = not tpOn ? "VALUE · no frames" :
              "VALUE" + (tpFallback ? " ↺" : "") +
              (tpReady ? "  " + (tpBias > 0 ? "rich " : "cheap ") + f_num(tpBias, "+#;-#") :
               not modelBuilt ? "  model " + str.tostring(math.min(anchN, svNeed)) + "/" + str.tostring(svNeed) : "  warming") +
-             (inpMomV and tpOn ? "  ·  " + (tpReady ? (tpRev ? "reverting " : "widening ") + f_num(tpMom, "+#;-#") : "warming") : "")
+             (inpMomV and tpOn ? "  ·  " + (tpReady ? (tpRev ? "reverting " : "widening ") + f_num(tpMom, "+#;-#") : "warming") :
+              inpMomVS == "Amalgamated" and tpReady ? vPh : "")
         color vCol = not tpOn ? C_GOLD : not tpReady ? C_SOFT : tpBias >= osc_entry ? C_BULL : tpBias <= -osc_entry ? C_BEAR : C_SOFT
         array.push(paneLbs, label.new(bar_index + 2, -lblYV, vTxt, style = label.style_label_left,
              color = color.new(C_NEUT, 100), textcolor = vCol, size = size.tiny,
              tooltip = "VALUE TAPE - " + inpVLad + ": " + tpLadLbl + ". GREEN rich / RED cheap past θ (±" + f_num(osc_entry, "#") + "), soft inside it.\n\n" +
              (tpFallback ? "↺ FALLBACK - the chosen ladder direction has no frames on this chart, so the other direction is read.\n\n" : "") +
-             (inpMomV ? momTip : "")))
+             (inpMomV ? momTip : inpMomVS == "Amalgamated" ? amgTip : "")))
     // Each family pauses on what IT reads: the ▲▼ on triWhy; the ◆ and R H on
     // stackWhy, which adds the trace - named apart while the ▲▼ already run.
     string pTxt = inpState and not triOk ? "SIGNALS PAUSED · " + triWhy :
