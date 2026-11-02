@@ -3,7 +3,7 @@
 
 //@version=6
 // ═══════════════════════════════════════════════════════════════════════════
-//  PRAGATI · प्रगति  ·  MULTI-TIMEFRAME CONVICTION OSCILLATOR            v9.7
+//  PRAGATI · प्रगति  ·  MULTI-TIMEFRAME CONVICTION OSCILLATOR            v9.8
 //  "Is this move paid for - and is it paid for on every timeframe?"
 //
 //  ═══ v9 · A FRESH AUDIT, AND THE SIGNALS MOVED TO WHERE THE EDGE IS ════════
@@ -86,6 +86,26 @@
 //      style). The tapes: each tape and its momentum band sit one point apart,
 //      and their names carry the reading, not the frame list, coloured by what
 //      the tape says. No engine or signal number changed.
+//
+//  v9.8 · THE READOUT AUDITED - the OI, CVG and AUCTION rows, cell by cell,
+//      against the engines they describe (docs/audit-readout-v9.8.md). No engine,
+//      signal or threshold changed; seven readings that were wrong now are not.
+//      · THE PROBE, AS SPEC v2 DEFINES IT. Beyond the trail is accepted only
+//        with the POC beyond AND value migrated; the readout tested the POC
+//        alone and missed 19% of the engine's probe bars (14% at 20 bars),
+//        calling them 'in value'. An accepted break now says it flips at the
+//        close.
+//      · NON-STANDARD CHARTS PAUSE THE READOUT TOO (v9.6's G1): the grid read a
+//        family off Heikin Ashi prices, OI took its side from a synthetic close,
+//        and AUCTION blamed 'no trail yet'.
+//      · OI WAITS FOR ITS BASELINE: for its first ten live bars it read
+//        'Balanced +0.0σ' through any build. A book that moves while the close
+//        does not now reads 'Price flat', not 'Balanced'. The baseline's push
+//        is committed at the close. No OI at all is neutral, not gold.
+//      · PUSH reads the gate alone, as the trail steps by it; the grid says
+//        when its rows have no memory yet (gate warming); every span counts
+//        its first bar as 1, in one unit; the header cells define each column
+//        row by row.
 //
 //  v9.7 · A TRAIL WITH A TESTED EDGE - ACCEPTED MOMENTUM (docs/trail-lab.md).
 //      The 20-bar acceptance trail was put to a pre-registered test on 119
@@ -3811,7 +3831,7 @@ f_gSide(float prev, float m, float knee) =>
     na(m) ? 0.0 : na(knee) or knee <= 0.0 ? math.sign(m) : m >= knee ? 1.0 : m <= -knee ? -1.0 : prev != 0.0 ? prev : math.sign(m)
 
 // ── the state engine: the row memory and the two momentum sides ──────────────
-bool  gRead = mtfCOk and mtfVOk
+bool  gRead = stdChart and mtfCOk and mtfVOk   // v9.8 · G1 applies to the grid too
 int   gTgt  = mC >= inpZ1 ? 1 : mC <= -inpZ1 ? -1 : 0
 int   gCol  = mV <= -osc_entry ? 0 : mV >= osc_entry ? 2 : 1
 var int   gRow   = na
@@ -4199,7 +4219,9 @@ if not na(oiVal) and oiVal > 0
 // A gap in the feed is not a change: na-to-value no longer counts as a move.
 float oiMoved = nz(ta.change(oiVal), 0.0) != 0 ? 1.0 : 0.0
 float oiAct   = nz(ta.sma(oiMoved, OI_BASE), 0.0)
-bool  oiHas   = oiSeen and not na(oiVal) and oiVal > 0 and oiAct >= OI_ACT
+// v9.8 · LIVE is the feed; HAS is a reading, which also needs the baseline (10
+// accepted changes) and a standard chart - the side comes from this chart's close.
+bool  oiLive  = oiSeen and not na(oiVal) and oiVal > 0 and oiAct >= OI_ACT
 
 // Log change, so a halving and a doubling of the book are equal and opposite.
 float oiPrev  = oiVal[1]
@@ -4214,12 +4236,15 @@ float oiShare = oiPair ? math.abs(oiDlt) / oiPrev : 0.0
 // stdev keeps zero at zero: the sign of oiZ is the sign of ΔOI.
 var array<float> oiSq = array.new_float()
 float oiRms = array.size(oiSq) >= 10 ? math.sqrt(array.avg(oiSq)) : na
+bool  oiHas = stdChart and oiLive and not na(oiRms)
 float oiZ   = nz(oiRms, 0.0) > 1e-12 ? oiLog / oiRms : 0.0
 
-bool  oiRoll = oiHas and oiPair and
+// Structural is tested from the first live bar (the share rule needs no
+// baseline), so a roll inside the warm-up never enters the statistics.
+bool  oiRoll = oiLive and oiPair and
      (oiShare > OI_STRU or (math.abs(oiZ) > OI_ROLL and oiShare > OI_ROLL_ABS))
 
-if oiHas and oiPair and not oiRoll
+if oiLive and oiPair and not oiRoll and barstate.isconfirmed
     array.push(oiSq, oiLog * oiLog)
     if array.size(oiSq) > OI_BASE
         array.shift(oiSq)
@@ -4240,6 +4265,8 @@ float oiDpx  = nz(ta.change(close), 0.0)
 
 string oiFeed = oiIdBad ? "no symbol" :
      oiHas   ? "live" :
+     not stdChart ? "synthetic" :
+     oiLive  ? "warming" :
      oiSeen  ? "stale" :
      not na(oiFD) ? "daily only" : "none"
 
@@ -4251,7 +4278,7 @@ string oiChar = not oiHas ? "—" : oiRoll ? "EXPIRY / ROLLOVER" :
 
 // Genuineness, not direction. Builds take the side's colour; covering and
 // unwinding take gold, because closing flow is finite and self-limiting.
-color oiCharCol = not oiHas or oiRoll ? C_GOLD :
+color oiCharCol = oiFeed == "none" ? C_SOFT : not oiHas or oiRoll ? C_GOLD :
      oiChar == "LONG BUILDUP"  ? C_BULL :
      oiChar == "SHORT BUILDUP" ? C_BEAR :
      oiChar == "SHORT COVERING" or oiChar == "LONG UNWINDING" ? C_GOLD : C_SOFT
@@ -4583,7 +4610,7 @@ f_gWorks(int r, int c) =>
 // A span in the chart's own unit where it has one: days, weeks, months.
 f_span(int n) =>
     string u = timeframe.multiplier != 1 ? " bars" : timeframe.isdaily ? "d" : timeframe.isweekly ? "w" : timeframe.ismonthly ? "mo" : " bars"
-    n <= 0 ? "" : n == 1 ? "1 bar" : str.tostring(n) + u
+    n <= 0 ? "" : str.tostring(n) + (n == 1 and u == " bars" ? " bar" : u)
 
 // ══════════════════════════════════════════════════════════════════════════════
 //  THE READOUT · ONE TABLE ON THE PRICE CHART                    (display-only)
@@ -4593,7 +4620,8 @@ f_span(int n) =>
 //      STATE   where the layer stands - OI's character, the grid's action
 //      WHY     what makes it so - who is doing it; what separates the cell
 //      PUSH    what pushes it now - the book's change in σ; conviction's histogram
-//      CHART   the grid's only - where this chart alone would put the name
+//      CHART   one more reading per row: where this chart alone would put the
+//              name (CVG); Accepted momentum's position or the trail (AUCTION)
 //      SPAN    how long it has stood
 //  Each cell is coloured by its own meaning: the state by the side it works,
 //  push and chart by their direction, caution gold, the rest neutral.
@@ -4626,12 +4654,12 @@ f_rd(int c, int r, string t, color tc, string tip, string ha = text.align_center
 
 f_readout() =>
     // The character in the readout's words, who is doing it, and a crowded book.
-    string oiState = not oiHas ? (oiFeed == "stale" ? "Stale feed" : oiFeed == "daily only" ? "Daily only" : oiFeed == "no symbol" ? "No symbol" : "No OI") :
+    string oiState = not oiHas ? (oiFeed == "warming" ? "Warming" : oiFeed == "synthetic" ? "Paused" : oiFeed == "stale" ? "Stale feed" : oiFeed == "daily only" ? "Daily only" : oiFeed == "no symbol" ? "No symbol" : "No OI") :
          oiRoll ? "Expiry / roll" : oiChar == "LONG BUILDUP" ? "Long build-up" : oiChar == "SHORT BUILDUP" ? "Short build-up" :
-         oiChar == "SHORT COVERING" ? "Short covering" : oiChar == "LONG UNWINDING" ? "Long unwinding" : "Balanced"
-    string oiWho   = not oiHas ? (oiFeed == "stale" ? "too few updates here" : oiFeed == "daily only" ? "not at this timeframe" : oiFeed == "no symbol" ? "chart modifier" : "no open interest") :
+         oiChar == "SHORT COVERING" ? "Short covering" : oiChar == "LONG UNWINDING" ? "Long unwinding" : math.abs(oiZ) > OI_DEAD ? "Price flat" : "Balanced"
+    string oiWho   = not oiHas ? (oiFeed == "warming" ? "building its baseline" : oiFeed == "synthetic" ? "non-standard chart" : oiFeed == "stale" ? "too few updates here" : oiFeed == "daily only" ? "not at this timeframe" : oiFeed == "no symbol" ? "chart modifier" : "no open interest") :
          oiRoll ? "structural" : oiChar == "LONG BUILDUP" ? "new longs" : oiChar == "SHORT BUILDUP" ? "new shorts" :
-         oiChar == "SHORT COVERING" ? "shorts exiting" : oiChar == "LONG UNWINDING" ? "longs exiting" : "no net change"
+         oiChar == "SHORT COVERING" ? "shorts exiting" : oiChar == "LONG UNWINDING" ? "longs exiting" : math.abs(oiZ) > OI_DEAD ? "no side to read" : "no net change"
     bool   oiCrowd = oiHas and nz(oiRank, 0.0) >= 80
 
     // STATE - the action and the units Pragyam sizes from; the 5 × 5 cell, named
@@ -4647,14 +4675,14 @@ f_readout() =>
     // edge without a phase reading adds nothing; with neither, the family itself.
     string gWhyC = gRow == 0 or gCPh == 0 ? "" : (gRow > 0 ? "buyers " : "sellers ") + (gCPh == 1 ? "running" : "pausing")
     string gWhyV = gCol == 1 or gVPh == 0 ? "" : gCol == 0 ? (gVPh == 1 ? "turning up" : "still cheapening") : (gVPh == 1 ? "turning down" : "still richening")
-    string gWhy  = not gRead ? (not mtfCOk ? "conviction tape not ready" : "value tape not ready") :
+    string gWhy  = not gRead ? (not stdChart ? "non-standard chart" : not mtfCOk ? "conviction tape not ready" : "value tape not ready") :
          (gWhyC != "" and gWhyV != "" ? gWhyC + " · " + gWhyV : gWhyC != "" ? gWhyC : gWhyV != "" ? gWhyV :
-          gRow == 0 and gCol == 1 ? "no edge" : str.lower(gName)) + (gHeld ? " · held" : "")
+          gRow == 0 and gCol == 1 ? "no edge" : str.lower(gName)) + (gHeld ? " · held" : na(gGate) ? " · gate warming" : "")
 
     // PUSH - conviction's histogram as it runs the rows: ↑↑ an impulse, ↑ a push (pressing
     // or decelerating), TURNING or QUIET no push, ↓ and ↓↓ mirrored.
-    string gPushTxt = not gRead or na(gGate) ? "—" : gGate > 0 ? (gTier == 0 ? "↑↑" : "↑") : gGate < 0 ? (gTier == 0 ? "↓↓" : "↓") : gQuiet ? "quiet" : "turning"
-    color  gPushCol = not gRead or na(gGate) ? C_SOFT : gGate > 0 ? C_BULL : gGate < 0 ? C_BEAR : gQuiet ? C_GOLD : C_SOFT
+    string gPushTxt = na(gGate) ? "—" : gGate > 0 ? (gTier == 0 ? "↑↑" : "↑") : gGate < 0 ? (gTier == 0 ? "↓↓" : "↓") : gQuiet ? "quiet" : "turning"
+    color  gPushCol = na(gGate) ? C_SOFT : gGate > 0 ? C_BULL : gGate < 0 ? C_BEAR : gQuiet ? C_GOLD : C_SOFT
 
     // CHART - where this chart alone would put the name: its conviction and
     // Samanvaya's value on this chart, on the tapes' own cuts. Each is one rung of its tape, so
@@ -4670,11 +4698,11 @@ f_readout() =>
 
     color rdHead = color.new(C_NEUT, 25)
     f_rd(0, 0, "", na, "")
-    f_rd(1, 0, " STATE", rdHead, "", text.align_left)
-    f_rd(2, 0, " WHY", rdHead, "", text.align_left)
-    f_rd(3, 0, " PUSH ", rdHead, "")
-    f_rd(4, 0, " CHART ", rdHead, "")
-    f_rd(5, 0, "SPAN ", rdHead, "", text.align_right)
+    f_rd(1, 0, " STATE", rdHead, "WHERE THE LAYER STANDS.\nOI - the book's character this bar, or why there is none.\nCVG - the grid's action and the units Pragyam sizes from.\nAUCTION - value's migration against the window N bars earlier.", text.align_left)
+    f_rd(2, 0, " WHY", rdHead, "WHAT MAKES IT SO.\nOI - who is doing it, and how full the book is.\nCVG - what separates the cell from its neighbours.\nAUCTION - the trail's side, a probe or an accepted break, and where the close sits against value.", text.align_left)
+    f_rd(3, 0, " PUSH ", rdHead, "WHAT PUSHES IT NOW.\nOI - the book's change this bar, in σ.\nCVG and AUCTION - conviction's histogram: the gate the grid's rows move by and the trail steps by.")
+    f_rd(4, 0, " CHART ", rdHead, "ONE MORE READING, which differs by row.\nCVG - where this chart alone would put the name.\nAUCTION - Accepted momentum's position (or, with it off, the trail's level).\nOI - none.")
+    f_rd(5, 0, "SPAN ", rdHead, "HOW LONG IT HAS STOOD, the current bar counted as the first: the book's character, the grid's family, the trail's side.", text.align_right)
 
     if inpOi
         // An untrusted series is still shown, but faded: it describes two
@@ -4683,9 +4711,9 @@ f_readout() =>
         color  oiStC  = oiFade ? color.new(oiCharCol, 50) : oiCharCol
         color  oiTxC  = oiFade ? color.new(C_SOFT, 55) : C_SOFT
         string oiBook = oiHas and not na(oiRank) ? " · book " + f_num(oiRank, "#") + " pct" : ""
-        f_rd(0, 1, " OI", C_SOFT, "WHAT KIND of positioning this bar represents, which volume cannot tell you. Volume answers how much traded; open interest answers whether the trading created open risk or destroyed it.\n\nLONG BUILDUP   price up, book growing — new longs, risk committed.\nSHORT BUILDUP  price down, book growing — new shorts, risk committed.\nSHORT COVERING price up, book shrinking — a rally paid for by exits.\nLONG UNWINDING price down, book shrinking — a decline paid for by exits.\nBALANCED       the change is inside " + f_num(OI_DEAD, "0.0") + "σ of zero; nothing to read.\nEXPIRY / ROLLOVER  the book moved more than " + f_num(OI_STRU * 100, "#") + "% in one bar, or more than " + f_num(OI_ROLL, "0.0") + "σ AND more than " + f_num(OI_ROLL_ABS * 100, "#") + "%. Structural, not positioning - and kept out of the statistics.\n\nThe word always agrees with the book: BUILDUP means open interest ROSE on this bar, COVERING and UNWINDING mean it FELL.\n\nTHE COLOUR FOLLOWS GENUINENESS, NOT DIRECTION. Builds take the side's own colour. Covering and unwinding take GOLD even though one of them is a rally, because closing flow is finite — the move is consuming the very positions propelling it. That is a practitioner reading: the academic open-interest evidence (Hong & Yogo 2012) is monthly and aggregate. MEASURED (v9 audit, 187 NSE F&O stocks, 2019-26): short-covering rallies lagged in both halves - the gold is borne out; but LONG and SHORT BUILDUPS did not predict continuation either - 'genuine' here means risk was committed, not that the move will carry on. Gold here means what it means everywhere in this script: read with caution. Painting short covering green reads as a bullish claim and is close to the opposite one.\n\nDisplay-only: nothing here reaches the oscillator below.", text.align_left)
-        f_rd(1, 1, " " + oiState + " ", oiStC, "", text.align_left, color.new(oiCharCol, 86))
-        f_rd(2, 1, " " + oiWho + oiBook + " ", oiCrowd and not oiFade ? C_GOLD : oiTxC, "WHO IS DOING IT - new longs, new shorts, shorts exiting, longs exiting, or no net change; STRUCTURAL for an expiry or a roll.\n\nBOOK — where total open interest sits against its own last " + str.tostring(OI_PCT) + " bars. This is the context the character cannot give you: a long buildup at the 95th percentile is a crowded trade being added to, and the same buildup at the 20th is fresh positioning into a cleaned-out book. They resolve differently and they look identical one bar at a time. GOLD from the 80th percentile: crowded.\n\nFEED — named in STATE when it is not live. STALE FEED means the series exists but fewer than " + f_num(OI_ACT * 100, "#") + "% of bars carry a change, which on an intraday chart usually means an end-of-day feed: the z-scores are degenerate and the character is withheld rather than repeated. DAILY ONLY means TradingView carries open interest for this symbol but not at your timeframe. NO SYMBOL means the chart carries a modifier whose ticker cannot be turned into an OI companion. NO OI means this instrument has no open interest at all, which is the correct answer for cash equity and spot.\n\nρ(|ΔOI|, activity) = " + f_num(oiRho, "+0.00;-0.00") + " over " + str.tostring(OI_BASE) + " bars - whether the SIZE of the book's change tracks " + (vpVolUsable ? "volume" : "true range") + ". The row DIMS below " + f_num(OI_RHO, "0.00") + ": the character is then describing two series that do not move together and should not be traded from.\n\nWhy not ρ(Δprice, ΔOI)? Open interest rises on long AND short buildups, so on a perfectly informative series the SIGNED correlation with price sits near zero. That test dimmed the readout exactly where it worked.", text.align_left)
+        f_rd(0, 1, " OI", C_SOFT, "WHAT KIND of positioning this bar represents, which volume cannot tell you. Volume answers how much traded; open interest answers whether the trading created open risk or destroyed it.\n\nLONG BUILDUP   price up, book growing — new longs, risk committed.\nSHORT BUILDUP  price down, book growing — new shorts, risk committed.\nSHORT COVERING price up, book shrinking — a rally paid for by exits.\nLONG UNWINDING price down, book shrinking — a decline paid for by exits.\nBALANCED       the change is inside " + f_num(OI_DEAD, "0.0") + "σ of zero; nothing to read.\nPRICE FLAT     the book moved past " + f_num(OI_DEAD, "0.0") + "σ but the close did not: no side to read.\nEXPIRY / ROLLOVER  the book moved more than " + f_num(OI_STRU * 100, "#") + "% in one bar, or more than " + f_num(OI_ROLL, "0.0") + "σ AND more than " + f_num(OI_ROLL_ABS * 100, "#") + "%. Structural, not positioning - and kept out of the statistics.\n\nThe word always agrees with the book: BUILDUP means open interest ROSE on this bar, COVERING and UNWINDING mean it FELL.\n\nTHE COLOUR FOLLOWS GENUINENESS, NOT DIRECTION. Builds take the side's own colour. Covering and unwinding take GOLD even though one of them is a rally, because closing flow is finite — the move is consuming the very positions propelling it. That is a practitioner reading: the academic open-interest evidence (Hong & Yogo 2012) is monthly and aggregate. MEASURED (v9 audit, 187 NSE F&O stocks, 2019-26): short-covering rallies lagged in both halves - the gold is borne out; but LONG and SHORT BUILDUPS did not predict continuation either - 'genuine' here means risk was committed, not that the move will carry on. Gold here means what it means everywhere in this script: read with caution. Painting short covering green reads as a bullish claim and is close to the opposite one.\n\nDisplay-only: nothing here reaches the oscillator below.", text.align_left)
+        f_rd(1, 1, " " + oiState + " ", oiStC, "", text.align_left, color.new(oiCharCol, oiFade ? 94 : 86))
+        f_rd(2, 1, " " + oiWho + oiBook + " ", oiCrowd and not oiFade ? C_GOLD : oiTxC, "WHO IS DOING IT - new longs, new shorts, shorts exiting, longs exiting, or no net change; STRUCTURAL for an expiry or a roll.\n\nBOOK — where total open interest sits against its own last " + str.tostring(OI_PCT) + " bars. This is the context the character cannot give you: a long buildup at the 95th percentile is a crowded trade being added to, and the same buildup at the 20th is fresh positioning into a cleaned-out book. They resolve differently and they look identical one bar at a time. GOLD from the 80th percentile: crowded.\n\nFEED — named in STATE when it is not live. STALE FEED means the series exists but fewer than " + f_num(OI_ACT * 100, "#") + "% of bars carry a change, which on an intraday chart usually means an end-of-day feed: the z-scores are degenerate and the character is withheld rather than repeated. DAILY ONLY means TradingView carries open interest for this symbol but not at your timeframe. NO SYMBOL means the chart carries a modifier whose ticker cannot be turned into an OI companion. NO OI means this instrument has no open interest at all, which is the correct answer for cash equity and spot. WARMING means the feed is live but fewer than 10 accepted changes have been seen: there is no σ yet, so no character is read. PAUSED means a non-standard chart: the side would be read from synthetic prices.\n\nEXPIRY CAUTION, unmeasured: on a continuous front-month future the book falls into each expiry as positions roll. A bar that moves less than the structural cut reads as covering or unwinding, and the book percentile partly tracks the expiry calendar.\n\nρ(|ΔOI|, activity) = " + f_num(oiRho, "+0.00;-0.00") + " over " + str.tostring(OI_BASE) + " bars - whether the SIZE of the book's change tracks " + (vpVolUsable ? "volume" : "true range") + ". The row DIMS below " + f_num(OI_RHO, "0.00") + ": the character is then describing two series that do not move together and should not be traded from.\n\nWhy not ρ(Δprice, ΔOI)? Open interest rises on long AND short buildups, so on a perfectly informative series the SIGNED correlation with price sits near zero. That test dimmed the readout exactly where it worked.", text.align_left)
         f_rd(3, 1, oiHas ? " " + f_num(oiZ, "+0.0;-0.0") + "σ " : "", oiTxC, "BUILD — the push on the book this bar: its log change in open interest, in units of the typical (RMS) change over the last " + str.tostring(OI_BASE) + " non-structural bars. ZERO-CENTRED: its sign is the sign of the change, so +1.8σ always means the book grew. Log, so a halving and a doubling of the book are equal and opposite rather than the second dwarfing the first. Inside ±" + f_num(OI_DEAD, "0.0") + "σ the character reads BALANCED.")
         f_rd(4, 1, "", na, "")
         f_rd(5, 1, f_span(oiSpan) + " ", oiTxC, "How long the book has shown this character - days on a daily chart, weeks on a weekly, otherwise bars. Counted at each close, never twice on a live bar.", text.align_right)
@@ -4705,21 +4733,27 @@ f_readout() =>
         int    rA     = 1 + (inpOi ? 1 : 0) + (inpGrid ? 1 : 0)
         string aSt    = na(aMig) ? "—" : aMig == 2 ? "Migrating ↑" : aMig == 1 ? "Shifting ↑" : aMig == 0 ? "Balance" : aMig == -1 ? "Shifting ↓" : "Migrating ↓"
         color  aTone  = na(aMig) or aMig == 0 ? C_SOFT : aMig > 0 ? C_BULL : C_BEAR
-        bool   aProbe = TS.dir != 0 and not na(aPoc) and (TS.dir > 0 ? close < TS.lvl and aPoc >= TS.lvl : close > TS.lvl and aPoc <= TS.lvl)
+        // v9.8 · spec v2: beyond the trail is ACCEPTED only with the POC beyond AND
+        // value migrated that way - anything less is a PROBE. The readout tested
+        // the POC alone and missed 19% of the engine's probe bars.
+        // (no POC or migration reading: the engine makes no call, so neither does this)
+        bool   aOut   = TS.dir != 0 and not na(aPoc) and not na(aMig) and (TS.dir > 0 ? close < TS.lvl : close > TS.lvl)
+        bool   aAcc   = aOut and (TS.dir > 0 ? aPoc < TS.lvl and aMig <= -1 : aPoc > TS.lvl and aMig >= 1)
+        bool   aProbe = aOut and not aAcc
         string aLoc   = na(aVal) ? "" : close > aVah ? "above value" : close < aVal ? "below value" : "in value"
         // Before conviction's histogram is calibrated (≈ 450 bars at the defaults:
         // 1.8 years daily, 8.7 weekly) the push gate cannot open, so the trail
         // cannot start - said, not left to look like a fault.
-        string aWhy   = (TS.dir == 0 ? (na(gGate) ? "push gate warming" : "no trail yet") : TS.dir > 0 ? "trail ↑" : "trail ↓") +
-             (aProbe ? " · probe, POC not following" : aLoc != "" ? " · " + aLoc : "")
+        string aWhy   = (not stdChart ? "non-standard chart" : TS.dir == 0 ? (na(gGate) ? "push gate warming" : "no trail yet") : TS.dir > 0 ? "trail ↑" : "trail ↓") +
+             (aProbe ? " · probe, not accepted" : aAcc ? " · accepted, flips at the close" : aLoc != "" ? " · " + aLoc : "")
         f_rd(0, rA, " AUCTION", C_SOFT, "THE AUCTION ENGINE (v9.4, spec v2 since v9.6) - where participation was ACCEPTED, which no other part of Pragati measures. A rolling volume profile of the last " + str.tostring(aN) + " bars (six months under Accepted momentum, else the conviction lookback), built from this chart's own bars - not the session profile, which is a display - compared with the same window " + str.tostring(aN) + " bars earlier.\n\nThe Lookback-window trail measured null as a trade (docs/trail-tradability.md §7); Accepted momentum, this trail on six months sized by momentum, passed a held-out test (docs/trail-lab.md).", text.align_left)
         f_rd(1, rA, " " + aSt + " ", aTone, "MIGRATING ↑ / ↓ - this window's value area no longer overlaps the one " + str.tostring(aN) + " bars ago: value has moved.\nSHIFTING ↑ / ↓ - the value areas still overlap, but the POC has left the old value.\nBALANCE - neither: value is where it was.\n\nValue area " + f_px(aVal) + " – " + f_px(aVah) + ", POC " + f_px(aPoc) + ".", text.align_left, color.new(aTone, 86))
-        f_rd(2, rA, " " + aWhy + " ", aProbe ? C_GOLD : C_SOFT, "THE TRAIL'S SIDE, and where the close sits against the rolling value area. PROBE, in gold: the close is beyond the trail but the window's POC has not followed - a break not yet accepted; the trail flips only when the POC follows. Live on the forming bar; the trail itself moves only at the close.", text.align_left)
+        f_rd(2, rA, " " + aWhy + " ", aProbe ? C_GOLD : C_SOFT, "THE TRAIL'S SIDE, and where the close sits against the rolling value area.\n\nPROBE, in gold: the close is beyond the trail but the break is not accepted - the window's POC has not followed, or value has not migrated that way.\nACCEPTED: all three hold - a close beyond, the POC beyond, value migrated. If they still hold at the close, the trail flips.\n\nLive on the forming bar; the trail itself moves only at the close.", text.align_left)
         f_rd(3, rA, " " + gPushTxt + " ", gPushCol, "CONVICTION'S HISTOGRAM - the grid's push, the same gate the trail steps by: it steps only when value shifts its way AND this pushes its way.")
         // v9.7 · Accepted momentum's position in this cell; else the trail's level
         float aSd = inpAM ? nz(amPos) : TS.dir
-        f_rd(4, rA, inpAM ? (na(amPos) ? "—" : aSd == 0.0 ? " FLAT · disagree " : (aSd > 0 ? " LONG " : " SHORT ") + f_num(math.abs(aSd), "0.00") + " ") : TS.dir == 0 ? "—" : " trail " + f_px(TS.lvl) + " ", aSd > 0 ? C_BULL : aSd < 0 ? C_BEAR : C_SOFT, inpAM ? "ACCEPTED MOMENTUM - the tested engine (docs/trail-lab.md), its position as of this close.\n\nSIDE - the six-month acceptance trail drawn on the chart. SIZE - momentum's score S: the 1-, 3-, 6- and 12-month move of the close over its volatility. LONG while both point up, SHORT while both point down, FLAT while they disagree; the number is the size, 0 to 1.\n\nTested sizing: size × 10% ÷ annualised volatility, capped at 2, traded at the next open. An edge across many markets, small on any one - paper-trade it first." : "THE ACCEPTANCE TRAIL'S LEVEL - the ratcheted far edge of value (the value-area low while up, the high while down), drawn on the chart: below price as a floor while the trail is up, above it as a ceiling while it is down.")
-        f_rd(5, rA, (TS.dir != 0 and not na(TS.since) ? f_span(bar_index - TS.since) : "") + " ", C_SOFT, "How long the trail has stood on this side - since it started or last flipped.", text.align_right)
+        f_rd(4, rA, inpAM ? (na(amPos) ? "—" : aSd == 0.0 ? " FLAT · disagree " : (aSd > 0 ? " LONG " : " SHORT ") + f_num(math.abs(aSd), "0.00") + " ") : TS.dir == 0 ? "—" : " trail " + f_px(TS.lvl) + " ", aSd > 0 ? C_BULL : aSd < 0 ? C_BEAR : C_SOFT, inpAM ? "ACCEPTED MOMENTUM - the tested engine (docs/trail-lab.md), its position: live on the forming bar, final at the close.\n\nSIDE - the six-month acceptance trail drawn on the chart. SIZE - momentum's score S: the 1-, 3-, 6- and 12-month move of the close over its volatility. LONG while both point up, SHORT while both point down, FLAT while they disagree; the number is the size, 0 to 1.\n\nTested sizing: size × 10% ÷ annualised volatility, capped at 2, traded at the next open. An edge across many markets, small on any one - paper-trade it first." : "THE ACCEPTANCE TRAIL'S LEVEL - the ratcheted far edge of value (the value-area low while up, the high while down), drawn on the chart: below price as a floor while the trail is up, above it as a ceiling while it is down.")
+        f_rd(5, rA, (TS.dir != 0 and not na(TS.since) ? f_span(bar_index - TS.since + 1) : "") + " ", C_SOFT, "How long the trail has stood on this side - since it started or last flipped, that bar counted as the first. Under Accepted momentum the position can be younger: it goes flat whenever momentum disagrees.", text.align_right)
 
 if (inpOi or inpGrid or inpAucRow) and not coreView and barstate.islast
     f_readout()
