@@ -89,8 +89,9 @@
 //
 //  v9.3 · THE ONE LEAN GOES ON THE PANE; THE ▲▼ READ ONLY WHAT THEY READ.
 //      An audit of the script against its own claims. No engine, unit,
-//      threshold or signal definition changed; what changed is where a
-//      signal may fire, what the pane paints, and what the text says.
+//      threshold setting or signal definition changed; what changed is where
+//      a signal may fire, how one knee is measured, what the pane paints,
+//      and what the text says.
 //      · THE GRID STATE IS PAINTED. The capitulation state - DOWN · cheap,
 //        Buy 4, the one cell positive in every era - and distribution -
 //        DOWN · rich, Exit - now tint the pane while they HOLD ('Pane
@@ -112,8 +113,12 @@
 //        a capitulation. The ▲▼ now need the bar before to be readable too.
 //      · THE VALUE MOMENTUM KNEE SKIPS WARM-UP. Its σ - the hysteresis behind
 //        'reverting', which the ▲ reads - was measured over bars before the
-//        value tape existed, when the momentum was value alone. It is now
-//        measured as conviction momentum's always was: only once ready.
+//        value tape existed, when the momentum was another quantity: value
+//        alone before the model built, exactly zero while the chart was the
+//        only rung (most of the warm-up on the default daily ladder, which
+//        made the knee too NARROW). It is now measured as conviction
+//        momentum's always was - only once the tape has been ready - and
+//        until a clean window exists the side is the sign, as f_gSide says.
 //      · ALERTS NAME THE CHART. One 'Any alert() function call' alert carries
 //        every event with ticker, interval, the grid's units and both tapes,
 //        and the capitulation STATE's entry and exit can be alerted on.
@@ -182,8 +187,8 @@
 //      −60   dashed rail · bullish R H                  divergence
 //      −82   MTF value tape                            rich or cheap on the ladder
 //      −90   MTF value momentum tape                   faster frames − slower
-//  AMALGAMATED, per instrument: no ±90 band; its tape stands tall over the
-//  space instead (±79 → ±92) while its momentum confirms the tape's edge.
+//  AMALGAMATED, per instrument: no momentum band; its tape stands tall over
+//  that space instead (±79 → ±92) while its momentum confirms the tape's edge.
 //  The rails follow the trace: the inner rail is the conviction zone (±30) on
 //  the Conviction trace and θ (±43 at the default 1.5) on the other two; the
 //  outer rail is ±60 on all three at the defaults.
@@ -657,7 +662,8 @@
 //  signal, and a gold SIGNALS PAUSED label at the pane's right edge names the
 //  layer. Each family pauses on the layers IT reads (v9.3): the ▲▼ on both
 //  level tapes and conviction's warm-up; the ◆ and R H on those and the
-//  trace's - a trace still warming reads '◆ R H PAUSED' while the ▲▼ run.
+//  trace's - while only the trace is warming, the label names just the
+//  families that are on (◆, R, H) as paused, and the ▲▼ run.
 //
 //  FREE PARAMETERS - none fitted for this stack: the trace's equal blend and
 //  its ±60 outer rail; θ (1.5); the inner zone reused as C's threshold; the
@@ -2775,13 +2781,19 @@ string ladMomTag  = multiUp ? ((ladMom > 0) == (ladAgree > 0) ? "running ahead" 
 // back toward fair value; WIDENING when it agrees.
 //
 // ITS σ SKIPS WARM-UP (v9.3), as conviction's above always did. Before the
-// value tape is ready tpBias reads 0, so tpMom is the chart's value ALONE - a
-// different, wider quantity - and 200 bars of it used to set the knee: the
-// hysteresis behind 'reverting', which the ▲ reads, opened too wide for the
-// first window after the tape came up. Until a clean window exists the knee
-// is zero and the side is the sign, exactly as on the conviction side.
+// value tape is ready tpMom is another quantity - the chart's value alone
+// before the model builds (tpCnt 0, tpBias 0), exactly zero while the chart
+// is the only rung (tpCnt 1, tpBias = the chart's value) - and 200 bars of it
+// used to set the knee behind 'reverting', which the ▲ reads: by chance, and
+// on the default daily ladder too narrow. Until a clean window exists the
+// knee is zero and the side is the sign, exactly as on the conviction side.
+// LATCHED on the tape having been ready, not on tpReady itself: a Ladder-down
+// rung can miss one bar's intrabars, and masking that bar would void the σ for
+// a whole window after every such gap.
+var bool tpSeen = false
+tpSeen := tpSeen or tpReady
 float tpMom   = tpMultiUp ? unified_osc - tpBias : tpBias - unified_osc
-float tpMomSd = ta.stdev(tpReady ? tpMom : na, varCorrLen)
+float tpMomSd = ta.stdev(tpSeen ? tpMom : na, varCorrLen)
 float tpThr   = 0.5 * nz(tpMomSd, 0.0)
 bool  tpRev   = (tpMom > 0) != (tpBias > 0)
 
@@ -2848,10 +2860,11 @@ float rhoV = ta.correlation(tpBias,   osc, inpNorm)
 int    svNeed   = holdOut + 10
 f_why() =>
     string bld = "value model building · " + str.tostring(math.min(anchN, svNeed)) + "/" + str.tostring(svNeed) + " periods"
-    string tw  = not mtfCOk ? (inpTape == "Off" ? "conviction tape off" : multi ? "conviction warming" : "no conviction frames on this chart") :
-         not mtfVOk ? (inpVLad == "Off" ? "value tape off" : not tpOn ? "no value frames on this chart" : not modelBuilt ? bld : "value warming") :
-         not cvReady ? "chart warming" : ""
-    string sw  = tw != "" ? tw : not ready ? (trHasV and not modelBuilt ? bld : trConv ? "chart warming" : "trace warming") : ""
+    string tape = not mtfCOk ? (inpTape == "Off" ? "conviction tape off" : multi ? "conviction warming" : "no conviction frames on this chart") :
+         not mtfVOk ? (inpVLad == "Off" ? "value tape off" : not tpOn ? "no value frames on this chart" : not modelBuilt ? bld : "value warming") : ""
+    // each from ITS OWN gate: triOk adds conviction's warm-up, stackOk the trace's
+    string tw  = tape != "" ? tape : not cvReady ? "chart warming" : ""
+    string sw  = tape != "" ? tape : not ready ? (trHasV and not modelBuilt ? bld : trConv ? "chart warming" : "trace warming") : ""
     [tw, sw]
 [triWhy, stackWhy] = f_why()
 
@@ -3615,9 +3628,11 @@ float cvHi     = math.max(2.0 * nz(cvHistSd, 0.0), 1.5 * cvThr, 1e-9)
 
 // quiet regime - rawSd in the bottom fifth of its own history. Conviction's,
 // so it desaturates the columns only while the trace carries conviction.
-// Capped at max_bars_back (2500): the rank reads rawSd that far back, and
-// past the declared buffer a large normalization window would be a runtime
-// error rather than a longer history. Default 800 - unchanged.
+// Capped at max_bars_back (2500), DEFENSIVELY: the rank reads rawSd that far
+// back, and a window past the declared history buffer risks a runtime error
+// instead of a longer history - not verified on TradingView. It changes only
+// normalization windows above 625 (the default 800 is untouched), where the
+// quiet regime - and through it the grid's push gate - ranks a shorter span.
 int   Q_LEN    = math.min(4 * inpNorm, 2500)
 float rawSdPr  = ta.percentrank(rawSd, Q_LEN)                // evaluated every bar
 bool  quietReg = inpQuiet and trHasC and cvReady and not na(rawSdPr) and rawSdPr < 20.0
@@ -4409,8 +4424,10 @@ plot(modelBuilt ? unified_osc : na, "Value · chart (Samanvaya)", display = disp
 //            OPPOSITE hue. By category, never a sum: on Ladder up tape +
 //            momentum is the chart's own reading exactly, and on Ladder down
 //            2·tape − chart, an extrapolation. The four plots are the same
-//            four, so the plot budget does not move: in this layout a momentum
-//            plot returns na and the level plot changes height.
+//            four, so the plot budget does not move: in this layout the level
+//            plot changes height and the momentum plot draws an INVISIBLE
+//            band, so the pane's autoscale does not jump as tall bars scroll
+//            in and out of view.
 const float TAPE_Y   = 82.0
 const float TAPE_H   = 3.0
 const float TAPE_GAP = 1.0                                   // clear space between a tape and its momentum
@@ -4462,9 +4479,9 @@ plot(multi ?  (cTall ? MOM_Y : TAPE_Y) + TAPE_H : na, "MTF conviction tape", tap
      histbase =  TAPE_Y - TAPE_H, display = display.pane)
 plot(tpOn  ? -(vTall ? MOM_Y : TAPE_Y) - TAPE_H : na, "MTF value tape", tapeVa, 1, plot.style_columns,
      histbase = -TAPE_Y + TAPE_H, display = display.pane)
-plot(inpMomC and multi ?  MOM_Y + TAPE_H : na, "MTF conviction momentum tape", tapeLm, 1, plot.style_columns,
+plot(inpMomCS != "Off" and multi ?  MOM_Y + TAPE_H : na, "MTF conviction momentum tape", inpMomC ? tapeLm : color.new(C_NEUT, 100), 1, plot.style_columns,
      histbase =  MOM_Y - TAPE_H, display = display.pane)
-plot(inpMomV and tpOn  ? -MOM_Y + TAPE_H : na, "MTF value momentum tape", tpMCol, 1, plot.style_columns,
+plot(inpMomVS != "Off" and tpOn  ? -MOM_Y + TAPE_H : na, "MTF value momentum tape", inpMomV ? tpMCol : color.new(C_NEUT, 100), 1, plot.style_columns,
      histbase = -MOM_Y - TAPE_H, display = display.pane)
 
 // Right-edge names, so a tape is never read without knowing what it spans - or
@@ -4522,8 +4539,9 @@ f_paneLabels() =>
              (inpMomV ? momTip : inpMomVS == "Amalgamated" ? amgTip : "")))
     // Each family pauses on what IT reads: the ▲▼ on triWhy; the ◆ and R H on
     // stackWhy, which adds the trace - named apart while the ▲▼ already run.
+    string fam  = (inpCon ? "◆ " : "") + (inpDiv ? "R " : "") + (inpHid ? "H " : "")
     string pTxt = inpState and not triOk ? "SIGNALS PAUSED · " + triWhy :
-         (inpCon or inpDiv or inpHid) and not stackOk ? (inpState ? "◆ R H PAUSED · " : "SIGNALS PAUSED · ") + stackWhy : ""
+         (inpCon or inpDiv or inpHid) and not stackOk ? (inpState ? fam + "PAUSED · " : "SIGNALS PAUSED · ") + stackWhy : ""
     if pTxt != ""
         array.push(paneLbs, label.new(bar_index + 2, 0.0, pTxt, style = label.style_label_left,
              color = color.new(C_NEUT, 100), textcolor = C_GOLD, size = size.tiny))
@@ -4608,14 +4626,19 @@ f_alerts() =>
     if barstate.isrealtime and barstate.isconfirmed
         string ctx = " · " + syminfo.ticker + " " + timeframe.period + " · grid " +
              (gRead ? f_gAct(gRow, gCol) + " " + f_num(gUnits, "0.00") : "not reading") +
-             " · C " + f_num(mC, "+#;-#") + " · V " + (mV > 0 ? "rich " : "cheap ") + f_num(mV, "+#;-#")
+             " · C " + f_num(mC, "+#;-#") + " · V " + f_num(mV, "+#;-#") + (mV > 0 ? " rich" : mV < 0 ? " cheap" : "")
+        // On crypto the capitulation reading FAILED in the audit: say so, as the
+        // gold ▲ and tint do, instead of calling it the robust event.
+        string cav = isCrypto ? " CRYPTO: the v9 audit found the capitulation reading FAILS here - read with caution." : ""
         if buySig
-            alert("Pragati ▲ CAPITULATION TURN" + ctx + ". Sellers in control across the ladder at a price cheap past θ, value momentum turned back toward fair - the v9 audit's one robust event. A lean, not a trade.", alert.freq_once_per_bar_close)
+            alert("Pragati ▲ CAPITULATION TURN" + ctx + ". Sellers in control across the ladder at a price cheap past θ, value momentum turned back toward fair." + (isCrypto ? cav : " The v9 audit's one robust event - a lean, not a trade."), alert.freq_once_per_bar_close)
         if sellSig
             alert("Pragati ▼ DISTRIBUTION" + ctx + ". Sellers have taken control of a price rich past θ - the grid's Exit cell.", alert.freq_once_per_bar_close)
-        if inpAlState and gCapNow and gRead[1] and not gCapNow[1]
-            alert("Pragati · ENTERED Buy · capitulation" + ctx + ". Sellers in control across the ladder at a price cheap past θ - the one grid cell positive in every era of the v9 audit.", alert.freq_once_per_bar_close)
-        if inpAlState and gRead and gCapNow[1] and not gCapNow
+        // The state's entry, on the ▲'s own gate (triOk) and entry rule (gRead[1]);
+        // silent on a bar the ▲ itself fires, which already says it.
+        if inpAlState and triOk and not buySig and gCapNow and gRead[1] and not gCapNow[1]
+            alert("Pragati · ENTERED Buy · capitulation" + ctx + ". Sellers in control across the ladder at a price cheap past θ." + (isCrypto ? cav : " The one grid cell positive in every era of the v9 audit."), alert.freq_once_per_bar_close)
+        if inpAlState and triOk and gCapNow[1] and not gCapNow
             alert("Pragati · LEFT Buy · capitulation" + ctx + ".", alert.freq_once_per_bar_close)
         if conLong or conShort
             alert("Pragati ◆ continuation " + (conLong ? "long" : "short") + ctx + ". Negative in the v9 audit - shown, not leaned on.", alert.freq_once_per_bar_close)
