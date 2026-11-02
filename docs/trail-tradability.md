@@ -170,3 +170,73 @@ python research/tradability.py --data path/to/csvs --classes classes.csv --out r
 The Sanket audit already holds 20 years of daily data for 380 markets, so the
 fastest path is to run it there. This environment cannot fetch market data:
 its data hosts are blocked, and attaching Sanket needs the owner's go-ahead.
+
+## 6 · Data addendum (2026-11-02, before any strategy result was computed)
+
+Sanket could not be attached from this session. Yahoo and Dukascopy answered
+429, stooq served a browser check, and Nasdaq Data Link did not answer. The
+first-party price sets on Hugging Face are gated. This addendum fixes the data
+that *could* be reached, and the rules for using it, before the harness runs.
+The candidates, costs, measures and pass marks above are unchanged.
+
+### Sources
+
+| Source | What it holds | Used for |
+|---|---|---|
+| Hugging Face `vishnun0027/indian-market-historical-ohlcv`, revision `825144cb` (MIT; Yahoo Finance via yfinance) | Daily OHLCV for 2,663 NSE stocks, 17 Indian indices, 17 Indian ETFs, 8 commodity futures, 8 INR currency pairs | NSE stocks, indices, ETFs, commodities, FX |
+| Binance's public archive, `data.binance.vision`, spot daily klines | Exchange-native daily OHLCV, from 2017-08 | Crypto |
+
+### Universe rules
+
+None of these rules reads a strategy output.
+
+- **NSE stocks** (`nse_stock`, 15 bps):
+  - Eligible: equities whose listing date is on or before 2003-12-31 and that
+    have at least 300 bars between 2004-01-01 and 2005-12-31.
+  - Ranked by median daily traded value (close × volume) over those two years,
+    which end before the first era begins.
+  - The **top 60** are taken.
+- **Indices** (`index`, 5 bps): all 17 index files except INDIA_VIX, which is a
+  volatility index, not an investable price.
+- **ETFs** (`etf`, 5 bps): all 17 ETF files except LIQUIDBEES, a cash fund with
+  a near-constant price.
+- **Commodities** (`commodity`, 8 bps): all 8 files.
+- **FX** (`fx`, 3 bps): all 8 files.
+- **Crypto** (`crypto`, 20 bps):
+  - Eligible: USDT spot pairs whose archive begins in or before 2018-12.
+  - Excluded: stablecoin bases (USDC, TUSD, PAX, USDP, BUSD, USDS, USDSB, DAI,
+    FDUSD) and leveraged tokens (names ending UP, DOWN, BULL or BEAR).
+  - Ranked by total quote volume over calendar 2018.
+  - The **top 15** are taken, delisted pairs included.
+- **US stocks and world indices:** no source could be reached, so these classes
+  are **absent**. The verdict covers the five classes above.
+
+### Price treatment
+
+- **Total return.** Open, high, low and close are each multiplied by that bar's
+  `adj_close / close` where both exist. Yahoo's OHLC are split-adjusted but
+  not dividend-adjusted, so without this, dividends would be missing from every
+  long position and from BH.
+- **Isolated bad prints.** A bar is dropped when its close is more than 3×, or
+  less than ⅓, of *both* neighbouring closes. That is a one-bar spike that
+  reverts. The count of dropped bars is reported.
+- **Missing volume.** It is passed as missing. The participation weight then
+  falls back to relative true range, as Pragati's *Auto* mode does on a chart
+  without volume. This applies to all FX and parts of the index history.
+- **Crypto.** UTC daily bars; the archive's quote-asset volume is not used.
+- The harness's own rules stand: nonpositive bars are dropped, and a market
+  needs at least 600 bars.
+
+### Known biases, stated before the result
+
+1. **Survivorship.** The NSE file set is today's listings, so stocks delisted
+   since 2004 are missing. This flatters buy-and-hold and long-only rules most.
+2. **Concentration.** This is mostly one country. Fifteen Indian sector indices
+   and index ETFs are highly correlated, so the equal-risk portfolio is less
+   diversified than its market count suggests. That works against the trend
+   portfolio's Sharpe, not for it.
+3. **Commodity rolls.** Yahoo's continuous futures are not roll-adjusted, so
+   each roll shows as a price jump.
+4. **Missing classes.** US stocks and world indices are absent. The literature's
+   trend premium is strongest in exactly the diversified futures universe that
+   this sample lacks.
