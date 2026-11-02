@@ -296,3 +296,5 @@ command on the null walks showed TSMOM at Sharpe −1.37.
 
   Price beyond both lines means a position, and its size is S. Price between
   them means flat.
+
+**FROZEN** at commit `62ce3c2`: winner T126×TS; `research/trail_lab.py` sha256 recorded in `research/results/lab/frozen.json`. HA and HB have not been evaluated.
