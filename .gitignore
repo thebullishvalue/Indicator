@@ -1,3 +1,7 @@
 # Python bytecode from running reference/ locally
 __pycache__/
 *.pyc
+
+# Field manual build: the layout work directory and fonts fetched on demand
+docs/manual/src/work/
+docs/manual/src/fonts/*.ttf

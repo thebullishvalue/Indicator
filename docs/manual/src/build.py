@@ -121,6 +121,16 @@ td .k{font-family:var(--mono);font-size:13px}
 .contents a{display:block;color:var(--ink);text-decoration:none;padding:1px 0}
 @media (min-width:1040px){.contents{display:none}}
 @media print{.contents{display:block}}
+.chapter-head{margin-top:40px;padding-top:18px;border-top:2px solid var(--ink)}
+.chapter-head .chapno{font-family:var(--display);font-stretch:85%;font-weight:700;letter-spacing:.2em;text-transform:uppercase;color:var(--accent);font-size:12.5px}
+.chapter-head .ct{font-size:clamp(26px,3.4vw,34px);font-stretch:85%;font-weight:780;margin-top:4px}
+.chapter-head.back{margin-top:36px}
+.secno{font-family:var(--mono);font-size:13px;color:var(--accent)}
+.tcap{font-family:var(--display);font-stretch:90%;font-size:14px;margin:18px 0 -8px;color:var(--muted)}
+.tcap b{color:var(--ink);margin-right:6px}
+nav.toc a.ts{padding-left:14px;font-size:12px}
+nav .tc{color:var(--ink)}
+.contents a.ts{padding-left:16px;font-size:13px;color:var(--muted)}
 .disclaimer{font-size:13.5px;color:var(--muted);border-top:1px solid var(--line);padding-top:14px;margin-top:40px}
 svg .f-surface{fill:var(--surface)} svg .s-line{stroke:var(--line)} svg .f-bull{fill:var(--bull)} svg .f-bear{fill:var(--bear)} svg .f-gold{fill:var(--gold)}
 svg .f-neut{fill:var(--neut)} svg .f-slate{fill:var(--slate)} svg .f-va{fill:var(--va)} svg .f-poc{fill:var(--poc)} svg .f-node{fill:var(--neut)} svg .f-vwap{fill:var(--vwap)}
@@ -149,22 +159,98 @@ svg .t-callout{font-size:11.5px;font-weight:700;fill:var(--surface);font-family:
 """
 
 import re as _re0
+STRUCTURE = [
+ ("part-1", "Basics", [("c1", "Getting started", ["setup", "sixty"]), ("c2", "The visual language", ["colour", "pane", "chart"]), ("c3", "The engines in plain words", ["engines"])]),
+ ("part-2", "Reading every state", [("c4", "The Conviction-Value Grid", ["grid"]), ("c5", "The readout table", ["readout"]), ("c6", "Panel, marks and troubleshooting", ["panel", "signals", "trouble"])]),
+ ("part-3", "Investment guide", [("c7", "Investing with the grid", ["inv-frame", "inv-families"]), ("c8", "Plan, book and risk", ["inv-cap", "inv-book", "inv-risk"])]),
+ ("part-4", "Trade guide", [("c9", "Accepted momentum", ["am", "am-book"]), ("c10", "Discretion and structure", ["overlay", "stops"])]),
+ ("part-5", "Permutations and combinations", [("c11", "The four matrices", ["mx-a", "mx-b", "mx-c", "mx-d"]), ("c12", "Scenarios and conflicts", ["scen", "conflict"])]),
+ ("part-6", "Reference", [("c13", "Alerts and settings", ["alerts", "settings"]), ("c14", "What is measured", ["evidence"])]),
+]
+BACK = [("card", "Quick reference card"), ("glossary", "Glossary")]
+FIGS = {"pane": "pane", "chart": "chart", "grid": "grid", "am": "am"}     # figure key -> its section
+TITLES = {("Grid family", 4): ["The system against the grid, all 27 cases"], ("You see in WHY", 3): ["Phases in the WHY cell"],
+          ("STATE", 3): ["OI row states"], ("Cell", 3): ["CVG row cells", "AUCTION row cells"], ("Row", 2): ["Information panel rows"],
+          ("Mark", 4): ["Signals and marks"], ("You see", 3): ["Symptoms, causes and fixes"], ("Family", 5): ["The nine families as investment actions"],
+          ("Name", 4): ["A six-name book"], ("Rule", 2): ["Accepted momentum, the tested rules"], ("Holdout", 5): ["Results on held-out data"],
+          ("Class", 7): ["Costs charged in the test"], ("Overlay", 3): ["Discretionary overlays"], ("Level", 3): ["Structural levels for stops and targets"],
+          ("OI character", 4): ["Open interest against location in value"], ("Migration (AUCTION STATE)", 3): ["Trail side against migration"],
+          ("Asset class", 5): ["Asset class against evidence"], ("When", 4): ["A capitulation dip inside an uptrend", "Distribution while the trend is still long"],
+          ("Alert", 3): ["Alerts"], ("Group", 4): ["Settings by group"], ("Component", 3): ["What is measured, and what is not"], ("Term", 2): [None]}
+_TITLE_LEFT = {}
+
+def structure(html):
+    """Number chapters and sections, insert chapter heads, resolve references, figures and tables."""
+    import re as _re
+    chap_of, secnum, chnum, sectitle = {}, {}, {}, {}
+    n = 0
+    for pid, ptitle, chs in STRUCTURE:
+        for cid, ctitle, secs in chs:
+            n += 1
+            chnum[cid] = n
+            for k, sid in enumerate(secs, 1):
+                chap_of[sid] = cid
+                secnum[sid] = f"{n}.{k}" if len(secs) > 1 else None
+    for pid, ptitle, chs in STRUCTURE:
+        for cid, ctitle, secs in chs:
+            html = html.replace(f'<section class="chap" id="{secs[0]}">', f'<div class="chapter-head" id="{cid}"><div class="chapno">Chapter {chnum[cid]}</div><h2 class="ct">{ctitle}</h2></div><section class="chap" id="{secs[0]}">', 1)
+            for sid in secs:
+                pat = _re.compile(rf'<section class="chap" id="{sid}"><div class="chead"><div class="chapno">Chapter ⟦#⟧</div><h3>(.*?)</h3></div>', _re.S)
+                m = pat.search(html)
+                assert m, sid
+                sectitle[sid] = m.group(1)
+                head = f'<div class="chead"><div class="secno">{secnum[sid]}</div><h3>{m.group(1)}</h3></div>' if secnum[sid] else ""
+                html = html[:m.start()] + f'<section class="chap" id="{sid}">' + head + html[m.end():]
+    for bid, btitle in BACK:
+        pat = _re.compile(rf'<section class="chap" id="{bid}"><div class="chead"><div class="chapno">Chapter ⟦#⟧</div><h3>(.*?)</h3></div>', _re.S)
+        m = pat.search(html); assert m, bid
+        html = html[:m.start()] + f'<section class="chap back" id="{bid}"><div class="chapter-head back"><h2 class="ct">{btitle}</h2></div>' + html[m.end():]
+    def ref(m):
+        sid = m.group(1)
+        lab = f"section {secnum[sid]}" if secnum[sid] else f"chapter {chnum[chap_of[sid]]}"
+        return f'<a href="#{sid}">{lab}</a>'
+    html = _re.sub(r"⟦ref:([\w-]+)⟧", ref, html)
+    # figures and tables, numbered within their chapter in reading order
+    marks = [(m.start(), "ch", m.group(1)) for m in _re.finditer(r'<div class="chapter-head" id="(c\d+)">', html)]
+    marks += [(m.start(), "back", None) for m in _re.finditer(r'<div class="chapter-head back">', html)]
+    marks += [(m.start(), "fig", m.group(1)) for m in _re.finditer(r"⟦figcap:(\w+)⟧", html)]
+    marks += [(m.start(), "tab", None) for m in _re.finditer(r"⟦tcap⟧", html)]
+    marks.sort()
+    cur, fk, tk, fignum, tabnums = None, 0, 0, {}, []
+    for pos, kind, val in marks:
+        if kind == "ch":
+            cur, fk, tk = chnum[val], 0, 0
+        elif kind == "back":
+            cur = None
+        elif kind == "fig":
+            fk += 1; fignum[val] = f"{cur}.{fk}"
+        else:
+            tk += 1; tabnums.append(f"Table {cur}.{tk}" if cur else "")
+    html = _re.sub(r"⟦figcap:(\w+)⟧", lambda m: f"Figure {fignum[m.group(1)]}", html)
+    html = _re.sub(r"⟦figref:(\w+)⟧", lambda m: f'<a href="#{FIGS[m.group(1)]}">Figure {fignum[m.group(1)]}</a>', html)
+    it = iter(tabnums)
+    html = _re.sub(r"⟦tcap⟧", lambda m: next(it), html)
+    return html, chnum, secnum, sectitle
+
 WIDTHS = {("Grid family", 4): [22, 26, 26, 26], ("You see in WHY", 3): [34, 38, 28], ("STATE", 3): [30, 10, 60],
           ("Cell", 3): [12, 48, 40], ("Row", 2): [30, 70], ("Mark", 4): [18, 34, 10, 38], ("You see", 3): [30, 38, 32],
           ("Family", 5): [16, 18, 13, 18, 35], ("Name", 4): [10, 50, 18, 22], ("Rule", 2): [20, 80],
-          ("Holdout", 5): [26, 20, 20, 17, 17], ("Class", 7): [22, 13, 13, 13, 13, 13, 13], ("Overlay", 3): [22, 44, 34],
+          ("Holdout", 5): [26, 20, 20, 17, 17], ("Class", 7): [20, 16, 10, 15, 13, 13, 13], ("Overlay", 3): [22, 44, 34],
           ("Level", 3): [22, 39, 39], ("OI character", 4): [22, 26, 26, 26], ("Migration (AUCTION STATE)", 3): [26, 37, 37],
           ("Asset class", 5): [16, 24, 20, 20, 20], ("When", 4): [10, 44, 23, 23], ("Alert", 3): [18, 36, 46],
-          ("Group", 4): [18, 34, 24, 24], ("Component", 3): [30, 13, 57], ("Term", 2): [24, 76]}
+          ("Group", 4): [18, 34, 24, 24], ("Component", 3): [29, 15, 56], ("Term", 2): [24, 76]}
 
 def tbl(head, rows, cls=""):
     key = (_re0.sub(r"<[^>]+>", "", head[0]).strip(), len(head))
     w = WIDTHS[key]
     assert len(w) == len(head) and sum(w) == 100, key
     cg = "<colgroup>" + "".join(f'<col style="width:{x}%">' for x in w) + "</colgroup>"
+    left = _TITLE_LEFT.setdefault(key, list(TITLES[key]))
+    title = left.pop(0)
+    cap = f'<div class="tcap"><b>⟦tcap⟧</b> {title}</div>' if title else ""
     h = "".join(f"<th>{c}</th>" for c in head)
     b = "".join("<tr>" + "".join(f"<td>{c}</td>" for c in r) + "</tr>" for r in rows)
-    return f'<div class="tbl {cls}"><table>{cg}<thead><tr>{h}</tr></thead><tbody>{b}</tbody></table></div>'
+    return cap + f'<div class="tbl {cls}"><table>{cg}<thead><tr>{h}</tr></thead><tbody>{b}</tbody></table></div>'
 
 def cell(fam, act, units, cls, actcls, mark=""):
     mk = f'<span class="mk">{mark}</span>' if mark else ""
@@ -227,15 +313,7 @@ def matrix_a():
     return tbl(['Grid family', '<span class="chip c-bull">AM LONG</span>', '<span class="chip c-neut">AM FLAT</span>', '<span class="chip c-bear">AM SHORT</span>'], rows, "matrix")
 
 def build():
-    toc = [("Part I · Basics", [("setup", "Setup in five minutes"), ("sixty", "Reading a chart in sixty seconds"), ("colour", "The colour grammar"), ("pane", "The pane, labelled"), ("chart", "The price chart, labelled"), ("engines", "The engines in plain words")]),
-           ("Part II · Reading every state", [("grid", "The Conviction-Value Grid"), ("readout", "The readout table"), ("panel", "The information panel"), ("signals", "Signals and marks"), ("trouble", "When something looks wrong")]),
-           ("Part III · Investment guide", [("inv-frame", "The investor's frame"), ("inv-families", "Nine families, nine actions"), ("inv-cap", "The capitulation plan"), ("inv-book", "Building the book"), ("inv-risk", "Investor risk")]),
-           ("Part IV · Trade guide", [("am", "Accepted momentum, the tested system"), ("am-book", "Running it as a portfolio"), ("overlay", "Discretionary overlays"), ("stops", "Stops, targets, invalidation")]),
-           ("Part V · Permutations", [("mx-a", "System × grid: 27 cases"), ("mx-b", "OI × location"), ("mx-c", "Trail × migration"), ("mx-d", "Asset class × evidence"), ("scen", "Four worked scenarios"), ("conflict", "When readings disagree")]),
-           ("Part VI · Reference", [("alerts", "Alerts"), ("settings", "Settings"), ("evidence", "What is measured"), ("glossary", "Glossary"), ("card", "Quick card")])]
-    order = [i for _, items in toc for i, _ in items]
-    num = {i: k + 1 for k, i in enumerate(order)}
-    nav = "".join(f'<div class="tp">{p}</div>' + "".join(f'<a href="#{i}">{num[i]} {t}</a>' for i, t in items) for p, items in toc)
+    nav = "⟦NAV⟧"
 
     html = f"""<title>Pragati Field Manual</title>
 <meta name="claude:viewport-fit-sides" content="cover">
@@ -253,7 +331,7 @@ def build():
   <h1>Pragati Field Manual</h1>
   <div class="q">"Is this move paid for, and is it paid for on every timeframe?"</div>
   <p class="lede">How to read every part of the indicator, how to invest with its grid, how to trade its tested trend system, and what every combination of readings means. Each claim is tagged with how well it is known.</p>
-  <div class="meta"><span>Manual 1.2 · for Pragati v9.9</span><span>Daily charts are the default and the tested timeframe</span><span>Educational, not financial advice</span></div>
+  <div class="meta"><span>Manual 1.3 · for Pragati v9.9</span><span>Daily charts are the default and the tested timeframe</span><span>Educational, not financial advice</span></div>
 </header>
 <nav class="contents" aria-label="Contents">{nav}</nav>
 
@@ -281,9 +359,9 @@ def build():
 </section>
 
 <section class="chap" id="sixty"><div class="chead"><div class="chapno">Chapter ⟦#⟧</div><h3>Reading a chart in sixty seconds</h3></div>
-<p>Five looks, in this order, at the close of a bar. The worked readings come from the readout in Plate 2.</p>
+<p>Five looks, in this order, at the close of a bar. The worked readings come from the readout in ⟦figref:chart⟧.</p>
 <div class="steps">
- <div class="step"><div><b>Is there a reading?</b><p>Anything paused, warming, stale or gold means smaller or later. In Plate 2 nothing is gold.</p></div></div>
+ <div class="step"><div><b>Is there a reading?</b><p>Anything paused, warming, stale or gold means smaller or later. In ⟦figref:chart⟧ nothing is gold.</p></div></div>
  <div class="step"><div><b>Trader: the AUCTION row's CHART cell.</b><p><span class="chip c-bull">LONG 0.62</span>: the tested system is long, at size 0.62. Size it with the formula in ⟦ref:am⟧.</p></div></div>
  <div class="step"><div><b>Investor: the CVG row's STATE.</b><p><span class="chip c-bull">Buy 2.71</span>: the TURNED family (buyers in control, price cheap). Weight it at 2.71 units in the book.</p></div></div>
  <div class="step"><div><b>Why: the CVG row's WHY and PUSH.</b><p>"buyers running · turning up" and ↑: both edges are confirmed and a push is on. Nothing is held.</p></div></div>
@@ -306,7 +384,7 @@ def build():
 
 <section class="chap" id="pane"><div class="chead"><div class="chapno">Chapter ⟦#⟧</div><h3>The pane, labelled</h3></div>
 <figure><div class="scroll">{plate_pane()}</div>
-<figcaption><b>Plate 1 · The oscillator pane.</b> Numbers match the list below.</figcaption>
+<figcaption><b>⟦figcap:pane⟧</b> The oscillator pane. Numbers match the list below.</figcaption>
 <ol class="callouts">
   <li><b>Trace.</b> Default Conviction × Value: how stretched the move is, in effort and in price against fair value. Rails at ±θ (±43 at the default) and ±60, a 3σ stretch. {U}</li>
   <li><b>Histogram.</b> The trace minus its 9-bar signal. Hue is the direction of the push. Bright means pressing, mid means decelerating, pale means turning. {U}</li>
@@ -323,7 +401,7 @@ def build():
 
 <section class="chap" id="chart"><div class="chead"><div class="chapno">Chapter ⟦#⟧</div><h3>The price chart, labelled</h3></div>
 <figure><div class="scroll">{plate_chart()}</div>
-<figcaption><b>Plate 2 · On the price chart.</b> Numbers match the list below.</figcaption>
+<figcaption><b>⟦figcap:chart⟧</b> On the price chart. Numbers match the list below.</figcaption>
 <ol class="callouts">
   <li><b>Accepted momentum trail.</b> The tested engine. Hue is its side, intensity its size, grey when flat. {M}</li>
   <li><b>Flat segment.</b> The trail's side and momentum disagree, so the position is zero.</li>
@@ -333,7 +411,7 @@ def build():
   <li><b>Level tags.</b> POC, VAH, VAL, VWAP (TWAP when volume is off), IBH and IBL intraday, prior-session levels.</li>
   <li><b>Session VWAP</b> (rose).</li>
   <li><b>Naked POC.</b> A prior session's POC that price has not traded back through since. Up to 5, up to 250 bars old.</li>
-  <li><b>The readout.</b> Three rows (OI, CVG, AUCTION) and five columns (STATE, WHY, PUSH, CHART, SPAN). ⟦ref:readout⟧.</li>
+  <li><b>The readout.</b> Three rows (OI, CVG, AUCTION) and five columns (STATE, WHY, PUSH, CHART, SPAN). See ⟦ref:readout⟧.</li>
 </ol></figure>
 </section>
 
@@ -355,7 +433,7 @@ def build():
 
 <section class="chap" id="grid"><div class="chead"><div class="chapno">Chapter ⟦#⟧</div><h3>The Conviction-Value Grid</h3></div>
 <p>Rows come from the conviction tape: UP past the inner zone (+30), DOWN past −30, FAINT between. Columns come from the value tape: CHEAP past −θ, RICH past +θ, FAIR between. Each of the nine cells is a family named for what it says to do. The number is its units, the relative weight a portfolio gives the name.</p>
-<figure><div class="scroll">{GRID}</div><figcaption><b>Plate 3 · The 3 × 3 map.</b> Green actions buy, red actions sell, grey change nothing. The word is the weight: Buy 4 is four times Wait 1. {X} The graded units were positive in all three eras outside crypto.</figcaption></figure>
+<figure><div class="scroll">{GRID}</div><figcaption><b>⟦figcap:grid⟧</b> The 3 × 3 map. Green actions buy, red actions sell, grey change nothing. The word is the weight: Buy 4 is four times Wait 1. {X} The graded units were positive in all three eras outside crypto.</figcaption></figure>
 <h4>Rows move only on a push</h4>
 <p>A row changes only when conviction's own histogram confirms a push that way: on the move's side, not turning, not in a quiet regime. Without that push the row is <b>held</b> where it was, and WHY shows "held" in gold. This stops the grid flickering on every wobble of the tape.</p>
 <h4>The 5 × 5: phases</h4>
@@ -519,9 +597,9 @@ def build():
 
 <section class="part" id="part-4"><div class="eyebrow">Part IV · systematic and swing</div><h2>Trade guide</h2>
 
-<section class="chap" id="am"><div class="chead"><div class="chapno">Chapter ⟦#⟧</div><h3>Accepted momentum, the tested system</h3></div>
+<section class="chap" id="am"><div class="chead"><div class="chapno">Chapter ⟦#⟧</div><h3>The tested system</h3></div>
 <p>This is the one trade system in Pragati that passed a held-out test {M}. It was chosen by a fixed rule from eleven trials on data up to 2019, frozen, and then run once on 2020-26 and on 411 markets it had never seen.</p>
-<figure><div class="scroll">{plate_am()}</div><figcaption><b>Plate 4 · How the position is decided.</b> The trail's side and momentum's direction must agree.</figcaption></figure>
+<figure><div class="scroll">{plate_am()}</div><figcaption><b>⟦figcap:am⟧</b> How the position is decided. The trail's side and momentum's direction must agree.</figcaption></figure>
 {tbl(["Rule", "Exactly"], [
  ["Side", "The acceptance trail on a 126-bar (six-month) window: up while value has migrated and ratcheted up, down while it has migrated down"],
  ["Momentum score S", "The 1-, 3-, 6- and 12-month moves of the close (21, 63, 126, 252 bars), each divided by volatility × √horizon, capped at ±2, averaged and halved, so S lies between −1 and +1"],
@@ -704,13 +782,25 @@ Cap: weight never above 2.0 (notional ₹1,00,000 for this slice)</div>
 <p>Known limits: the Accepted momentum test is mostly Indian markets plus crypto, and its NSE stocks are today's listings (survivorship). The v9 audit's figures come from a separate repository.</p>
 </section>
 
+<section class="chap" id="card"><div class="chead"><div class="chapno">Chapter ⟦#⟧</div><h3>Quick card</h3></div>
+<div class="quick">
+ <div class="card"><h4>Every close</h4><ul><li>Gold anywhere? Smaller, or later.</li><li>Trader: read the AUCTION row's CHART cell; act at the next open.</li><li>Investor: read the CVG row's STATE at the week's last close.</li></ul></div>
+ <div class="card"><h4>Investor</h4><ul><li>Weight = units ÷ total units.</li><li>Stage into DOWN · cheap; add on the ▲.</li><li>Trim in PAID and STALLING; exit in DISTRIBUTION.</li><li>Not on crypto.</li></ul></div>
+ <div class="card"><h4>Trader</h4><ul><li>LONG or SHORT only when trail and momentum agree.</li><li>Weight = size × 10% ÷ volatility, cap 2.</li><li>Many markets, weekly rebalance.</li><li>Paper first, then a tenth.</li></ul></div>
+ <div class="card"><h4>Never</h4><ul><li>Trade the forming bar.</li><li>Read gold as a direction.</li><li>Lean on the ◆, R, H or the 20-bar trail.</li><li>Use non-standard candles.</li></ul></div>
+</div>
+</section>
+
 <section class="chap" id="glossary"><div class="chead"><div class="chapno">Chapter ⟦#⟧</div><h3>Glossary</h3></div>
 {tbl(["Term", "Meaning"], [
  ["Acceptance", "A close beyond the trail with the window's POC beyond it and value migrated that way. Only acceptance flips the trail"],
+ ["Build-up · covering · unwinding", "Open interest rising with the price move (new positions), or falling (positions closing)"],
  ["Capitulation", "Sellers in control across the ladder at a price cheap past θ: the DOWN · cheap cell"],
  ["Conviction", "The share of the window's participation-weighted effort that became net movement"],
  ["Family", "One of the grid's nine cells, named for its action"],
  ["Held", "A grid row kept in place because no push confirmed the tape's move"],
+ ["HVN · LVN", "High- and low-volume nodes: local peaks and troughs in the session profile"],
+ ["IBH · IBL", "The initial balance: the high and low of the session's first bars (12 by default), intraday only"],
  ["Impulse", "A histogram column past k standard deviations of its history (↑↑)"],
  ["Ladder down / up", "Reading the timeframes below the chart (inside each bar) or above it"],
  ["Migration", "This window's value area against the one six months earlier: Migrating (no overlap), Shifting (only the POC left), Balance"],
@@ -724,32 +814,26 @@ Cap: weight never above 2.0 (notional ₹1,00,000 for this slice)</div>
  ["θ (theta)", "Samanvaya's value threshold, ±43 on the pane at the default 1.5"],
  ["Units", "The relative weight a family gives a name in a portfolio"],
  ["VWAP · TWAP", "The session's volume-weighted average price; time-weighted when the symbol has no usable volume"],
- ["IBH · IBL", "The initial balance: the high and low of the session's first bars (12 by default), intraday only"],
- ["HVN · LVN", "High- and low-volume nodes: local peaks and troughs in the session profile"],
- ["Build-up · covering · unwinding", "Open interest rising with the price move (new positions), or falling (positions closing)"],
 ])}
-</section>
-
-<section class="chap" id="card"><div class="chead"><div class="chapno">Chapter ⟦#⟧</div><h3>Quick card</h3></div>
-<div class="quick">
- <div class="card"><h4>Every close</h4><ul><li>Gold anywhere? Smaller, or later.</li><li>Trader: read the AUCTION row's CHART cell; act at the next open.</li><li>Investor: read the CVG row's STATE at the week's last close.</li></ul></div>
- <div class="card"><h4>Investor</h4><ul><li>Weight = units ÷ total units.</li><li>Stage into DOWN · cheap; add on the ▲.</li><li>Trim in PAID and STALLING; exit in DISTRIBUTION.</li><li>Not on crypto.</li></ul></div>
- <div class="card"><h4>Trader</h4><ul><li>LONG or SHORT only when trail and momentum agree.</li><li>Weight = size × 10% ÷ volatility, cap 2.</li><li>Many markets, weekly rebalance.</li><li>Paper first, then a tenth.</li></ul></div>
- <div class="card"><h4>Never</h4><ul><li>Trade the forming bar.</li><li>Read gold as a direction.</li><li>Lean on the ◆, R, H or the 20-bar trail.</li><li>Use non-standard candles.</li></ul></div>
-</div>
 <p class="disclaimer">This manual is educational. It describes how an indicator works and how it was tested; it is not investment advice. Past results, including held-out tests, do not guarantee future results. Trade only what you can afford to lose, and paper-trade first.</p>
 </section>
 </section>
 
 </main></div>
 """
+    html, chnum, secnum, sectitle = structure(html)
     import re as _re
-    ids = _re.findall(r'<section class="chap" id="([\w-]+)"><div class="chead"><div class="chapno">Chapter ⟦#⟧', html)
-    assert ids == order, (ids, order)
-    for i in order:
-        html = html.replace(f'<section class="chap" id="{i}"><div class="chead"><div class="chapno">Chapter ⟦#⟧', f'<section class="chap" id="{i}"><div class="chead"><div class="chapno">Chapter {num[i]}', 1)
-    html = _re.sub(r"⟦ref:([\w-]+)⟧", lambda m: f'<a href="#{m.group(1)}">Chapter {num[m.group(1)]}</a>', html)
-    assert "⟦" not in html
+    navh = []
+    for pid, ptitle, chs in STRUCTURE:
+        lab = _re.search(rf'<section class="part" id="{pid}"><div class="eyebrow">(Part [IVX]+)', html).group(1)
+        navh.append(f'<div class="tp">{lab} · {ptitle}</div>')
+        for cid, ctitle, secs in chs:
+            navh.append(f'<a class="tc" href="#{cid}">{chnum[cid]} · {ctitle}</a>')
+            if len(secs) > 1:
+                navh += [f'<a class="ts" href="#{sid}">{secnum[sid]} {_re.sub(r"<[^>]+>", "", sectitle[sid])}</a>' for sid in secs]
+    navh.append('<div class="tp">Back matter</div>' + "".join(f'<a class="tc" href="#{b}">{t}</a>' for b, t in BACK))
+    html = html.replace("⟦NAV⟧", "".join(navh))
+    assert "⟦" not in html, html[html.index("⟦") - 80:html.index("⟦") + 40]
     return html
 
 if __name__ == "__main__":

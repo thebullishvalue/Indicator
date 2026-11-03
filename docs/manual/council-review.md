@@ -1,4 +1,4 @@
-# Field manual · council review (manual 1.0 → 1.1)
+# Field manual · council review (manual 1.0 → 1.3)
 
 **The question.** Is manual 1.0 the edition to publish?
 
@@ -65,4 +65,47 @@
 
 The result is 24 pages, down from 29, with no stranded headings or widowed list items. The only short pages are the last pages of Parts I, III and V, where the next part begins.
 
-Rebuild with `python3 src/print_edition.py OUT.pdf`. It needs Playwright's Chromium, poppler's `pdftotext` and `pdfunite`, and the fonts listed in `src/fonts/fonts.css`.
+`src/print_edition.py` was replaced in 1.3 by `src/book.py`.
+
+## 1.3 · the book
+
+**The owner's verdict on 1.2:** "it's a book, but there are no publishing rules applied". Parts, chapters and sections were not placed as a book places them, and the spacing did not follow book conventions.
+
+**What 1.2 lacked.** It was a well-aligned A4 document, not a book:
+- parts and chapters fell on whichever page came next, left or right;
+- the folios had no front-matter numbering and no rule about where they go;
+- there was one running header for every page;
+- sections were unnumbered, and figures and tables had no numbers or titles to cite;
+- there was no index, and the back matter was in no set order.
+
+**1.3 applies the conventions of book typography**, following the Chicago Manual of Style's order and placement. `src/book.py` builds it from the same content as the web page.
+
+| Rule | 1.3 |
+|---|---|
+| Order | Cover · title page · imprint · contents · how to use · six parts, fourteen chapters · quick reference card · glossary · index · colophon · back cover |
+| Parts | A recto of their own, listing their chapters with page numbers. The verso behind each is blank, so every part's first chapter opens on a recto. A blank verso is added before a part that would land on the left |
+| Chapters | Each opens a new page with its title sunk about a quarter of the way down, a drop folio and no running head |
+| Sections | Numbered 1.1 to 14.1, with the number set inline in the heading's own face. Cross-references name them: "section 9.1", "chapter 5" |
+| Figures and tables | Figures 2.1 to 9.1 are captioned below; 23 tables (4.1 to 14.1) are titled above, all numbered by chapter. Tables are ruled top, head and foot only. A table of five rows or fewer is never split; a longer one splits with its head repeated and at least two rows on each side of the break |
+| Folios | Roman in the front matter, with none on the title page or imprint. Arabic from 1 at Part I. None on part or blank pages, centred on openings, outer corners elsewhere |
+| Running heads | The part on the verso, the chapter on the recto (the book title in the back matter); none on openings or blanks |
+| Margins | Mirrored: inner 24 mm, outer 28 mm, top 24 mm, bottom 26 mm |
+| Text | IBM Plex Serif 10.4/15 pt, justified and hyphenated, with the first paragraph after a heading flush and the rest indented. Headings, tables and captions in Plex Sans |
+| Back matter | The quick reference card (an appendix) comes before the glossary, which is now alphabetical. The index of 68 terms is read from the laid-out pages and opens on a recto. The colophon says how the book was made |
+| Imposition | 60 pages, an even count, with the back cover on the last verso |
+
+**How the page numbers are made true.**
+1. The body is laid out once with symmetric margins and no heads. Mirrored margins keep the same text width, so the lines break the same way.
+2. Every part, chapter, section and back-matter opening is found on its page with `pdftotext`.
+3. Parts are moved to rectos and the index to a recto. The contents, the part pages' lists and the index are written from what was found.
+4. The book is laid out again, and this repeats until the index it prints is the index of the pages it prints. A first draft of the build printed an index taken from one layout too early, and some of its locators pointed at the wrong pages; the settle rule fixed that.
+5. Each page is rendered with its own margins, running head and folio, and the pages are joined.
+
+**Checked on the final PDF:**
+- 39 of 39 contents entries match the folio printed on their page;
+- 350 of 350 index locators were found on their page;
+- all six parts are on rectos with blank versos, and the index is on a recto;
+- no table cell has a word wider than its column;
+- the web edition has no horizontal scroll at 390 px.
+
+Rebuild with `python3 src/book.py OUT.pdf`. It needs Playwright's Chromium and poppler's `pdftotext` and `pdfunite`. The fonts (SIL Open Font License) are fetched on first run into `src/fonts/`. `python3 src/build.py OUT.html` builds the web page.
