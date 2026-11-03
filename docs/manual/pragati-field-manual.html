@@ -1,0 +1,1139 @@
+<title>Pragati Field Manual</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..900&family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:ital,wght@0,400;0,600;0,700;1,400&display=swap">
+<style>
+/* Layout: an operator's field manual. A contents rail beside the reading column on wide screens,
+   one column on phones; plates (annotated diagrams) and reference tables break out to full width. */
+:root{
+  --bg:#F5F6F6; --surface:#FFFFFF; --ink:#172027; --muted:#55606A; --line:#D7DDE1;
+  --bull:#0DA07E; --bear:#982116; --gold:#8F7A0E; --neut:#69757E; --slate:#7E8891;
+  --va:#2C5C99; --poc:#2B2B2B; --vwap:#A32468; --violet:#6A3F84; --accent:#2C5C99;
+  --tint-bull:rgba(13,160,126,.12); --tint-bear:rgba(152,33,22,.10); --tint-gold:rgba(143,122,14,.12); --tint-neut:rgba(105,117,126,.10);
+  --display:"Archivo","Arial Narrow",system-ui,sans-serif; --body:"IBM Plex Sans",system-ui,-apple-system,"Segoe UI",sans-serif; --mono:"IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0D1215; --surface:#141B20; --ink:#E3E9EC; --muted:#A3AEB5; --line:#27323A;
+  --bull:#6EDDC3; --bear:#E8644A; --gold:#E3CE63; --neut:#8A97A0; --slate:#8E9AA6;
+  --va:#6A9BE0; --poc:#C2CEFF; --vwap:#F06BA8; --violet:#B48BCB; --accent:#7FA9E6;
+  --tint-bull:rgba(110,221,195,.12); --tint-bear:rgba(232,100,74,.13); --tint-gold:rgba(227,206,99,.12); --tint-neut:rgba(138,151,160,.12); color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0D1215; --surface:#141B20; --ink:#E3E9EC; --muted:#A3AEB5; --line:#27323A;
+  --bull:#6EDDC3; --bear:#E8644A; --gold:#E3CE63; --neut:#8A97A0; --slate:#8E9AA6;
+  --va:#6A9BE0; --poc:#C2CEFF; --vwap:#F06BA8; --violet:#B48BCB; --accent:#7FA9E6;
+  --tint-bull:rgba(110,221,195,.12); --tint-bear:rgba(232,100,74,.13); --tint-gold:rgba(227,206,99,.12); --tint-neut:rgba(138,151,160,.12); color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:16px;line-height:1.6;margin:0}
+.wrap{max-width:1180px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:28px 80px;display:grid;grid-template-columns:minmax(0,1fr);gap:40px}
+@media (min-width:1040px){.wrap{grid-template-columns:220px minmax(0,1fr)}}
+nav.toc{display:none}
+@media (min-width:1040px){nav.toc{display:block;position:sticky;top:calc(env(safe-area-inset-top,0px) + 20px);align-self:start;max-height:calc(100vh - 40px);overflow:auto;font-size:13px;line-height:1.45;border-right:1px solid var(--line);padding-right:14px}}
+nav.toc a{color:var(--muted);text-decoration:none;display:block;padding:3px 0}
+nav.toc a:hover,nav.toc a:focus-visible{color:var(--accent)}
+nav.toc .tp{font-family:var(--display);font-stretch:80%;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--ink);margin-top:14px;font-size:12px}
+main{min-width:0}
+h1,h2,h3,h4{font-family:var(--display);text-wrap:balance;line-height:1.15;margin:0}
+h1{font-size:clamp(40px,7vw,72px);font-stretch:78%;font-weight:800;letter-spacing:-.01em}
+h2{font-size:clamp(26px,3.6vw,36px);font-stretch:85%;font-weight:750;margin-top:8px}
+h3{font-size:21px;font-stretch:90%;font-weight:700;margin-top:30px}
+h4{font-size:16px;font-weight:700;margin-top:18px}
+p,li{max-width:72ch}
+p{margin:10px 0}
+a{color:var(--accent)}
+code,.mono{font-family:var(--mono);font-size:.92em}
+.eyebrow{font-family:var(--display);font-stretch:80%;font-weight:700;letter-spacing:.12em;text-transform:uppercase;font-size:12.5px;color:var(--accent)}
+.lede{font-size:19px;color:var(--muted);max-width:62ch}
+.cover{display:grid;gap:18px;padding-block:18px 26px;border-bottom:2px solid var(--ink)}
+.cover .q{font-family:var(--display);font-stretch:85%;font-size:clamp(20px,2.6vw,26px);font-weight:600}
+.meta{display:flex;flex-wrap:wrap;gap:8px 22px;font-size:13px;color:var(--muted);font-family:var(--mono)}
+section.part{padding-top:44px;margin-top:20px;border-top:1px solid var(--line)}
+section.chap{padding-top:26px}
+.chapno{font-family:var(--mono);font-size:13px;color:var(--muted)}
+.ev{display:inline-block;font-family:var(--mono);font-size:10.5px;letter-spacing:.05em;text-transform:uppercase;padding:1px 6px;border-radius:3px;vertical-align:2px;white-space:nowrap}
+.ev-m{background:var(--va);color:var(--surface)}
+.ev-x{border:1px solid var(--slate);color:var(--muted)}
+.ev-u{border:1px dashed var(--gold);color:var(--gold)}
+.legend{display:grid;gap:10px;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));margin:14px 0}
+.legend>div{border:1px solid var(--line);background:var(--surface);padding:12px 14px;border-radius:6px;min-width:0}
+.legend b{display:block;margin-bottom:4px}
+figure{margin:22px 0;background:var(--surface);border:1px solid var(--line);border-radius:6px;padding:14px}
+figure .scroll{overflow-x:auto}
+figure svg{display:block;width:100%;min-width:680px;height:auto}
+figcaption{font-size:14px;color:var(--muted);margin-top:10px}
+figcaption b{color:var(--ink)}
+ol.callouts{columns:2 280px;column-gap:28px;font-size:14.5px;padding-left:22px;margin:12px 0 0}
+ol.callouts li{break-inside:avoid;margin-bottom:6px}
+.tbl{overflow-x:auto;margin:16px 0;border:1px solid var(--line);border-radius:6px;background:var(--surface)}
+table{border-collapse:collapse;width:100%;font-size:14.5px;min-width:560px}
+th,td{text-align:left;vertical-align:top;padding:9px 12px;border-bottom:1px solid var(--line)}
+th{font-family:var(--display);font-stretch:88%;font-weight:700;font-size:13.5px;letter-spacing:.02em;background:var(--tint-neut)}
+tr:last-child td{border-bottom:none}
+td .k{font-family:var(--mono);font-size:13px}
+.num{font-variant-numeric:tabular-nums;font-family:var(--mono);font-size:13.5px}
+.chip{display:inline-block;font-family:var(--mono);font-size:12px;padding:1px 7px;border-radius:3px;white-space:nowrap}
+.c-bull{background:var(--tint-bull);color:var(--bull)} .c-bear{background:var(--tint-bear);color:var(--bear)}
+.c-gold{background:var(--tint-gold);color:var(--gold)} .c-neut{background:var(--tint-neut);color:var(--muted)}
+.c-va{background:var(--tint-neut);color:var(--va)}
+.swatches{display:grid;gap:10px;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));margin:14px 0}
+.sw{display:flex;gap:12px;align-items:flex-start;border:1px solid var(--line);background:var(--surface);padding:12px;border-radius:6px;min-width:0}
+.sw i{flex:0 0 26px;height:26px;border-radius:4px;display:block}
+.sw b{display:block}
+.sw span{font-size:13.5px;color:var(--muted)}
+.cards{display:grid;gap:12px;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));margin:16px 0}
+.card{border:1px solid var(--line);background:var(--surface);border-radius:6px;padding:14px 16px;min-width:0}
+.card h4{margin-top:0;display:flex;justify-content:space-between;gap:8px;align-items:baseline}
+.card p{font-size:14.5px;margin:6px 0}
+.card .where{font-size:13px;color:var(--muted)}
+.grid3{display:grid;grid-template-columns:72px repeat(3,minmax(0,1fr));gap:6px;margin:18px 0;min-width:520px}
+.grid3 .h{font-family:var(--display);font-stretch:85%;font-weight:700;font-size:13px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:2px}
+.grid3 .h span{display:block}
+.grid3 .rh{align-items:flex-start;text-align:left}
+.cell{border-radius:6px;padding:12px;border:1px solid var(--line);min-height:104px;position:relative}
+.cell .fam{font-family:var(--mono);font-size:11.5px;letter-spacing:.06em;color:var(--muted)}
+.cell .act{font-family:var(--display);font-stretch:85%;font-size:22px;font-weight:750;line-height:1.1;margin-top:4px}
+.cell .u{font-family:var(--mono);font-size:13px;margin-top:4px}
+.cell .mk{position:absolute;right:10px;top:8px;font-size:18px}
+.b4{background:rgba(13,160,126,.26)} .b3{background:rgba(13,160,126,.19)} .b15{background:var(--tint-bull)}
+.n1{background:var(--tint-neut)} .t075{background:var(--tint-bear)} .x025{background:rgba(152,33,22,.22)}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .b4{background:rgba(110,221,195,.26)} :root:not([data-theme="light"]) .b3{background:rgba(110,221,195,.19)} :root:not([data-theme="light"]) .x025{background:rgba(232,100,74,.26)}}
+:root[data-theme="dark"] .b4{background:rgba(110,221,195,.26)} :root[data-theme="dark"] .b3{background:rgba(110,221,195,.19)} :root[data-theme="dark"] .x025{background:rgba(232,100,74,.26)}
+.act.buy{color:var(--bull)} .act.sell{color:var(--bear)} .act.hold{color:var(--ink)}
+.steps{display:grid;gap:10px;margin:16px 0;counter-reset:s}
+.step{display:grid;grid-template-columns:38px minmax(0,1fr);gap:12px;align-items:start;border:1px solid var(--line);background:var(--surface);border-radius:6px;padding:12px 14px}
+.step::before{counter-increment:s;content:counter(s);font-family:var(--display);font-stretch:80%;font-weight:800;font-size:26px;color:var(--accent);line-height:1}
+.step p{margin:2px 0;font-size:14.5px}
+.flow{display:flex;flex-wrap:wrap;gap:8px;align-items:stretch;margin:16px 0}
+.flow>div{flex:1 1 150px;border:1px solid var(--line);border-radius:6px;padding:10px 12px;background:var(--surface);font-size:14px;min-width:0}
+.flow>div b{display:block;font-family:var(--display);font-stretch:88%;font-size:15px}
+.flow .arrow{flex:0 0 auto;border:none;background:none;padding:0 2px;display:flex;align-items:center;color:var(--muted);font-size:20px}
+.note{border-left:3px solid var(--gold);background:var(--tint-gold);padding:10px 14px;border-radius:0 6px 6px 0;margin:16px 0;font-size:15px}
+.note.rule{border-left-color:var(--accent);background:var(--tint-neut)}
+.math{font-family:var(--mono);background:var(--surface);border:1px solid var(--line);border-radius:6px;padding:12px 14px;overflow-x:auto;font-size:14px;white-space:pre}
+.quick{display:grid;gap:12px;grid-template-columns:repeat(auto-fit,minmax(250px,1fr))}
+.quick .card ul{padding-left:18px;margin:6px 0;font-size:14px}
+.disclaimer{font-size:13.5px;color:var(--muted);border-top:1px solid var(--line);padding-top:14px;margin-top:40px}
+svg .f-surface{fill:var(--surface)} svg .s-line{stroke:var(--line)} svg .f-bull{fill:var(--bull)} svg .f-bear{fill:var(--bear)} svg .f-gold{fill:var(--gold)}
+svg .f-neut{fill:var(--neut)} svg .f-slate{fill:var(--slate)} svg .f-va{fill:var(--va)} svg .f-poc{fill:var(--poc)} svg .f-node{fill:var(--neut)} svg .f-vwap{fill:var(--vwap)}
+svg .f-muted{fill:var(--muted)} svg .f-ink{fill:var(--ink)} svg .f-accent{fill:var(--accent)}
+svg .s-muted{stroke:var(--muted)} svg .s-ink{stroke:var(--ink)} svg .s-bull{stroke:var(--bull)} svg .s-bear{stroke:var(--bear)} svg .s-neut{stroke:var(--neut)}
+svg .s-slate{stroke:var(--slate)} svg .s-va{stroke:var(--va)} svg .s-poc{stroke:var(--poc)} svg .s-vwap{stroke:var(--vwap)}
+svg text{font-family:var(--mono)} svg .t-small{font-size:11.5px} svg .t-tiny{font-size:10.5px} svg .t-mark{font-size:20px;font-family:var(--body)}
+svg .t-callout{font-size:11.5px;font-weight:700;fill:var(--surface);font-family:var(--body)}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+@media print{
+  :root,:root[data-theme="dark"]{--bg:#FFFFFF;--surface:#FFFFFF;--ink:#172027;--muted:#4F5A63;--line:#CDD4D8;--bull:#0DA07E;--bear:#982116;--gold:#8F7A0E;--neut:#69757E;--slate:#7E8891;--va:#2C5C99;--poc:#2B2B2B;--vwap:#A32468;--accent:#2C5C99;color-scheme:light}
+  body{font-size:11pt}
+  .wrap{display:block;padding:0}
+  nav.toc{display:none}
+  section.part{break-before:page;border-top:none;padding-top:0;margin-top:0}
+  figure,.tbl,.card,.cell,.step,.legend>div,.sw,.note,.math{break-inside:avoid}
+  figure svg{min-width:0}
+  .tbl{overflow:visible} table{min-width:0;font-size:9.5pt}
+  .grid3{min-width:0}
+  h2,h3{break-after:avoid}
+  a{color:var(--ink);text-decoration:none}
+}
+
+.matrix td{min-width:190px} .mx{font-size:13.5px;line-height:1.45} .mx b{font-weight:600}
+</style>
+<div class="wrap">
+<nav class="toc" aria-label="Contents"><div class="tp">Part I · Basics</div><a href="#setup">1 Setup in five minutes</a><a href="#colour">2 The colour grammar</a><a href="#pane">3 The pane, labelled</a><a href="#chart">4 The price chart, labelled</a><a href="#engines">5 The engines in plain words</a><div class="tp">Part II · Reading every state</div><a href="#grid">6 The Conviction-Value Grid</a><a href="#readout">7 The readout table</a><a href="#panel">8 The information panel</a><a href="#signals">9 Signals and marks</a><div class="tp">Part III · Investment guide</div><a href="#inv-frame">10 The investor's frame</a><a href="#inv-families">11 Nine families, nine actions</a><a href="#inv-cap">12 The capitulation plan</a><a href="#inv-book">13 Building the book</a><a href="#inv-risk">14 Investor risk</a><div class="tp">Part IV · Trade guide</div><a href="#am">15 Accepted momentum, the tested system</a><a href="#am-book">16 Running it as a portfolio</a><a href="#overlay">17 Discretionary overlays</a><a href="#stops">18 Stops, targets, invalidation</a><div class="tp">Part V · Permutations</div><a href="#mx-a">19 System × grid: 27 cases</a><a href="#mx-b">20 OI × location</a><a href="#mx-c">21 Trail × migration</a><a href="#mx-d">22 Asset class × evidence</a><a href="#conflict">23 When readings disagree</a><div class="tp">Part VI · Reference</div><a href="#alerts">24 Alerts</a><a href="#settings">25 Settings</a><a href="#evidence">26 What is measured</a><a href="#glossary">27 Glossary</a><a href="#card">28 Quick card</a></nav>
+<main>
+
+<header class="cover">
+  <div class="eyebrow">Pragati v9.9 · BullishValue · Field manual</div>
+  <h1>Pragati Field Manual</h1>
+  <div class="q">"Is this move paid for, and is it paid for on every timeframe?"</div>
+  <p class="lede">How to read every part of the indicator, how to invest with its grid, how to trade its tested trend system, and what every combination of readings means. Each claim is tagged with how well it is known.</p>
+  <div class="meta"><span>Version 9.9 · branch pragati-v9.9</span><span>Daily charts are the default and the tested timeframe</span><span>Educational, not financial advice</span></div>
+</header>
+
+<section class="chap">
+  <h3>How to read the evidence tags</h3>
+  <p>Pragati was built and audited in public, and many of its parts were tested on markets. Not all of them were. Every claim in this manual carries one of three tags.</p>
+  <div class="legend">
+    <div><b><span class="ev ev-m">Measured</span></b>Tested in this repository on real market data with a pre-registered plan, and on data the design never saw. The numbers are in <code>docs/trail-lab.md</code> and <code>docs/trail-tradability.md</code>.</div>
+    <div><b><span class="ev ev-x">External</span></b>Measured in the v9 audit (380 instruments, six asset classes, three eras), whose data lives in a separate repository. The numbers are quoted in the script and were not re-checked here.</div>
+    <div><b><span class="ev ev-u">Unmeasured</span></b>A reading aid or a reasoned combination. Useful for context, never proven to make money. Size accordingly.</div>
+  </div>
+</section>
+
+<section class="part" id="part-1"><div class="eyebrow">Part I</div><h2>Basics</h2>
+
+<section class="chap" id="setup"><div class="chapno">Chapter 1</div><h3>Setup in five minutes</h3>
+<div class="steps">
+  <div class="step"><div><b>Add Pragati to the chart.</b><p>It opens in its own pane under price, and it draws the trail, the volume profile and the readout table on the price chart itself.</p></div></div>
+  <div class="step"><div><b>Use standard candles.</b><p>On Heikin Ashi, Renko, Kagi, Point &amp; Figure or range bars the prices never traded, so every family pauses and says "non-standard chart".</p></div></div>
+  <div class="step"><div><b>Start on the daily chart.</b><p>Daily bars are what was tested. Weekly bars were tested for the ▲ and the grid. Intraday works, but nothing on it was measured.</p></div></div>
+  <div class="step"><div><b>Leave the defaults alone at first.</b><p>View <span class="k">Full</span>, Trace <span class="k">Conviction × Value</span>, conviction on <span class="k">Ladder down</span>, value on <span class="k">Ladder up</span>, Accepted momentum <span class="k">on</span>. Every number in this manual was measured at these settings.</p></div></div>
+  <div class="step"><div><b>Give it history.</b><p>Conviction's histogram needs about 450 bars to calibrate (1.8 years of daily bars). Until then the push gate is warming: the grid's rows have no memory, the trail cannot start, and the readout says so.</p></div></div>
+  <div class="step"><div><b>Create one alert.</b><p>Choose the condition "Any alert() function call" on Pragati. It carries every event once, at its bar's close (Chapter 24).</p></div></div>
+</div>
+</section>
+
+<section class="chap" id="colour"><div class="chapno">Chapter 2</div><h3>The colour grammar: one hue, one job</h3>
+<p>Colours mean the same thing everywhere in Pragati. Learn these six and every element reads itself.</p>
+<div class="swatches">
+  <div class="sw"><i style="background:var(--bull)"></i><div><b>Green · direction up, action buy</b><span>Buyers in control, a rich value reading, a long position, a Buy or Accumulate action.</span></div></div>
+  <div class="sw"><i style="background:var(--bear)"></i><div><b>Red · direction down, action sell</b><span>Sellers in control, a cheap value reading, a short position, a Trim or Exit action.</span></div></div>
+  <div class="sw"><i style="background:var(--gold)"></i><div><b>Gold · caution, never a direction</b><span>Read with care: a probe, a quiet regime, a held row, a crowded book, short covering, crypto's capitulation.</span></div></div>
+  <div class="sw"><i style="background:var(--neut)"></i><div><b>Grey · neutral</b><span>Nothing to read, Hold or Wait, Accepted momentum flat.</span></div></div>
+  <div class="sw"><i style="background:var(--va)"></i><div><b>Blue · the session profile's value area</b><span>Identity, not direction. The VAH, VAL and value rows.</span></div></div>
+  <div class="sw"><i style="background:var(--slate)"></i><div><b>Slate · the trail's rolling value ribbon</b><span>Identity: a different value area from the session profile's.</span></div></div>
+</div>
+<div class="note">On the value tape, green means <b>rich</b> and red means <b>cheap</b>. A red value tape is a price below fair value, which is what the capitulation ▲ wants.</div>
+</section>
+
+<section class="chap" id="pane"><div class="chapno">Chapter 3</div><h3>The pane, labelled</h3>
+<figure><div class="scroll"><svg viewBox="0 0 900 430" role="img" aria-label="Annotated example of Pragati's pane">
+<rect x="30" y="20" width="670" height="390" class="f-surface s-line" stroke-width="1"/>
+<rect x="417.3" y="20" width="52.3" height="390" class="f-bull" opacity="0.07"/>
+<rect x="469.7" y="20" width="41.9" height="390" class="f-bull" opacity="0.14"/>
+<line x1="30" x2="700" y1="110.0" y2="110.0" class="s-muted" stroke-dasharray="6 4" stroke-width="1"/>
+<text x="26" y="114.0" text-anchor="end" class="t-small f-muted">+60</text>
+<line x1="30" x2="700" y1="139.8" y2="139.8" class="s-muted" stroke-dasharray="2 3" stroke-width="1"/>
+<text x="26" y="143.8" text-anchor="end" class="t-small f-muted">+θ</text>
+<line x1="30" x2="700" y1="290.2" y2="290.2" class="s-muted" stroke-dasharray="2 3" stroke-width="1"/>
+<text x="26" y="294.2" text-anchor="end" class="t-small f-muted">−θ</text>
+<line x1="30" x2="700" y1="320.0" y2="320.0" class="s-muted" stroke-dasharray="6 4" stroke-width="1"/>
+<text x="26" y="324.0" text-anchor="end" class="t-small f-muted">−60</text>
+<line x1="30" x2="700" y1="215.0" y2="215.0" class="s-muted" stroke-width="1"/>
+<text x="26" y="219.0" text-anchor="end" class="t-small f-muted">0</text>
+<rect x="30.0" y="68.0" width="9.9" height="6" class="f-bull" opacity="0.95"/>
+<rect x="30.0" y="55.8" width="9.9" height="3" class="f-bear" opacity="0.55"/>
+<rect x="30.0" y="355.0" width="9.9" height="6" class="f-bear" opacity="0.35"/>
+<rect x="30.0" y="369.0" width="9.9" height="3" class="f-bear" opacity="0.55"/>
+<rect x="40.5" y="68.0" width="9.9" height="6" class="f-bull" opacity="0.95"/>
+<rect x="40.5" y="55.8" width="9.9" height="3" class="f-bull" opacity="0.55"/>
+<rect x="40.5" y="355.0" width="9.9" height="6" class="f-bear" opacity="0.35"/>
+<rect x="40.5" y="369.0" width="9.9" height="3" class="f-bear" opacity="0.55"/>
+<rect x="50.9" y="68.0" width="9.9" height="6" class="f-bull" opacity="0.95"/>
+<rect x="50.9" y="55.8" width="9.9" height="3" class="f-bull" opacity="0.55"/>
+<rect x="50.9" y="355.0" width="9.9" height="6" class="f-bear" opacity="0.35"/>
+<rect x="50.9" y="369.0" width="9.9" height="3" class="f-bear" opacity="0.55"/>
+<rect x="61.4" y="68.0" width="9.9" height="6" class="f-bull" opacity="0.95"/>
+<rect x="61.4" y="55.8" width="9.9" height="3" class="f-bull" opacity="0.55"/>
+<rect x="61.4" y="355.0" width="9.9" height="6" class="f-bear" opacity="0.35"/>
+<rect x="61.4" y="369.0" width="9.9" height="3" class="f-bear" opacity="0.55"/>
+<rect x="71.9" y="68.0" width="9.9" height="6" class="f-bull" opacity="0.95"/>
+<rect x="71.9" y="55.8" width="9.9" height="3" class="f-bull" opacity="0.55"/>
+<rect x="71.9" y="355.0" width="9.9" height="6" class="f-bear" opacity="0.35"/>
+<rect x="71.9" y="369.0" width="9.9" height="3" class="f-bear" opacity="0.55"/>
+<rect x="82.3" y="68.0" width="9.9" height="6" class="f-bull" opacity="0.95"/>
+<rect x="82.3" y="55.8" width="9.9" height="3" class="f-bull" opacity="0.55"/>
+<rect x="82.3" y="355.0" width="9.9" height="6" class="f-bear" opacity="0.35"/>
+<rect x="82.3" y="369.0" width="9.9" height="3" class="f-bear" opacity="0.55"/>
+<rect x="92.8" y="68.0" width="9.9" height="6" class="f-bull" opacity="0.95"/>
+<rect x="92.8" y="55.8" width="9.9" height="3" class="f-bull" opacity="0.55"/>
+<rect x="92.8" y="355.0" width="9.9" height="6" class="f-bear" opacity="0.95"/>
+<rect x="92.8" y="369.0" width="9.9" height="3" class="f-bear" opacity="0.55"/>
+<rect x="103.3" y="68.0" width="9.9" height="6" class="f-bull" opacity="0.95"/>
+<rect x="103.3" y="55.8" width="9.9" height="3" class="f-bull" opacity="0.55"/>
+<rect x="103.3" y="355.0" width="9.9" height="6" class="f-bear" opacity="0.95"/>
+<rect x="103.3" y="369.0" width="9.9" height="3" class="f-bear" opacity="0.55"/>
+<rect x="113.8" y="68.0" width="9.9" height="6" class="f-bull" opacity="0.95"/>
+<rect x="113.8" y="55.8" width="9.9" height="3" class="f-bull" opacity="0.55"/>
+<rect x="113.8" y="355.0" width="9.9" height="6" class="f-bear" opacity="0.95"/>
+<rect x="113.8" y="369.0" width="9.9" height="3" class="f-bear" opacity="0.55"/>
+<rect x="124.2" y="68.0" width="9.9" height="6" class="f-bull" opacity="0.95"/>
+<rect x="124.2" y="55.8" width="9.9" height="3" class="f-bull" opacity="0.55"/>
+<rect x="124.2" y="355.0" width="9.9" height="6" class="f-bear" opacity="0.95"/>
+<rect x="124.2" y="369.0" width="9.9" height="3" class="f-bear" opacity="0.55"/>
+<rect x="134.7" y="68.0" width="9.9" height="6" class="f-bull" opacity="0.95"/>
+<rect x="134.7" y="55.8" width="9.9" height="3" class="f-bull" opacity="0.55"/>
+<rect x="134.7" y="355.0" width="9.9" height="6" class="f-bear" opacity="0.95"/>
+<rect x="134.7" y="369.0" width="9.9" height="3" class="f-bear" opacity="0.55"/>
+<rect x="145.2" y="68.0" width="9.9" height="6" class="f-bull" opacity="0.95"/>
+<rect x="145.2" y="55.8" width="9.9" height="3" class="f-bull" opacity="0.55"/>
+<rect x="145.2" y="355.0" width="9.9" height="6" class="f-bear" opacity="0.95"/>
+<rect x="145.2" y="369.0" width="9.9" height="3" class="f-bear" opacity="0.55"/>
+<rect x="155.6" y="68.0" width="9.9" height="6" class="f-bull" opacity="0.95"/>
+<rect x="155.6" y="55.8" width="9.9" height="3" class="f-bull" opacity="0.55"/>
+<rect x="155.6" y="355.0" width="9.9" height="6" class="f-bear" opacity="0.95"/>
+<rect x="155.6" y="369.0" width="9.9" height="3" class="f-bear" opacity="0.55"/>
+<rect x="166.1" y="68.0" width="9.9" height="6" class="f-bull" opacity="0.95"/>
+<rect x="166.1" y="55.8" width="9.9" height="3" class="f-bear" opacity="0.55"/>
+<rect x="166.1" y="355.0" width="9.9" height="6" class="f-bear" opacity="0.95"/>
+<rect x="166.1" y="369.0" width="9.9" height="3" class="f-bear" opacity="0.55"/>
+<rect x="176.6" y="68.0" width="9.9" height="6" class="f-bull" opacity="0.95"/>
+<rect x="176.6" y="55.8" width="9.9" height="3" class="f-bear" opacity="0.55"/>
+<rect x="176.6" y="355.0" width="9.9" height="6" class="f-bear" opacity="0.95"/>
+<rect x="176.6" y="369.0" width="9.9" height="3" class="f-bear" opacity="0.55"/>
+<rect x="187.0" y="68.0" width="9.9" height="6" class="f-bull" opacity="0.95"/>
+<rect x="187.0" y="55.8" width="9.9" height="3" class="f-bull" opacity="0.55"/>
+<rect x="187.0" y="355.0" width="9.9" height="6" class="f-bear" opacity="0.95"/>
+<rect x="187.0" y="369.0" width="9.9" height="3" class="f-bear" opacity="0.55"/>
+<rect x="197.5" y="68.0" width="9.9" height="6" class="f-bull" opacity="0.95"/>
+<rect x="197.5" y="55.8" width="9.9" height="3" class="f-bull" opacity="0.55"/>
+<rect x="197.5" y="355.0" width="9.9" height="6" class="f-bear" opacity="0.95"/>
+<rect x="197.5" y="369.0" width="9.9" height="3" class="f-bear" opacity="0.55"/>
+<rect x="208.0" y="68.0" width="9.9" height="6" class="f-bull" opacity="0.95"/>
+<rect x="208.0" y="55.8" width="9.9" height="3" class="f-bull" opacity="0.55"/>
+<rect x="208.0" y="355.0" width="9.9" height="6" class="f-bear" opacity="0.95"/>
+<rect x="208.0" y="369.0" width="9.9" height="3" class="f-bear" opacity="0.55"/>
+<rect x="218.4" y="68.0" width="9.9" height="6" class="f-bull" opacity="0.95"/>
+<rect x="218.4" y="55.8" width="9.9" height="3" class="f-bear" opacity="0.55"/>
+<rect x="218.4" y="355.0" width="9.9" height="6" class="f-bear" opacity="0.95"/>
+<rect x="218.4" y="369.0" width="9.9" height="3" class="f-bear" opacity="0.55"/>
+<rect x="228.9" y="68.0" width="9.9" height="6" class="f-bull" opacity="0.95"/>
+<rect x="228.9" y="55.8" width="9.9" height="3" class="f-bear" opacity="0.55"/>
+<rect x="228.9" y="355.0" width="9.9" height="6" class="f-bear" opacity="0.95"/>
+<rect x="228.9" y="369.0" width="9.9" height="3" class="f-bull" opacity="0.55"/>
+<rect x="239.4" y="68.0" width="9.9" height="6" class="f-bull" opacity="0.95"/>
+<rect x="239.4" y="55.8" width="9.9" height="3" class="f-bear" opacity="0.55"/>
+<rect x="239.4" y="355.0" width="9.9" height="6" class="f-bear" opacity="0.95"/>
+<rect x="239.4" y="369.0" width="9.9" height="3" class="f-bull" opacity="0.55"/>
+<rect x="249.8" y="68.0" width="9.9" height="6" class="f-bull" opacity="0.95"/>
+<rect x="249.8" y="55.8" width="9.9" height="3" class="f-bear" opacity="0.55"/>
+<rect x="249.8" y="355.0" width="9.9" height="6" class="f-bear" opacity="0.95"/>
+<rect x="249.8" y="369.0" width="9.9" height="3" class="f-bull" opacity="0.55"/>
+<rect x="260.3" y="68.0" width="9.9" height="6" class="f-bull" opacity="0.95"/>
+<rect x="260.3" y="55.8" width="9.9" height="3" class="f-bear" opacity="0.55"/>
+<rect x="260.3" y="355.0" width="9.9" height="6" class="f-bear" opacity="0.95"/>
+<rect x="260.3" y="369.0" width="9.9" height="3" class="f-bull" opacity="0.55"/>
+<rect x="270.8" y="68.0" width="9.9" height="6" class="f-bull" opacity="0.95"/>
+<rect x="270.8" y="55.8" width="9.9" height="3" class="f-bear" opacity="0.55"/>
+<rect x="270.8" y="355.0" width="9.9" height="6" class="f-bear" opacity="0.95"/>
+<rect x="270.8" y="369.0" width="9.9" height="3" class="f-bull" opacity="0.55"/>
+<rect x="281.2" y="68.0" width="9.9" height="6" class="f-bull" opacity="0.95"/>
+<rect x="281.2" y="55.8" width="9.9" height="3" class="f-bear" opacity="0.55"/>
+<rect x="281.2" y="355.0" width="9.9" height="6" class="f-bear" opacity="0.95"/>
+<rect x="281.2" y="369.0" width="9.9" height="3" class="f-bull" opacity="0.55"/>
+<rect x="291.7" y="68.0" width="9.9" height="6" class="f-bull" opacity="0.95"/>
+<rect x="291.7" y="55.8" width="9.9" height="3" class="f-bear" opacity="0.55"/>
+<rect x="291.7" y="355.0" width="9.9" height="6" class="f-bear" opacity="0.95"/>
+<rect x="291.7" y="369.0" width="9.9" height="3" class="f-bull" opacity="0.55"/>
+<rect x="302.2" y="68.0" width="9.9" height="6" class="f-bull" opacity="0.95"/>
+<rect x="302.2" y="55.8" width="9.9" height="3" class="f-bear" opacity="0.55"/>
+<rect x="302.2" y="355.0" width="9.9" height="6" class="f-bear" opacity="0.35"/>
+<rect x="302.2" y="369.0" width="9.9" height="3" class="f-bull" opacity="0.55"/>
+<rect x="312.7" y="68.0" width="9.9" height="6" class="f-bull" opacity="0.35"/>
+<rect x="312.7" y="55.8" width="9.9" height="3" class="f-bear" opacity="0.55"/>
+<rect x="312.7" y="355.0" width="9.9" height="6" class="f-bear" opacity="0.35"/>
+<rect x="312.7" y="369.0" width="9.9" height="3" class="f-bull" opacity="0.55"/>
+<rect x="323.1" y="68.0" width="9.9" height="6" class="f-bull" opacity="0.35"/>
+<rect x="323.1" y="55.8" width="9.9" height="3" class="f-bear" opacity="0.55"/>
+<rect x="323.1" y="355.0" width="9.9" height="6" class="f-bear" opacity="0.35"/>
+<rect x="323.1" y="369.0" width="9.9" height="3" class="f-bull" opacity="0.55"/>
+<rect x="333.6" y="68.0" width="9.9" height="6" class="f-bull" opacity="0.35"/>
+<rect x="333.6" y="55.8" width="9.9" height="3" class="f-bear" opacity="0.55"/>
+<rect x="333.6" y="355.0" width="9.9" height="6" class="f-bear" opacity="0.35"/>
+<rect x="333.6" y="369.0" width="9.9" height="3" class="f-bull" opacity="0.55"/>
+<rect x="344.1" y="68.0" width="9.9" height="6" class="f-bull" opacity="0.35"/>
+<rect x="344.1" y="55.8" width="9.9" height="3" class="f-bear" opacity="0.55"/>
+<rect x="344.1" y="355.0" width="9.9" height="6" class="f-bear" opacity="0.35"/>
+<rect x="344.1" y="369.0" width="9.9" height="3" class="f-bull" opacity="0.55"/>
+<rect x="354.5" y="68.0" width="9.9" height="6" class="f-bull" opacity="0.35"/>
+<rect x="354.5" y="55.8" width="9.9" height="3" class="f-bear" opacity="0.55"/>
+<rect x="354.5" y="355.0" width="9.9" height="6" class="f-bear" opacity="0.35"/>
+<rect x="354.5" y="369.0" width="9.9" height="3" class="f-bull" opacity="0.55"/>
+<rect x="365.0" y="68.0" width="9.9" height="6" class="f-bear" opacity="0.35"/>
+<rect x="365.0" y="55.8" width="9.9" height="3" class="f-bear" opacity="0.55"/>
+<rect x="365.0" y="355.0" width="9.9" height="6" class="f-bear" opacity="0.35"/>
+<rect x="365.0" y="369.0" width="9.9" height="3" class="f-bull" opacity="0.55"/>
+<rect x="375.5" y="68.0" width="9.9" height="6" class="f-bear" opacity="0.35"/>
+<rect x="375.5" y="55.8" width="9.9" height="3" class="f-bear" opacity="0.55"/>
+<rect x="375.5" y="355.0" width="9.9" height="6" class="f-bear" opacity="0.35"/>
+<rect x="375.5" y="369.0" width="9.9" height="3" class="f-bull" opacity="0.55"/>
+<rect x="385.9" y="68.0" width="9.9" height="6" class="f-bear" opacity="0.35"/>
+<rect x="385.9" y="55.8" width="9.9" height="3" class="f-bear" opacity="0.55"/>
+<rect x="385.9" y="355.0" width="9.9" height="6" class="f-bull" opacity="0.35"/>
+<rect x="385.9" y="369.0" width="9.9" height="3" class="f-bull" opacity="0.55"/>
+<rect x="396.4" y="68.0" width="9.9" height="6" class="f-bear" opacity="0.95"/>
+<rect x="396.4" y="55.8" width="9.9" height="3" class="f-bear" opacity="0.55"/>
+<rect x="396.4" y="355.0" width="9.9" height="6" class="f-bull" opacity="0.35"/>
+<rect x="396.4" y="369.0" width="9.9" height="3" class="f-bull" opacity="0.55"/>
+<rect x="406.9" y="68.0" width="9.9" height="6" class="f-bear" opacity="0.95"/>
+<rect x="406.9" y="55.8" width="9.9" height="3" class="f-bear" opacity="0.55"/>
+<rect x="406.9" y="355.0" width="9.9" height="6" class="f-bull" opacity="0.35"/>
+<rect x="406.9" y="369.0" width="9.9" height="3" class="f-bull" opacity="0.55"/>
+<rect x="417.3" y="68.0" width="9.9" height="6" class="f-bear" opacity="0.95"/>
+<rect x="417.3" y="55.8" width="9.9" height="3" class="f-bear" opacity="0.55"/>
+<rect x="417.3" y="355.0" width="9.9" height="6" class="f-bull" opacity="0.35"/>
+<rect x="417.3" y="369.0" width="9.9" height="3" class="f-bull" opacity="0.55"/>
+<rect x="427.8" y="68.0" width="9.9" height="6" class="f-bear" opacity="0.95"/>
+<rect x="427.8" y="55.8" width="9.9" height="3" class="f-bear" opacity="0.55"/>
+<rect x="427.8" y="355.0" width="9.9" height="6" class="f-bull" opacity="0.35"/>
+<rect x="427.8" y="369.0" width="9.9" height="3" class="f-bull" opacity="0.55"/>
+<rect x="438.3" y="68.0" width="9.9" height="6" class="f-bear" opacity="0.95"/>
+<rect x="438.3" y="55.8" width="9.9" height="3" class="f-bear" opacity="0.55"/>
+<rect x="438.3" y="355.0" width="9.9" height="6" class="f-bull" opacity="0.35"/>
+<rect x="438.3" y="369.0" width="9.9" height="3" class="f-bull" opacity="0.55"/>
+<rect x="448.8" y="68.0" width="9.9" height="6" class="f-bear" opacity="0.95"/>
+<rect x="448.8" y="55.8" width="9.9" height="3" class="f-bear" opacity="0.55"/>
+<rect x="448.8" y="355.0" width="9.9" height="6" class="f-bull" opacity="0.95"/>
+<rect x="448.8" y="369.0" width="9.9" height="3" class="f-bull" opacity="0.55"/>
+<rect x="459.2" y="68.0" width="9.9" height="6" class="f-bear" opacity="0.95"/>
+<rect x="459.2" y="55.8" width="9.9" height="3" class="f-bear" opacity="0.55"/>
+<rect x="459.2" y="355.0" width="9.9" height="6" class="f-bull" opacity="0.95"/>
+<rect x="459.2" y="369.0" width="9.9" height="3" class="f-bull" opacity="0.55"/>
+<rect x="469.7" y="68.0" width="9.9" height="6" class="f-bear" opacity="0.95"/>
+<rect x="469.7" y="55.8" width="9.9" height="3" class="f-bear" opacity="0.55"/>
+<rect x="469.7" y="355.0" width="9.9" height="6" class="f-bull" opacity="0.95"/>
+<rect x="469.7" y="369.0" width="9.9" height="3" class="f-bull" opacity="0.55"/>
+<rect x="480.2" y="68.0" width="9.9" height="6" class="f-bear" opacity="0.95"/>
+<rect x="480.2" y="55.8" width="9.9" height="3" class="f-bear" opacity="0.55"/>
+<rect x="480.2" y="355.0" width="9.9" height="6" class="f-bull" opacity="0.95"/>
+<rect x="480.2" y="369.0" width="9.9" height="3" class="f-bull" opacity="0.55"/>
+<rect x="490.6" y="68.0" width="9.9" height="6" class="f-bear" opacity="0.95"/>
+<rect x="490.6" y="55.8" width="9.9" height="3" class="f-bull" opacity="0.55"/>
+<rect x="490.6" y="355.0" width="9.9" height="6" class="f-bull" opacity="0.95"/>
+<rect x="490.6" y="369.0" width="9.9" height="3" class="f-bull" opacity="0.55"/>
+<rect x="501.1" y="68.0" width="9.9" height="6" class="f-bear" opacity="0.95"/>
+<rect x="501.1" y="55.8" width="9.9" height="3" class="f-bull" opacity="0.55"/>
+<rect x="501.1" y="355.0" width="9.9" height="6" class="f-bull" opacity="0.95"/>
+<rect x="501.1" y="369.0" width="9.9" height="3" class="f-bull" opacity="0.55"/>
+<rect x="511.6" y="68.0" width="9.9" height="6" class="f-bear" opacity="0.95"/>
+<rect x="511.6" y="55.8" width="9.9" height="3" class="f-bull" opacity="0.55"/>
+<rect x="511.6" y="355.0" width="9.9" height="6" class="f-bull" opacity="0.95"/>
+<rect x="511.6" y="369.0" width="9.9" height="3" class="f-bear" opacity="0.55"/>
+<rect x="522.0" y="68.0" width="9.9" height="6" class="f-bear" opacity="0.95"/>
+<rect x="522.0" y="55.8" width="9.9" height="3" class="f-bull" opacity="0.55"/>
+<rect x="522.0" y="355.0" width="9.9" height="6" class="f-bull" opacity="0.95"/>
+<rect x="522.0" y="369.0" width="9.9" height="3" class="f-bear" opacity="0.55"/>
+<rect x="532.5" y="68.0" width="9.9" height="6" class="f-bear" opacity="0.95"/>
+<rect x="532.5" y="55.8" width="9.9" height="3" class="f-bull" opacity="0.55"/>
+<rect x="532.5" y="355.0" width="9.9" height="6" class="f-bull" opacity="0.95"/>
+<rect x="532.5" y="369.0" width="9.9" height="3" class="f-bear" opacity="0.55"/>
+<rect x="543.0" y="68.0" width="9.9" height="6" class="f-bear" opacity="0.95"/>
+<rect x="543.0" y="55.8" width="9.9" height="3" class="f-bull" opacity="0.55"/>
+<rect x="543.0" y="355.0" width="9.9" height="6" class="f-bull" opacity="0.95"/>
+<rect x="543.0" y="369.0" width="9.9" height="3" class="f-bear" opacity="0.55"/>
+<rect x="553.4" y="68.0" width="9.9" height="6" class="f-bear" opacity="0.35"/>
+<rect x="553.4" y="55.8" width="9.9" height="3" class="f-bull" opacity="0.55"/>
+<rect x="553.4" y="355.0" width="9.9" height="6" class="f-bull" opacity="0.35"/>
+<rect x="553.4" y="369.0" width="9.9" height="3" class="f-bear" opacity="0.55"/>
+<rect x="563.9" y="68.0" width="9.9" height="6" class="f-bear" opacity="0.35"/>
+<rect x="563.9" y="55.8" width="9.9" height="3" class="f-bull" opacity="0.55"/>
+<rect x="563.9" y="355.0" width="9.9" height="6" class="f-bull" opacity="0.35"/>
+<rect x="563.9" y="369.0" width="9.9" height="3" class="f-bear" opacity="0.55"/>
+<rect x="574.4" y="68.0" width="9.9" height="6" class="f-bear" opacity="0.35"/>
+<rect x="574.4" y="55.8" width="9.9" height="3" class="f-bull" opacity="0.55"/>
+<rect x="574.4" y="355.0" width="9.9" height="6" class="f-bull" opacity="0.35"/>
+<rect x="574.4" y="369.0" width="9.9" height="3" class="f-bear" opacity="0.55"/>
+<rect x="584.8" y="68.0" width="9.9" height="6" class="f-bear" opacity="0.35"/>
+<rect x="584.8" y="55.8" width="9.9" height="3" class="f-bull" opacity="0.55"/>
+<rect x="584.8" y="355.0" width="9.9" height="6" class="f-bull" opacity="0.35"/>
+<rect x="584.8" y="369.0" width="9.9" height="3" class="f-bear" opacity="0.55"/>
+<rect x="595.3" y="68.0" width="9.9" height="6" class="f-bear" opacity="0.35"/>
+<rect x="595.3" y="55.8" width="9.9" height="3" class="f-bull" opacity="0.55"/>
+<rect x="595.3" y="355.0" width="9.9" height="6" class="f-bull" opacity="0.35"/>
+<rect x="595.3" y="369.0" width="9.9" height="3" class="f-bear" opacity="0.55"/>
+<rect x="605.8" y="68.0" width="9.9" height="6" class="f-bear" opacity="0.35"/>
+<rect x="605.8" y="55.8" width="9.9" height="3" class="f-bull" opacity="0.55"/>
+<rect x="605.8" y="355.0" width="9.9" height="6" class="f-bull" opacity="0.35"/>
+<rect x="605.8" y="369.0" width="9.9" height="3" class="f-bear" opacity="0.55"/>
+<rect x="616.2" y="68.0" width="9.9" height="6" class="f-bull" opacity="0.35"/>
+<rect x="616.2" y="55.8" width="9.9" height="3" class="f-bull" opacity="0.55"/>
+<rect x="616.2" y="355.0" width="9.9" height="6" class="f-bull" opacity="0.35"/>
+<rect x="616.2" y="369.0" width="9.9" height="3" class="f-bear" opacity="0.55"/>
+<rect x="626.7" y="68.0" width="9.9" height="6" class="f-bull" opacity="0.35"/>
+<rect x="626.7" y="55.8" width="9.9" height="3" class="f-bull" opacity="0.55"/>
+<rect x="626.7" y="355.0" width="9.9" height="6" class="f-bull" opacity="0.35"/>
+<rect x="626.7" y="369.0" width="9.9" height="3" class="f-bear" opacity="0.55"/>
+<rect x="637.2" y="68.0" width="9.9" height="6" class="f-bull" opacity="0.35"/>
+<rect x="637.2" y="55.8" width="9.9" height="3" class="f-bull" opacity="0.55"/>
+<rect x="637.2" y="355.0" width="9.9" height="6" class="f-bear" opacity="0.35"/>
+<rect x="637.2" y="369.0" width="9.9" height="3" class="f-bear" opacity="0.55"/>
+<rect x="647.7" y="68.0" width="9.9" height="6" class="f-bull" opacity="0.35"/>
+<rect x="647.7" y="55.8" width="9.9" height="3" class="f-bull" opacity="0.55"/>
+<rect x="647.7" y="355.0" width="9.9" height="6" class="f-bear" opacity="0.35"/>
+<rect x="647.7" y="369.0" width="9.9" height="3" class="f-bear" opacity="0.55"/>
+<rect x="658.1" y="68.0" width="9.9" height="6" class="f-bull" opacity="0.35"/>
+<rect x="658.1" y="55.8" width="9.9" height="3" class="f-bull" opacity="0.55"/>
+<rect x="658.1" y="355.0" width="9.9" height="6" class="f-bear" opacity="0.35"/>
+<rect x="658.1" y="369.0" width="9.9" height="3" class="f-bear" opacity="0.55"/>
+<rect x="668.6" y="68.0" width="9.9" height="6" class="f-bull" opacity="0.35"/>
+<rect x="668.6" y="55.8" width="9.9" height="3" class="f-bull" opacity="0.55"/>
+<rect x="668.6" y="355.0" width="9.9" height="6" class="f-bear" opacity="0.35"/>
+<rect x="668.6" y="369.0" width="9.9" height="3" class="f-bear" opacity="0.55"/>
+<rect x="679.1" y="68.0" width="9.9" height="6" class="f-bull" opacity="0.95"/>
+<rect x="679.1" y="55.8" width="9.9" height="3" class="f-bull" opacity="0.55"/>
+<rect x="679.1" y="355.0" width="9.9" height="6" class="f-bear" opacity="0.35"/>
+<rect x="679.1" y="369.0" width="9.9" height="3" class="f-bear" opacity="0.55"/>
+<rect x="689.5" y="68.0" width="9.9" height="6" class="f-bull" opacity="0.95"/>
+<rect x="689.5" y="55.8" width="9.9" height="3" class="f-bull" opacity="0.55"/>
+<rect x="689.5" y="355.0" width="9.9" height="6" class="f-bear" opacity="0.35"/>
+<rect x="689.5" y="369.0" width="9.9" height="3" class="f-bear" opacity="0.55"/>
+<rect x="41.5" y="190.9" width="8.1" height="24.1" class="f-bull" opacity="0.95"/>
+<rect x="51.9" y="182.1" width="8.1" height="32.9" class="f-bull" opacity="0.95"/>
+<rect x="62.4" y="188.0" width="8.1" height="27.0" class="f-bull" opacity="0.22"/>
+<rect x="72.9" y="198.9" width="8.1" height="16.1" class="f-bull" opacity="0.22"/>
+<rect x="83.3" y="202.8" width="8.1" height="12.2" class="f-bull" opacity="0.22"/>
+<rect x="93.8" y="194.4" width="8.1" height="20.6" class="f-bull" opacity="0.95"/>
+<rect x="104.3" y="178.9" width="8.1" height="36.1" class="f-bull" opacity="0.95"/>
+<rect x="114.8" y="167.7" width="8.1" height="47.3" class="f-bull" opacity="0.95"/>
+<rect x="125.2" y="170.0" width="8.1" height="45.0" class="f-bull" opacity="0.5"/>
+<rect x="135.7" y="185.4" width="8.1" height="29.6" class="f-bull" opacity="0.22"/>
+<rect x="146.2" y="204.1" width="8.1" height="10.9" class="f-bull" opacity="0.22"/>
+<rect x="156.6" y="214.4" width="8.1" height="0.6" class="f-bull" opacity="0.22"/>
+<rect x="167.1" y="211.5" width="8.1" height="3.5" class="f-bull" opacity="0.7"/>
+<rect x="177.6" y="200.7" width="8.1" height="14.3" class="f-gold" opacity="0.7"/>
+<rect x="188.0" y="193.6" width="8.1" height="21.4" class="f-gold" opacity="0.95"/>
+<rect x="198.5" y="199.4" width="8.1" height="15.6" class="f-gold" opacity="0.22"/>
+<rect x="209.0" y="215.0" width="8.1" height="2.4" class="f-bear" opacity="0.5"/>
+<rect x="219.4" y="215.0" width="8.1" height="22.9" class="f-bear" opacity="0.95"/>
+<rect x="229.9" y="215.0" width="8.1" height="34.3" class="f-bear" opacity="0.95"/>
+<rect x="240.4" y="215.0" width="8.1" height="31.9" class="f-bear" opacity="0.5"/>
+<rect x="250.8" y="215.0" width="8.1" height="21.2" class="f-bear" opacity="0.22"/>
+<rect x="261.3" y="215.0" width="8.1" height="14.1" class="f-bear" opacity="0.22"/>
+<rect x="271.8" y="215.0" width="8.1" height="19.6" class="f-bear" opacity="0.95"/>
+<rect x="282.2" y="215.0" width="8.1" height="36.9" class="f-bear" opacity="0.95"/>
+<rect x="292.7" y="215.0" width="8.1" height="56.5" class="f-bear" opacity="0.95"/>
+<rect x="303.2" y="215.0" width="8.1" height="66.8" class="f-bear" opacity="0.95"/>
+<rect x="313.7" y="215.0" width="8.1" height="63.6" class="f-bear" opacity="0.5"/>
+<rect x="324.1" y="215.0" width="8.1" height="53.1" class="f-bear" opacity="0.5"/>
+<rect x="334.6" y="215.0" width="8.1" height="47.2" class="f-bear" opacity="0.5"/>
+<rect x="345.1" y="215.0" width="8.1" height="54.8" class="f-bear" opacity="0.95"/>
+<rect x="355.5" y="215.0" width="8.1" height="75.1" class="f-bear" opacity="0.95"/>
+<rect x="366.0" y="215.0" width="8.1" height="98.0" class="f-bear" opacity="0.95"/>
+<rect x="376.5" y="215.0" width="8.1" height="111.4" class="f-bear" opacity="0.95"/>
+<rect x="386.9" y="215.0" width="8.1" height="110.1" class="f-bear" opacity="0.5"/>
+<rect x="397.4" y="215.0" width="8.1" height="99.2" class="f-bear" opacity="0.5"/>
+<rect x="407.9" y="215.0" width="8.1" height="89.4" class="f-bear" opacity="0.5"/>
+<rect x="418.3" y="215.0" width="8.1" height="88.4" class="f-bear" opacity="0.5"/>
+<rect x="428.8" y="215.0" width="8.1" height="94.4" class="f-bear" opacity="0.95"/>
+<rect x="439.3" y="215.0" width="8.1" height="97.4" class="f-bear" opacity="0.95"/>
+<rect x="449.8" y="215.0" width="8.1" height="86.5" class="f-bear" opacity="0.5"/>
+<rect x="460.2" y="215.0" width="8.1" height="58.7" class="f-bear" opacity="0.22"/>
+<rect x="470.7" y="215.0" width="8.1" height="21.8" class="f-bear" opacity="0.22"/>
+<rect x="481.2" y="204.4" width="8.1" height="10.6" class="f-bull" opacity="0.5"/>
+<rect x="491.6" y="186.5" width="8.1" height="28.5" class="f-bull" opacity="0.95"/>
+<rect x="502.1" y="183.1" width="8.1" height="31.9" class="f-bull" opacity="0.95"/>
+<rect x="512.6" y="184.6" width="8.1" height="30.4" class="f-bull" opacity="0.5"/>
+<rect x="523.0" y="180.0" width="8.1" height="35.0" class="f-bull" opacity="0.95"/>
+<rect x="533.5" y="165.1" width="8.1" height="49.9" class="f-bull" opacity="0.95"/>
+<rect x="544.0" y="145.6" width="8.1" height="69.4" class="f-bull" opacity="0.95"/>
+<rect x="554.4" y="132.8" width="8.1" height="82.2" class="f-bull" opacity="0.95"/>
+<rect x="564.9" y="134.4" width="8.1" height="80.6" class="f-bull" opacity="0.5"/>
+<rect x="575.4" y="148.4" width="8.1" height="66.6" class="f-bull" opacity="0.5"/>
+<rect x="585.8" y="164.0" width="8.1" height="51.0" class="f-bull" opacity="0.22"/>
+<rect x="596.3" y="169.7" width="8.1" height="45.3" class="f-bull" opacity="0.5"/>
+<rect x="606.8" y="161.8" width="8.1" height="53.2" class="f-bull" opacity="0.95"/>
+<rect x="617.2" y="146.6" width="8.1" height="68.4" class="f-bull" opacity="0.95"/>
+<rect x="627.7" y="136.2" width="8.1" height="78.8" class="f-bull" opacity="0.95"/>
+<rect x="638.2" y="138.9" width="8.1" height="76.1" class="f-bull" opacity="0.5"/>
+<rect x="648.7" y="153.1" width="8.1" height="61.9" class="f-bull" opacity="0.22"/>
+<rect x="659.1" y="168.6" width="8.1" height="46.4" class="f-bull" opacity="0.22"/>
+<rect x="669.6" y="174.3" width="8.1" height="40.7" class="f-bull" opacity="0.5"/>
+<rect x="680.1" y="166.7" width="8.1" height="48.3" class="f-bull" opacity="0.95"/>
+<rect x="690.5" y="152.5" width="8.1" height="62.5" class="f-bull" opacity="0.95"/>
+<polyline points="35.2,161.9 45.7,146.8 56.2,138.3 66.6,137.9 77.1,141.3 87.6,141.7 98.0,135.0 108.5,122.7 119.0,111.2 129.5,106.7 139.9,110.7 150.4,118.7 160.9,123.8 171.3,121.9 181.8,114.7 192.3,108.5 202.7,109.4 213.2,118.7 223.7,131.8 234.1,141.8 244.6,144.6 255.1,141.9 265.5,140.2 276.0,145.3 286.5,158.6 297.0,175.4 307.4,189.0 317.9,195.3 328.4,196.7 338.8,199.6 349.3,210.3 359.8,229.8 370.2,253.5 380.7,274.1 391.2,287.3 401.6,294.2 412.1,300.5 422.6,311.0 433.0,325.8 443.5,339.5 454.0,344.9 464.5,338.3 474.9,322.6 485.4,305.1 495.9,292.6 506.3,286.9 516.8,283.8 527.3,277.2 537.7,263.4 548.2,245.0 558.7,228.4 569.1,219.1 579.6,217.7 590.1,219.2 600.5,216.4 611.0,205.8 621.5,189.6 632.0,174.6 642.4,166.4 652.9,165.8 663.4,167.7 673.8,165.5 684.3,155.6 694.8,140.8" fill="none" class="s-ink" stroke-width="2.2"/>
+<text x="474.9" y="338.0" text-anchor="middle" class="t-mark f-bull">▲</text>
+<text x="234.1" y="102.0" text-anchor="middle" class="t-mark f-bear">▼</text>
+<text x="708" y="74.0" class="t-small f-bull">CONVICTION +41</text>
+<text x="708" y="361.0" class="t-small f-bear">VALUE cheap −36</text>
+<text x="708" y="143.8" class="t-small f-muted">TRACE · θ</text>
+<circle cx="113.8" cy="131.5" r="10" class="f-accent"/><text x="113.8" y="135.5" text-anchor="middle" class="t-callout">1</text>
+<circle cx="312.7" cy="243.0" r="10" class="f-accent"/><text x="312.7" y="247.0" text-anchor="middle" class="t-callout">2</text>
+<circle cx="696.0" cy="106.0" r="10" class="f-accent"/><text x="696.0" y="110.0" text-anchor="middle" class="t-callout">3</text>
+<circle cx="61.4" cy="60.0" r="10" class="f-accent"/><text x="61.4" y="64.0" text-anchor="middle" class="t-callout">4</text>
+<circle cx="61.4" cy="377.0" r="10" class="f-accent"/><text x="61.4" y="381.0" text-anchor="middle" class="t-callout">5</text>
+<circle cx="474.9" cy="354.0" r="10" class="f-accent"/><text x="474.9" y="358.0" text-anchor="middle" class="t-callout">6</text>
+<circle cx="234.1" cy="84.0" r="10" class="f-accent"/><text x="234.1" y="88.0" text-anchor="middle" class="t-callout">7</text>
+<circle cx="438.3" cy="36.0" r="10" class="f-accent"/><text x="438.3" y="40.0" text-anchor="middle" class="t-callout">8</text>
+<circle cx="192.3" cy="231.0" r="10" class="f-accent"/><text x="192.3" y="235.0" text-anchor="middle" class="t-callout">9</text>
+<text x="30" y="428" class="t-tiny f-muted">Example drawing from a synthetic series, not real data. Histogram drawn at the default display gain of 2.</text>
+</svg></div>
+<figcaption><b>Plate 1 · The oscillator pane.</b> Numbers match the list below.</figcaption>
+<ol class="callouts">
+  <li><b>Trace.</b> Default Conviction × Value: how stretched the move is, in effort and in price against fair value. Rails at ±θ (±43 at the default) and ±60, a 3σ stretch. <span class="ev ev-u">Unmeasured</span></li>
+  <li><b>Histogram.</b> The trace minus its 9-bar signal. Hue is the direction of the push. Bright means pressing, mid means decelerating, pale means turning. <span class="ev ev-u">Unmeasured</span></li>
+  <li><b>Rails.</b> Dotted ±θ, dashed ±60. On the Conviction trace they are the inner (±30) and outer (±60) zones.</li>
+  <li><b>Conviction tape (+82)</b> with its momentum band (+89). The ladder's view of who is in control: green buyers, red sellers, bright past the inner zone.</li>
+  <li><b>Value tape (−82)</b> with its momentum band (−89). Samanvaya's multi-timeframe value: green rich, red cheap, bright past θ.</li>
+  <li><b>▲ Capitulation turn.</b> The grid stands in DOWN · cheap and value momentum has turned back toward fair. <span class="ev ev-x">External</span></li>
+  <li><b>▼ Distribution.</b> Sellers have taken control of a price rich past θ. <span class="ev ev-x">External</span></li>
+  <li><b>Background tint.</b> Green while the grid holds Buy · capitulation, deeper after value momentum turns. Red in Exit · distribution. Gold on crypto.</li>
+  <li><b>Gold cast.</b> Columns turn gold when the push was paid for more by exits than new positions, from open interest. <span class="ev ev-x">External</span></li>
+</ol></figure>
+<p>A column's colour is not who is in control. Control is the trace's side of zero. A green column under a trace at −45 means sellers still control, with their grip easing. When the market is unusually quiet the columns lose half their colour: a loud pane in a quiet market is drawn quiet.</p>
+</section>
+
+<section class="chap" id="chart"><div class="chapno">Chapter 4</div><h3>The price chart, labelled</h3>
+<figure><div class="scroll"><svg viewBox="0 0 900 470" role="img" aria-label="Annotated example of Pragati on the price chart">
+<rect x="40" y="14" width="730" height="326" class="f-surface s-line" stroke-width="1"/>
+<polygon points="45.4,263.7 56.2,262.0 66.9,256.4 77.7,252.5 88.5,247.9 99.2,238.8 110.0,230.3 120.8,220.0 131.5,210.3 142.3,203.6 153.1,198.2 163.8,194.7 174.6,188.7 185.4,185.6 196.2,184.0 206.9,180.3 217.7,173.6 228.5,164.8 239.2,155.7 250.0,146.8 260.8,141.0 271.5,133.1 282.3,126.9 293.1,126.2 303.8,125.9 314.6,126.2 325.4,128.2 336.2,130.8 346.9,138.4 357.7,148.1 368.5,158.0 379.2,161.1 390.0,161.2 400.8,162.0 411.5,159.4 422.3,155.6 433.1,152.0 443.8,147.5 454.6,141.0 465.4,137.0 476.2,132.6 486.9,127.6 497.7,121.5 508.5,115.2 519.2,108.8 530.0,102.1 540.8,93.8 551.5,87.9 562.3,83.1 573.1,74.2 583.8,67.8 594.6,64.4 594.6,116.3 583.8,119.7 573.1,126.1 562.3,135.0 551.5,139.8 540.8,145.7 530.0,154.1 519.2,160.7 508.5,167.1 497.7,173.4 486.9,179.6 476.2,184.6 465.4,188.9 454.6,193.0 443.8,199.4 433.1,203.9 422.3,207.5 411.5,211.3 400.8,213.9 390.0,213.1 379.2,213.0 368.5,209.9 357.7,200.0 346.9,190.3 336.2,182.7 325.4,180.1 314.6,178.1 303.8,177.8 293.1,178.1 282.3,178.8 271.5,185.0 260.8,192.9 250.0,198.7 239.2,207.6 228.5,216.8 217.7,225.5 206.9,232.2 196.2,235.9 185.4,237.6 174.6,240.6 163.8,246.6 153.1,250.2 142.3,255.5 131.5,262.2 120.8,271.9 110.0,282.2 99.2,290.7 88.5,299.8 77.7,304.4 66.9,308.3 56.2,313.9 45.4,315.6" class="f-slate" opacity="0.16"/>
+<polyline points="45.4,288.8 56.2,287.1 66.9,281.5 77.7,277.6 88.5,273.1 99.2,263.9 110.0,255.4 120.8,245.1 131.5,235.4 142.3,228.7 153.1,223.4 163.8,219.8 174.6,213.8 185.4,210.8 196.2,209.1 206.9,205.4 217.7,198.7 228.5,190.0 239.2,180.8 250.0,172.0 260.8,166.1 271.5,158.2 282.3,152.0 293.1,151.3 303.8,151.0 314.6,151.3 325.4,153.3 336.2,155.9 346.9,163.5 357.7,173.2 368.5,183.2 379.2,186.2 390.0,186.3 400.8,187.1 411.5,184.5 422.3,180.7 433.1,177.1 443.8,172.6 454.6,166.2 465.4,162.1 476.2,157.8 486.9,152.8 497.7,146.6 508.5,140.3 519.2,133.9 530.0,127.3 540.8,118.9 551.5,113.0 562.3,108.2 573.1,99.3 583.8,92.9 594.6,89.5" fill="none" class="s-slate" stroke-dasharray="2 3" stroke-width="1.2"/>
+<line x1="126.2" x2="600.0" y1="151.2" y2="151.2" class="s-poc" stroke-dasharray="1 3" stroke-width="1.2"/>
+<rect x="363.1" y="180.2" width="236.9" height="62.8" class="f-va" opacity="0.08"/>
+<line x1="363.1" x2="700" y1="180.2" y2="180.2" class="s-va" stroke-width="1"/>
+<line x1="363.1" x2="700" y1="243.0" y2="243.0" class="s-va" stroke-width="1"/>
+<line x1="363.1" x2="700" y1="211.2" y2="211.2" class="s-poc" stroke-width="2"/>
+<polyline points="368.5,217.7 379.2,210.9 390.0,203.9 400.8,200.3 411.5,196.3 422.3,191.8 433.1,188.2 443.8,185.4 454.6,181.1 465.4,177.5 476.2,174.5 486.9,171.7 497.7,168.4 508.5,165.0 519.2,161.4 530.0,157.9 540.8,154.3 551.5,150.9 562.3,147.9 573.1,144.2 583.8,140.6 594.6,137.7" fill="none" class="s-vwap" stroke-width="1.4"/>
+<line x1="104.6" x2="115.4" y1="299.9" y2="299.9" class="s-bull" stroke-width="3" opacity="1"/>
+<line x1="115.4" x2="126.2" y1="299.9" y2="299.9" class="s-bull" stroke-width="3" opacity="1"/>
+<line x1="126.2" x2="136.9" y1="299.9" y2="299.9" class="s-bull" stroke-width="3" opacity="1"/>
+<line x1="136.9" x2="147.7" y1="299.9" y2="299.9" class="s-bull" stroke-width="3" opacity="1"/>
+<line x1="147.7" x2="147.7" y1="299.9" y2="284.7" class="s-bull" stroke-width="3" opacity="1"/>
+<line x1="147.7" x2="158.5" y1="284.7" y2="284.7" class="s-bull" stroke-width="3" opacity="1"/>
+<line x1="158.5" x2="169.2" y1="284.7" y2="284.7" class="s-bull" stroke-width="3" opacity="1"/>
+<line x1="169.2" x2="180.0" y1="284.7" y2="284.7" class="s-bull" stroke-width="3" opacity="1"/>
+<line x1="180.0" x2="190.8" y1="284.7" y2="284.7" class="s-bull" stroke-width="3" opacity="1"/>
+<line x1="190.8" x2="201.5" y1="284.7" y2="284.7" class="s-bull" stroke-width="3" opacity="1"/>
+<line x1="201.5" x2="201.5" y1="284.7" y2="240.3" class="s-bull" stroke-width="3" opacity="1"/>
+<line x1="201.5" x2="212.3" y1="240.3" y2="240.3" class="s-bull" stroke-width="3" opacity="1"/>
+<line x1="212.3" x2="223.1" y1="240.3" y2="240.3" class="s-bull" stroke-width="3" opacity="1"/>
+<line x1="223.1" x2="233.8" y1="240.3" y2="240.3" class="s-bull" stroke-width="3" opacity="1"/>
+<line x1="233.8" x2="244.6" y1="240.3" y2="240.3" class="s-bull" stroke-width="3" opacity="0.55"/>
+<line x1="244.6" x2="255.4" y1="240.3" y2="240.3" class="s-bull" stroke-width="3" opacity="0.55"/>
+<line x1="255.4" x2="255.4" y1="240.3" y2="219.2" class="s-bull" stroke-width="3" opacity="0.55"/>
+<line x1="255.4" x2="266.2" y1="219.2" y2="219.2" class="s-bull" stroke-width="3" opacity="0.55"/>
+<line x1="266.2" x2="276.9" y1="219.2" y2="219.2" class="s-bull" stroke-width="3" opacity="0.55"/>
+<line x1="276.9" x2="287.7" y1="219.2" y2="219.2" class="s-bull" stroke-width="3" opacity="0.55"/>
+<line x1="287.7" x2="298.5" y1="219.2" y2="219.2" class="s-bull" stroke-width="3" opacity="0.55"/>
+<line x1="298.5" x2="309.2" y1="219.2" y2="219.2" class="s-neut" stroke-width="3" opacity="0.9"/>
+<line x1="309.2" x2="320.0" y1="219.2" y2="219.2" class="s-neut" stroke-width="3" opacity="0.9"/>
+<line x1="320.0" x2="330.8" y1="219.2" y2="219.2" class="s-neut" stroke-width="3" opacity="0.9"/>
+<line x1="330.8" x2="341.5" y1="219.2" y2="219.2" class="s-neut" stroke-width="3" opacity="0.9"/>
+<line x1="341.5" x2="352.3" y1="219.2" y2="219.2" class="s-neut" stroke-width="3" opacity="0.9"/>
+<line x1="352.3" x2="363.1" y1="219.2" y2="219.2" class="s-neut" stroke-width="3" opacity="0.9"/>
+<line x1="363.1" x2="373.8" y1="219.2" y2="219.2" class="s-neut" stroke-width="3" opacity="0.9"/>
+<line x1="373.8" x2="384.6" y1="219.2" y2="219.2" class="s-neut" stroke-width="3" opacity="0.9"/>
+<line x1="384.6" x2="395.4" y1="219.2" y2="219.2" class="s-neut" stroke-width="3" opacity="0.9"/>
+<line x1="395.4" x2="406.2" y1="219.2" y2="219.2" class="s-neut" stroke-width="3" opacity="0.9"/>
+<line x1="406.2" x2="416.9" y1="219.2" y2="219.2" class="s-neut" stroke-width="3" opacity="0.9"/>
+<line x1="416.9" x2="427.7" y1="219.2" y2="219.2" class="s-neut" stroke-width="3" opacity="0.9"/>
+<line x1="427.7" x2="438.5" y1="219.2" y2="219.2" class="s-neut" stroke-width="3" opacity="0.9"/>
+<line x1="438.5" x2="449.2" y1="219.2" y2="219.2" class="s-neut" stroke-width="3" opacity="0.9"/>
+<line x1="449.2" x2="460.0" y1="219.2" y2="219.2" class="s-bull" stroke-width="3" opacity="0.55"/>
+<line x1="460.0" x2="470.8" y1="219.2" y2="219.2" class="s-bull" stroke-width="3" opacity="0.55"/>
+<line x1="470.8" x2="470.8" y1="219.2" y2="201.5" class="s-bull" stroke-width="3" opacity="0.55"/>
+<line x1="470.8" x2="481.5" y1="201.5" y2="201.5" class="s-bull" stroke-width="3" opacity="0.55"/>
+<line x1="481.5" x2="492.3" y1="201.5" y2="201.5" class="s-bull" stroke-width="3" opacity="0.55"/>
+<line x1="492.3" x2="503.1" y1="201.5" y2="201.5" class="s-bull" stroke-width="3" opacity="0.55"/>
+<line x1="503.1" x2="513.8" y1="201.5" y2="201.5" class="s-bull" stroke-width="3" opacity="1"/>
+<line x1="513.8" x2="524.6" y1="201.5" y2="201.5" class="s-bull" stroke-width="3" opacity="1"/>
+<line x1="524.6" x2="524.6" y1="201.5" y2="188.3" class="s-bull" stroke-width="3" opacity="1"/>
+<line x1="524.6" x2="535.4" y1="188.3" y2="188.3" class="s-bull" stroke-width="3" opacity="1"/>
+<line x1="535.4" x2="546.2" y1="188.3" y2="188.3" class="s-bull" stroke-width="3" opacity="1"/>
+<line x1="546.2" x2="556.9" y1="188.3" y2="188.3" class="s-bull" stroke-width="3" opacity="1"/>
+<line x1="556.9" x2="567.7" y1="188.3" y2="188.3" class="s-bull" stroke-width="3" opacity="1"/>
+<line x1="567.7" x2="578.5" y1="188.3" y2="188.3" class="s-bull" stroke-width="3" opacity="1"/>
+<line x1="578.5" x2="578.5" y1="188.3" y2="143.0" class="s-bull" stroke-width="3" opacity="1"/>
+<line x1="578.5" x2="589.2" y1="143.0" y2="143.0" class="s-bull" stroke-width="3" opacity="1"/>
+<line x1="589.2" x2="600.0" y1="143.0" y2="143.0" class="s-bull" stroke-width="3" opacity="1"/>
+<line x1="45.4" x2="45.4" y1="286.1" y2="296.5" class="s-bull" stroke-width="1"/>
+<rect x="41.9" y="288.8" width="6.9" height="5.0" class="f-bull"/>
+<line x1="56.2" x2="56.2" y1="275.5" y2="291.2" class="s-bull" stroke-width="1"/>
+<rect x="52.7" y="281.0" width="6.9" height="7.9" class="f-bull"/>
+<line x1="66.9" x2="66.9" y1="256.8" y2="281.4" class="s-bull" stroke-width="1"/>
+<rect x="63.5" y="262.0" width="6.9" height="19.0" class="f-bull"/>
+<line x1="77.7" x2="77.7" y1="257.4" y2="264.9" class="s-bear" stroke-width="1"/>
+<rect x="74.2" y="262.0" width="6.9" height="1.9" class="f-bear"/>
+<line x1="88.5" x2="88.5" y1="254.8" y2="266.8" class="s-bull" stroke-width="1"/>
+<rect x="85.0" y="257.2" width="6.9" height="6.6" class="f-bull"/>
+<line x1="99.2" x2="99.2" y1="227.0" y2="266.6" class="s-bull" stroke-width="1"/>
+<rect x="95.8" y="232.0" width="6.9" height="25.2" class="f-bull"/>
+<line x1="110.0" x2="110.0" y1="221.9" y2="235.1" class="s-bull" stroke-width="1"/>
+<rect x="106.6" y="225.5" width="6.9" height="6.5" class="f-bull"/>
+<line x1="120.8" x2="120.8" y1="207.6" y2="237.0" class="s-bull" stroke-width="1"/>
+<rect x="117.3" y="208.9" width="6.9" height="16.6" class="f-bull"/>
+<line x1="131.5" x2="131.5" y1="199.7" y2="215.8" class="s-bull" stroke-width="1"/>
+<rect x="128.1" y="201.4" width="6.9" height="7.5" class="f-bull"/>
+<line x1="142.3" x2="142.3" y1="197.8" y2="205.5" class="s-bear" stroke-width="1"/>
+<rect x="138.9" y="201.4" width="6.9" height="3.9" class="f-bear"/>
+<line x1="153.1" x2="153.1" y1="204.2" y2="216.1" class="s-bull" stroke-width="1"/>
+<rect x="149.6" y="204.6" width="6.9" height="1.2" class="f-bull"/>
+<line x1="163.8" x2="163.8" y1="199.9" y2="208.9" class="s-bear" stroke-width="1"/>
+<rect x="160.4" y="204.6" width="6.9" height="2.8" class="f-bear"/>
+<line x1="174.6" x2="174.6" y1="188.6" y2="215.8" class="s-bull" stroke-width="1"/>
+<rect x="171.2" y="192.7" width="6.9" height="14.7" class="f-bull"/>
+<line x1="185.4" x2="185.4" y1="186.7" y2="200.5" class="s-bear" stroke-width="1"/>
+<rect x="181.9" y="192.7" width="6.9" height="7.4" class="f-bear"/>
+<line x1="196.2" x2="196.2" y1="196.5" y2="206.2" class="s-bear" stroke-width="1"/>
+<rect x="192.7" y="200.2" width="6.9" height="3.3" class="f-bear"/>
+<line x1="206.9" x2="206.9" y1="191.6" y2="205.1" class="s-bull" stroke-width="1"/>
+<rect x="203.5" y="192.2" width="6.9" height="11.3" class="f-bull"/>
+<line x1="217.7" x2="217.7" y1="172.9" y2="193.6" class="s-bull" stroke-width="1"/>
+<rect x="214.2" y="175.2" width="6.9" height="17.0" class="f-bull"/>
+<line x1="228.5" x2="228.5" y1="154.2" y2="176.2" class="s-bull" stroke-width="1"/>
+<rect x="225.0" y="159.5" width="6.9" height="15.8" class="f-bull"/>
+<line x1="239.2" x2="239.2" y1="148.7" y2="162.8" class="s-bull" stroke-width="1"/>
+<rect x="235.8" y="148.8" width="6.9" height="10.7" class="f-bull"/>
+<line x1="250.0" x2="250.0" y1="137.8" y2="152.3" class="s-bull" stroke-width="1"/>
+<rect x="246.6" y="140.9" width="6.9" height="7.8" class="f-bull"/>
+<line x1="260.8" x2="260.8" y1="133.3" y2="149.0" class="s-bear" stroke-width="1"/>
+<rect x="257.3" y="140.9" width="6.9" height="4.8" class="f-bear"/>
+<line x1="271.5" x2="271.5" y1="128.3" y2="147.3" class="s-bull" stroke-width="1"/>
+<rect x="268.1" y="130.5" width="6.9" height="15.2" class="f-bull"/>
+<line x1="282.3" x2="282.3" y1="128.6" y2="131.3" class="s-bull" stroke-width="1"/>
+<rect x="278.9" y="130.2" width="6.9" height="1.2" class="f-bull"/>
+<line x1="293.1" x2="293.1" y1="129.8" y2="154.0" class="s-bear" stroke-width="1"/>
+<rect x="289.6" y="130.2" width="6.9" height="18.5" class="f-bear"/>
+<line x1="303.8" x2="303.8" y1="142.9" y2="158.9" class="s-bear" stroke-width="1"/>
+<rect x="300.4" y="148.8" width="6.9" height="1.4" class="f-bear"/>
+<line x1="314.6" x2="314.6" y1="138.6" y2="161.1" class="s-bear" stroke-width="1"/>
+<rect x="311.2" y="150.1" width="6.9" height="2.1" class="f-bear"/>
+<line x1="325.4" x2="325.4" y1="137.4" y2="165.1" class="s-bear" stroke-width="1"/>
+<rect x="321.9" y="152.2" width="6.9" height="8.1" class="f-bear"/>
+<line x1="336.2" x2="336.2" y1="150.4" y2="167.4" class="s-bear" stroke-width="1"/>
+<rect x="332.7" y="160.3" width="6.9" height="5.0" class="f-bear"/>
+<line x1="346.9" x2="346.9" y1="157.8" y2="197.7" class="s-bear" stroke-width="1"/>
+<rect x="343.5" y="165.3" width="6.9" height="24.5" class="f-bear"/>
+<line x1="357.7" x2="357.7" y1="188.8" y2="211.0" class="s-bear" stroke-width="1"/>
+<rect x="354.2" y="189.8" width="6.9" height="17.5" class="f-bear"/>
+<line x1="368.5" x2="368.5" y1="206.3" y2="228.9" class="s-bear" stroke-width="1"/>
+<rect x="365.0" y="207.3" width="6.9" height="10.5" class="f-bear"/>
+<line x1="379.2" x2="379.2" y1="196.5" y2="218.6" class="s-bull" stroke-width="1"/>
+<rect x="375.8" y="196.9" width="6.9" height="21.0" class="f-bull"/>
+<line x1="390.0" x2="390.0" y1="185.5" y2="198.1" class="s-bull" stroke-width="1"/>
+<rect x="386.6" y="186.5" width="6.9" height="10.4" class="f-bull"/>
+<line x1="400.8" x2="400.8" y1="185.8" y2="192.6" class="s-bear" stroke-width="1"/>
+<rect x="397.3" y="186.5" width="6.9" height="3.5" class="f-bear"/>
+<line x1="411.5" x2="411.5" y1="174.7" y2="190.6" class="s-bull" stroke-width="1"/>
+<rect x="408.1" y="175.4" width="6.9" height="14.6" class="f-bull"/>
+<line x1="422.3" x2="422.3" y1="163.9" y2="176.6" class="s-bull" stroke-width="1"/>
+<rect x="418.9" y="167.3" width="6.9" height="8.1" class="f-bull"/>
+<line x1="433.1" x2="433.1" y1="161.6" y2="173.9" class="s-bull" stroke-width="1"/>
+<rect x="429.6" y="164.6" width="6.9" height="2.7" class="f-bull"/>
+<line x1="443.8" x2="443.8" y1="156.7" y2="185.0" class="s-bull" stroke-width="1"/>
+<rect x="440.4" y="156.8" width="6.9" height="7.7" class="f-bull"/>
+<line x1="454.6" x2="454.6" y1="138.7" y2="157.7" class="s-bull" stroke-width="1"/>
+<rect x="451.2" y="143.7" width="6.9" height="13.2" class="f-bull"/>
+<line x1="465.4" x2="465.4" y1="137.0" y2="148.5" class="s-bear" stroke-width="1"/>
+<rect x="461.9" y="143.7" width="6.9" height="4.3" class="f-bear"/>
+<line x1="476.2" x2="476.2" y1="136.5" y2="154.0" class="s-bull" stroke-width="1"/>
+<rect x="472.7" y="142.5" width="6.9" height="5.5" class="f-bull"/>
+<line x1="486.9" x2="486.9" y1="135.1" y2="154.8" class="s-bull" stroke-width="1"/>
+<rect x="483.5" y="135.2" width="6.9" height="7.2" class="f-bull"/>
+<line x1="497.7" x2="497.7" y1="118.9" y2="139.7" class="s-bull" stroke-width="1"/>
+<rect x="494.2" y="124.9" width="6.9" height="10.3" class="f-bull"/>
+<line x1="508.5" x2="508.5" y1="118.3" y2="128.9" class="s-bull" stroke-width="1"/>
+<rect x="505.0" y="118.5" width="6.9" height="6.4" class="f-bull"/>
+<line x1="519.2" x2="519.2" y1="99.6" y2="119.7" class="s-bull" stroke-width="1"/>
+<rect x="515.8" y="111.3" width="6.9" height="7.2" class="f-bull"/>
+<line x1="530.0" x2="530.0" y1="97.2" y2="114.7" class="s-bull" stroke-width="1"/>
+<rect x="526.6" y="104.0" width="6.9" height="7.3" class="f-bull"/>
+<line x1="540.8" x2="540.8" y1="89.3" y2="110.9" class="s-bull" stroke-width="1"/>
+<rect x="537.3" y="89.6" width="6.9" height="14.4" class="f-bull"/>
+<line x1="551.5" x2="551.5" y1="87.2" y2="101.8" class="s-bear" stroke-width="1"/>
+<rect x="548.1" y="89.6" width="6.9" height="2.8" class="f-bear"/>
+<line x1="562.3" x2="562.3" y1="91.4" y2="95.3" class="s-bull" stroke-width="1"/>
+<rect x="558.9" y="91.5" width="6.9" height="1.2" class="f-bull"/>
+<line x1="573.1" x2="573.1" y1="57.5" y2="99.3" class="s-bull" stroke-width="1"/>
+<rect x="569.6" y="68.3" width="6.9" height="23.2" class="f-bull"/>
+<line x1="583.8" x2="583.8" y1="60.9" y2="72.8" class="s-bear" stroke-width="1"/>
+<rect x="580.4" y="68.3" width="6.9" height="1.9" class="f-bear"/>
+<line x1="594.6" x2="594.6" y1="67.4" y2="84.4" class="s-bear" stroke-width="1"/>
+<rect x="591.2" y="70.2" width="6.9" height="7.6" class="f-bear"/>
+<text x="336.2" y="170.3" text-anchor="middle" class="t-mark f-gold">×</text>
+<rect x="612" y="271.1" width="7.8" height="9.6" class="f-node" opacity="0.32"/>
+<rect x="612" y="260.5" width="13.0" height="9.6" class="f-node" opacity="0.32"/>
+<rect x="612" y="249.9" width="20.8" height="9.6" class="f-node" opacity="0.32"/>
+<rect x="612" y="239.2" width="31.2" height="9.6" class="f-node" opacity="0.32"/>
+<rect x="612" y="228.6" width="44.2" height="9.6" class="f-va" opacity="0.52"/>
+<rect x="612" y="218.0" width="57.2" height="9.6" class="f-va" opacity="0.52"/>
+<rect x="612" y="207.4" width="67.6" height="9.6" class="f-poc" opacity="0.75"/>
+<rect x="612" y="196.7" width="59.8" height="9.6" class="f-va" opacity="0.52"/>
+<rect x="612" y="186.1" width="46.8" height="9.6" class="f-va" opacity="0.52"/>
+<rect x="612" y="175.5" width="31.2" height="9.6" class="f-node" opacity="0.32"/>
+<rect x="612" y="164.8" width="20.8" height="9.6" class="f-node" opacity="0.32"/>
+<rect x="612" y="154.2" width="13.0" height="9.6" class="f-node" opacity="0.32"/>
+<rect x="612" y="143.6" width="7.8" height="9.6" class="f-node" opacity="0.32"/>
+<rect x="704" y="203.2" width="60" height="16" rx="2" class="f-poc" opacity="0.16"/><text x="708" y="215.2" class="t-small f-poc">POC</text>
+<rect x="704" y="172.2" width="60" height="16" rx="2" class="f-va" opacity="0.16"/><text x="708" y="184.2" class="t-small f-va">VAH</text>
+<rect x="704" y="235.0" width="60" height="16" rx="2" class="f-va" opacity="0.16"/><text x="708" y="247.0" class="t-small f-va">VAL</text>
+<rect x="704" y="129.7" width="60" height="16" rx="2" class="f-vwap" opacity="0.16"/><text x="708" y="141.7" class="t-small f-vwap">VWAP</text>
+<rect x="40" y="352" width="598" height="88" class="f-surface s-line" stroke-width="1"/>
+<text x="46" y="367" class="t-tiny f-muted"></text>
+<text x="110" y="367" class="t-tiny f-muted">STATE</text>
+<text x="240" y="367" class="t-tiny f-muted">WHY</text>
+<text x="436" y="367" class="t-tiny f-muted">PUSH</text>
+<text x="490" y="367" class="t-tiny f-muted">CHART</text>
+<text x="594" y="367" class="t-tiny f-muted">SPAN</text>
+<text x="46" y="389" class="t-small f-muted">OI</text>
+<text x="110" y="389" class="t-small f-bull">Long build-up</text>
+<text x="240" y="389" class="t-small f-muted">new longs · book 62 pct</text>
+<text x="436" y="389" class="t-small f-ink">+1.4σ</text>
+<text x="490" y="389" class="t-small f-ink"></text>
+<text x="594" y="389" class="t-small f-muted">3d</text>
+<text x="46" y="411" class="t-small f-muted">CVG</text>
+<text x="110" y="411" class="t-small f-bull">Buy 2.71</text>
+<text x="240" y="411" class="t-small f-muted">buyers running · turning up</text>
+<text x="436" y="411" class="t-small f-ink">↑</text>
+<text x="490" y="411" class="t-small f-bull">same</text>
+<text x="594" y="411" class="t-small f-muted">6d</text>
+<text x="46" y="433" class="t-small f-muted">AUCTION</text>
+<text x="110" y="433" class="t-small f-bull">Migrating ↑</text>
+<text x="240" y="433" class="t-small f-muted">trail ↑ · in value</text>
+<text x="436" y="433" class="t-small f-ink">↑</text>
+<text x="490" y="433" class="t-small f-bull">LONG 0.62</text>
+<text x="594" y="433" class="t-small f-muted">41d</text>
+<circle cx="169.2" cy="302.7" r="10" class="f-accent"/><text x="169.2" y="306.7" text-anchor="middle" class="t-callout">1</text>
+<circle cx="363.1" cy="237.2" r="10" class="f-accent"/><text x="363.1" y="241.2" text-anchor="middle" class="t-callout">2</text>
+<circle cx="83.1" cy="235.9" r="10" class="f-accent"/><text x="83.1" y="239.9" text-anchor="middle" class="t-callout">3</text>
+<circle cx="336.2" cy="149.3" r="10" class="f-accent"/><text x="336.2" y="153.3" text-anchor="middle" class="t-callout">4</text>
+<circle cx="684.0" cy="199.2" r="10" class="f-accent"/><text x="684.0" y="203.2" text-anchor="middle" class="t-callout">5</text>
+<circle cx="776.0" cy="178.2" r="10" class="f-accent"/><text x="776.0" y="182.2" text-anchor="middle" class="t-callout">6</text>
+<circle cx="513.8" cy="170.3" r="10" class="f-accent"/><text x="513.8" y="174.3" text-anchor="middle" class="t-callout">7</text>
+<circle cx="169.2" cy="139.2" r="10" class="f-accent"/><text x="169.2" y="143.2" text-anchor="middle" class="t-callout">8</text>
+<circle cx="652.0" cy="392.0" r="10" class="f-accent"/><text x="652.0" y="396.0" text-anchor="middle" class="t-callout">9</text>
+<text x="40" y="468" class="t-tiny f-muted">Example drawing from a synthetic series, not real data. The readout is the default bottom-left table.</text>
+</svg></div>
+<figcaption><b>Plate 2 · On the price chart.</b> Numbers match the list below.</figcaption>
+<ol class="callouts">
+  <li><b>Accepted momentum trail.</b> The tested engine. Hue is its side, intensity its size, grey when flat. <span class="ev ev-m">Measured</span></li>
+  <li><b>Flat segment.</b> The trail's side and momentum disagree, so the position is zero.</li>
+  <li><b>Value ribbon</b> (slate) with its dotted POC. Where 70% of the trail window's participation traded.</li>
+  <li><b>Probe ×</b> (gold). The first close beyond the trail that the market did not accept.</li>
+  <li><b>Session volume profile.</b> Rows by price: the POC row bright, value-area rows blue, tails grey. Session = day intraday, week on daily, month on weekly. <span class="ev ev-u">Unmeasured</span></li>
+  <li><b>Level tags.</b> POC, VAH, VAL, VWAP (TWAP when volume is off), IBH and IBL intraday, prior-session levels.</li>
+  <li><b>Session VWAP</b> (rose).</li>
+  <li><b>Naked POC.</b> A prior session's POC that price has not traded back through since. Up to 5, up to 250 bars old.</li>
+  <li><b>The readout.</b> Three rows (OI, CVG, AUCTION) and five columns (STATE, WHY, PUSH, CHART, SPAN). Chapter 7.</li>
+</ol></figure>
+</section>
+
+<section class="chap" id="engines"><div class="chapno">Chapter 5</div><h3>The engines in plain words</h3>
+<div class="cards">
+  <div class="card"><h4>Conviction</h4><p>How much of the window's effort turned into net movement, weighted by participation (volume, or true range where there is none).</p><p class="where">Answers: who is in control? · Seen in: the Conviction trace, the conviction tape, the histogram.</p></div>
+  <div class="card"><h4>Value (Samanvaya)</h4><p>Where price stands against fair value: a macro-hedged relative-value leg blended with a breadth leg, in σ. Past θ is cheap or rich.</p><p class="where">Answers: is the price stretched? · Seen in: the value tape, the Value trace.</p></div>
+  <div class="card"><h4>The ladder</h4><p>Both readings across timeframes. Conviction on Ladder down reads the bars inside each chart bar. Value on Ladder up reads the chart and the frames above.</p><p class="where">Answers: is it true on every timeframe? · Seen in: the two tapes.</p></div>
+  <div class="card"><h4>The Conviction-Value Grid</h4><p>The two tapes as a 3 × 3 map. Each cell is a family with an action and units, the weights Pragyam sizes from. <span class="ev ev-x">External</span></p><p class="where">Answers: what should a portfolio hold? · Seen in: the CVG row, the ▲▼, the tint.</p></div>
+  <div class="card"><h4>The auction</h4><p>A rolling volume profile of the chart's own bars: where participation was accepted, and whether value is migrating.</p><p class="where">Answers: where has the market agreed on price? · Seen in: the trail, the ribbon, the AUCTION row.</p></div>
+  <div class="card"><h4>Accepted momentum</h4><p>The six-month acceptance trail sets the side; time-series momentum sets the size. Long only when both say up, short only when both say down. <span class="ev ev-m">Measured</span></p><p class="where">Answers: should a trend book be long, flat or short? · Seen in: the trail's colour, the AUCTION row's CHART cell.</p></div>
+  <div class="card"><h4>Open interest</h4><p>On futures: whether this bar's trading opened risk (builds) or closed it (covering, unwinding). <span class="ev ev-x">External</span></p><p class="where">Answers: what kind of positioning? · Seen in: the OI row, the gold cast.</p></div>
+  <div class="card"><h4>Session volume profile</h4><p>Where volume traded in the current session: POC, value area, VWAP, initial balance, naked POCs. <span class="ev ev-u">Unmeasured</span></p><p class="where">Answers: where are the reference levels? · Seen in: the right edge of the price chart.</p></div>
+</div>
+</section>
+</section>
+
+<section class="part" id="part-2"><div class="eyebrow">Part II</div><h2>Reading every state</h2>
+
+<section class="chap" id="grid"><div class="chapno">Chapter 6</div><h3>The Conviction-Value Grid</h3>
+<p>Rows come from the conviction tape: UP past the inner zone (+30), DOWN past −30, FAINT between. Columns come from the value tape: CHEAP past −θ, RICH past +θ, FAIR between. Each of the nine cells is a family named for what it says to do. The number is its units, the relative weight a portfolio gives the name.</p>
+<figure><div class="scroll">
+<div class="tbl" style="border:none;background:none"><div class="grid3">
+  <div></div><div class="h">Cheap<br><span style="font-weight:400;text-transform:none;letter-spacing:0">value past −θ</span></div><div class="h">Fair<br><span style="font-weight:400;text-transform:none;letter-spacing:0">inside θ</span></div><div class="h">Rich<br><span style="font-weight:400;text-transform:none;letter-spacing:0">value past +θ</span></div>
+  <div class="h rh">Up<br>buyers</div><div class="cell b3"><div class="fam">TURNED</div><div class="act buy">Buy</div><div class="u">3 units</div></div><div class="cell n1"><div class="fam">BUILDING</div><div class="act hold">Hold</div><div class="u">1.5 units</div></div><div class="cell t075"><div class="fam">PAID</div><div class="act sell">Trim</div><div class="u">0.75 units</div></div>
+  <div class="h rh">Faint</div><div class="cell b15"><div class="fam">BASING</div><div class="act buy">Accumulate</div><div class="u">1.5 units</div></div><div class="cell n1"><div class="fam">IDLE</div><div class="act hold">Wait</div><div class="u">1 units</div></div><div class="cell t075"><div class="fam">STALLING</div><div class="act sell">Trim</div><div class="u">0.75 units</div></div>
+  <div class="h rh">Down<br>sellers</div><div class="cell b4"><span class="mk"><span style="color:var(--bull)">▲</span></span><div class="fam">DISLOCATED · capitulation</div><div class="act buy">Buy</div><div class="u">4 units</div></div><div class="cell b15"><div class="fam">FADING</div><div class="act buy">Accumulate</div><div class="u">1.5 units</div></div><div class="cell x025"><span class="mk"><span style="color:var(--bear)">▼</span></span><div class="fam">DISTRIBUTION</div><div class="act sell">Exit</div><div class="u">0.25 units</div></div>
+</div></div>
+</div><figcaption><b>Plate 3 · The 3 × 3 map.</b> Green actions buy, red actions sell, grey change nothing. The word is the weight: Buy 4 is four times Wait 1. <span class="ev ev-x">External</span> The graded units were positive in all three eras outside crypto.</figcaption></figure>
+<h4>Rows move only on a push</h4>
+<p>A row changes only when conviction's own histogram confirms a push that way: on the move's side, not turning, not in a quiet regime. Without that push the row is <b>held</b> where it was, and WHY shows "held" in gold. This stops the grid flickering on every wobble of the tape.</p>
+<h4>The 5 × 5: phases</h4>
+<p>Each edge has a momentum that confirms it or not. Conviction confirms a row while buyers (or sellers) are <b>running</b>; it is <b>pausing</b> otherwise. Value confirms a cheap or rich column once it is <b>turning</b> back toward fair; it is <b>still cheapening</b> or <b>still richening</b> otherwise. An unconfirmed edge sits half-way to the middle, so its units fall. Inside a cell the units are also shaded by how strongly each tape is drawn.</p>
+<div class="tbl "><table><thead><tr><th>You see in WHY</th><th>It means</th><th>Effect on units</th></tr></thead><tbody><tr><td>buyers running · sellers running</td><td>Conviction momentum stands on the row's side</td><td>The full row</td></tr><tr><td>buyers pausing · sellers pausing</td><td>A pullback against the row</td><td>Half-way to the middle</td></tr><tr><td>turning up (from cheap) · turning down (from rich)</td><td>Value momentum reverting toward fair</td><td>The full column. On DOWN · cheap this is the ▲'s condition</td></tr><tr><td>still cheapening · still richening</td><td>The dislocation is still widening</td><td>Half-way to the middle</td></tr><tr><td>no edge</td><td>FAINT and FAIR: nothing to confirm</td><td>Wait, 1 unit</td></tr><tr><td>· held (gold)</td><td>The tape left the row without a push that way</td><td>Between half and all of the held row, by the push's strength</td></tr><tr><td>· gate warming</td><td>Conviction's histogram is still calibrating (about 450 bars)</td><td>Rows follow the tape with no memory yet</td></tr></tbody></table></div>
+</section>
+
+<section class="chap" id="readout"><div class="chapno">Chapter 7</div><h3>The readout table, cell by cell</h3>
+<p>Five columns ask the same question on every row. STATE: where the layer stands. WHY: what makes it so. PUSH: what pushes it now. CHART: one more reading that differs by row. SPAN: how long it has stood, counting the current bar as the first. Hover any cell on TradingView for its tooltip.</p>
+<h4>OI row (futures with open interest)</h4>
+<div class="tbl "><table><thead><tr><th>STATE</th><th>Colour</th><th>What happened this bar</th></tr></thead><tbody><tr><td><span class="chip c-bull">Long build-up</span></td><td>Green</td><td>Price up, open interest up: new longs, risk committed</td></tr><tr><td><span class="chip c-bear">Short build-up</span></td><td>Red</td><td>Price down, open interest up: new shorts, risk committed</td></tr><tr><td><span class="chip c-gold">Short covering</span></td><td>Gold</td><td>Price up, open interest down: a rally paid for by exits. Short-covering rallies lagged <span class="ev ev-x">External</span></td></tr><tr><td><span class="chip c-gold">Long unwinding</span></td><td>Gold</td><td>Price down, open interest down: a decline paid for by exits</td></tr><tr><td><span class="chip c-neut">Balanced</span></td><td>Grey</td><td>The change is within 0.5σ of zero</td></tr><tr><td><span class="chip c-neut">Price flat</span></td><td>Grey</td><td>The book moved past 0.5σ but the close did not, so there is no side</td></tr><tr><td><span class="chip c-gold">Expiry / roll</span></td><td>Gold</td><td>Over 50% of the book in one bar, or over 3σ and 20%: structural, ignored</td></tr><tr><td><span class="chip c-gold">Warming</span> <span class="chip c-gold">Stale feed</span> <span class="chip c-gold">Daily only</span> <span class="chip c-gold">No symbol</span> <span class="chip c-gold">Paused</span></td><td>Gold</td><td>Not enough history yet, an end-of-day feed, no OI at this timeframe, a chart modifier, or a non-standard chart</td></tr><tr><td><span class="chip c-neut">No OI</span></td><td>Grey</td><td>The instrument has no open interest. Correct for cash equity and spot</td></tr></tbody></table></div>
+<p>WHY adds who is doing it and how full the book is: "book 85 pct" means total open interest sits at the 85th percentile of its last 250 bars. From the 80th it turns gold: a crowded book. PUSH is the change in σ. A faded row means the size of the book's change does not track activity (ρ below 0.20), so do not read it. <b>Expiry caution:</b> a front-month future's book falls into every expiry as positions roll, which can read as covering or unwinding. <span class="ev ev-u">Unmeasured</span></p>
+<h4>CVG row</h4>
+<div class="tbl "><table><thead><tr><th>Cell</th><th>Shows</th><th>Example</th></tr></thead><tbody><tr><td>STATE</td><td>The family's action and its shaded units</td><td><span class="chip c-bull">Buy 3.42</span> <span class="chip c-bear">Exit 0.31</span></td></tr><tr><td>WHY</td><td>Each momentum's phase on its edge (table above)</td><td>sellers running · turning up</td></tr><tr><td>PUSH</td><td>Conviction's histogram: ↑↑ an impulse past k·σ, ↑ a push, turning (no push), quiet (gold, no push), and the mirrored ↓ ↓↓</td><td>↑</td></tr><tr><td>CHART</td><td>Where this chart alone would put the name, against the ladder's state. ↑ more units, ↓ fewer, = same units elsewhere, same</td><td>↑ Buy</td></tr><tr><td>SPAN</td><td>How long the name has stood in this family</td><td>6d</td></tr></tbody></table></div>
+<h4>AUCTION row</h4>
+<div class="tbl "><table><thead><tr><th>Cell</th><th>Shows</th><th>States</th></tr></thead><tbody><tr><td>STATE</td><td>Value's migration against the window six months earlier</td><td><span class="chip c-bull">Migrating ↑</span> value areas no longer overlap · <span class="chip c-bull">Shifting ↑</span> only the POC has left · <span class="chip c-neut">Balance</span> · and the mirrored ↓ states</td></tr><tr><td>WHY</td><td>The trail's side and the close against value</td><td>trail ↑ · in value · <span class="chip c-gold">probe, not accepted</span> · accepted, flips at the close · push gate warming</td></tr><tr><td>PUSH</td><td>The histogram push the trail steps by</td><td>↑ · turning</td></tr><tr><td>CHART</td><td>Accepted momentum's position and size</td><td><span class="chip c-bull">LONG 0.62</span> <span class="chip c-neut">FLAT · disagree</span> <span class="chip c-bear">SHORT 0.40</span></td></tr><tr><td>SPAN</td><td>Bars since the trail started or flipped (the position can be younger)</td><td>41d</td></tr></tbody></table></div>
+</section>
+
+<section class="chap" id="panel"><div class="chapno">Chapter 8</div><h3>The information panel</h3>
+<p>Off by default (setting 8). Turn it on for a diagnostic view at the right of the pane.</p>
+<div class="tbl "><table><thead><tr><th>Row</th><th>Read it for</th></tr></thead><tbody><tr><td>Header</td><td>The trace's zone in words: buyers in control, STRETCHED UP, CHEAP · past θ, WARMING UP</td></tr><tr><td>declaration</td><td>The last ▲ or ▼ and how many bars ago. As a held position it carried no edge <span class="ev ev-x">External</span>. Paused with the reason, or off</td></tr><tr><td>value · chart</td><td>Samanvaya's value on this chart against θ. Gold while the macro basket settles</td></tr><tr><td>MTF · conv · value</td><td>The two tape readings. ↺ means the ladder fell back to the other direction</td></tr><tr><td>MTF momentum</td><td>Both momentum readings with their phase words</td></tr><tr><td>impulse</td><td>The histogram against k·σ, in native units</td></tr><tr><td>trace</td><td>The trace's ingredients: C and V in σ, ρ, split or settling</td></tr><tr><td>raw share · σ</td><td>The untransformed reading. QUIET (gold): small imbalances are being magnified</td></tr><tr><td>participation</td><td>What weighted the last closed bar, and by how much. At the cap: extreme participation</td></tr><tr><td>effort → result</td><td>How much effort became movement. ABSORBED (gold) in the bottom fifth</td></tr><tr><td>macro share, overlap, rungs, driver timing, rebuild error</td><td>Model diagnostics. Gold flags mean read the value side with care</td></tr><tr><td>Profile Mode, Location</td><td>What the session profile actually did, and where price sits in it</td></tr></tbody></table></div>
+</section>
+
+<section class="chap" id="signals"><div class="chapno">Chapter 9</div><h3>Signals and marks</h3>
+<div class="tbl "><table><thead><tr><th>Mark</th><th>Fires when</th><th>Default</th><th>Evidence</th></tr></thead><tbody><tr><td><span style="color:var(--bull)">▲</span> Capitulation turn</td><td>The first closed bar in DOWN · cheap with value momentum reverting. Not on a grid that wakes up already inside the cell</td><td>On</td><td><span class="ev ev-x">External</span> Positive in all three eras, daily and weekly, in 4 to 5 of 5 non-crypto classes. About +0.05σ over 10 to 20 bars: a lean, not a trade. Fails on crypto</td></tr><tr><td><span style="color:var(--bear)">▼</span> Distribution</td><td>The first closed bar on which sellers control a price rich past θ</td><td>On</td><td><span class="ev ev-x">External</span> As a state, followed by underperformance in every era</td></tr><tr><td>◆ Continuation</td><td>A pullback that reset value, then a push past +k·σ</td><td>Off</td><td><span class="ev ev-x">External</span> Negative in both eras. Do not lean on it</td></tr><tr><td>R · H divergence</td><td>Price and conviction disagree at pivots</td><td>Off</td><td><span class="ev ev-x">External</span> R about zero; H negative or mixed</td></tr><tr><td><span style="color:var(--gold)">×</span> Probe</td><td>The first close beyond the trail the market has not accepted</td><td>On</td><td><span class="ev ev-u">Unmeasured</span></td></tr><tr><td>Background tint</td><td>While the grid holds capitulation (green) or distribution (red)</td><td>Grid state</td><td><span class="ev ev-x">External</span> The state carried the edge</td></tr><tr><td>Gold cast</td><td>The push was paid for by exits (open interest)</td><td>On</td><td><span class="ev ev-x">External</span> Marked pushes did worse</td></tr></tbody></table></div>
+<div class="note rule">Every signal fires at the close of its bar and never repaints. Intrabar, the readout is live and can change until the close.</div>
+</section>
+</section>
+
+<section class="part" id="part-3"><div class="eyebrow">Part III</div><h2>Investment guide · weeks to months</h2>
+
+<section class="chap" id="inv-frame"><div class="chapno">Chapter 10</div><h3>The investor's frame</h3>
+<p>For investing, the grid is the tool. Each name in your universe sits in one family, and its units say how much weight it deserves relative to the others. You hold everything you would hold anyway, more of what is cheap with sellers exhausted, and less of what is rich with sellers in control. Units are relative weights for a book of many names, not a buy-or-sell switch for one.</p>
+<div class="note">Evidence <span class="ev ev-x">External</span>: the graded units were positive in all three eras outside crypto. In Pragyam's allocator the units beat its seed weights in both eras on the Nifty 50 and the Dow 30.</div>
+<div class="flow"><div><b>Daily chart</b>Conviction on Ladder down, value on Ladder up: exactly what Pragyam sizes from.</div><div class="arrow" aria-hidden="true">→</div><div><b>Read at the week's last close</b>One reading per name: the CVG row's STATE.</div><div class="arrow" aria-hidden="true">→</div><div><b>Units to weights</b>Weight = units ÷ sum of units across the book.</div><div class="arrow" aria-hidden="true">→</div><div><b>Rebalance with a band</b>Trade only where a weight moved by more than a tenth of its target.</div></div>
+</section>
+
+<section class="chap" id="inv-families"><div class="chapno">Chapter 11</div><h3>Nine families, nine actions</h3>
+<div class="tbl "><table><thead><tr><th>Family</th><th>Condition</th><th>Action · units</th><th>Typical next family</th><th>What it says</th></tr></thead><tbody><tr><td><span class="chip c-bull">DISLOCATED</span></td><td>Sellers in control, price cheap</td><td>Buy · 4</td><td>BASING, FADING, TURNED</td><td>The capitulation cell. The strongest measured lean. Stage in; add on the ▲</td></tr><tr><td><span class="chip c-bull">TURNED</span></td><td>Buyers in control, price cheap</td><td>Buy · 3</td><td>BUILDING</td><td>A turn while still cheap. Buy</td></tr><tr><td><span class="chip c-bull">BASING</span></td><td>Nobody in control, cheap</td><td>Accumulate · 1.5</td><td>TURNED, DISLOCATED</td><td>Accumulate slowly</td></tr><tr><td><span class="chip c-bull">FADING</span></td><td>Sellers in control, fair price</td><td>Accumulate · 1.5</td><td>DISLOCATED, IDLE</td><td>Sellers at a fair price were followed by gains (v8, outside crypto) <span class="ev ev-x">External</span></td></tr><tr><td><span class="chip c-neut">BUILDING</span></td><td>Buyers in control, fair price</td><td>Hold · 1.5</td><td>PAID, IDLE</td><td>Hold. Buyers at a fair price lagged (v8), so do not add</td></tr><tr><td><span class="chip c-neut">IDLE</span></td><td>Nobody in control, fair</td><td>Wait · 1</td><td>anything</td><td>Do nothing</td></tr><tr><td><span class="chip c-bear">PAID</span></td><td>Buyers in control, rich</td><td>Trim · 0.75</td><td>STALLING, DISTRIBUTION</td><td>The move is paid for. Trim</td></tr><tr><td><span class="chip c-bear">STALLING</span></td><td>Nobody in control, rich</td><td>Trim · 0.75</td><td>DISTRIBUTION, IDLE</td><td>Trim</td></tr><tr><td><span class="chip c-bear">DISTRIBUTION</span></td><td>Sellers in control, rich</td><td>Exit · 0.25</td><td>FADING, STALLING</td><td>Exit toward a token weight. The ▼ marks the entry</td></tr></tbody></table></div>
+</section>
+
+<section class="chap" id="inv-cap"><div class="chapno">Chapter 12</div><h3>The capitulation plan</h3>
+<p>The one event the v9 audit found positive in every era is the capitulation turn. This is a staged plan around it. The staging itself is a house rule <span class="ev ev-u">Unmeasured</span>; the state and the turn are <span class="ev ev-x">External</span>.</p>
+<div class="flow">
+ <div><b>1 · Enter DOWN · cheap</b>The green tint appears; STATE reads Buy 4. Buy the first third.</div><div class="arrow" aria-hidden="true">→</div>
+ <div><b>2 · ▲ fires</b>Value momentum turns back toward fair; the tint deepens. Buy the second third.</div><div class="arrow" aria-hidden="true">→</div>
+ <div><b>3 · Leaves the cell</b>BASING or FADING (Accumulate 1.5), or TURNED (Buy 3). Buy the last third on the next push ↑.</div><div class="arrow" aria-hidden="true">→</div>
+ <div><b>4 · BUILDING</b>Hold 1.5. Let the position run.</div><div class="arrow" aria-hidden="true">→</div>
+ <div><b>5 · PAID or STALLING</b>Trim 0.75.</div><div class="arrow" aria-hidden="true">→</div>
+ <div><b>6 · ▼ DISTRIBUTION</b>Exit toward 0.25.</div>
+</div>
+<h4>When the plan is wrong</h4>
+<ul>
+ <li><b>Crypto.</b> The capitulation reading failed there. The tint and the ▲ are drawn gold. Skip the plan.</li>
+ <li><b>Gold readings.</b> A held row, a quiet regime, "basket settling", or a paused grid. Wait for them to clear before adding.</li>
+ <li><b>A trend against you.</b> If Accepted momentum is SHORT, the long-horizon trend still points down. Keep each tranche small (Chapter 19).</li>
+</ul>
+</section>
+
+<section class="chap" id="inv-book"><div class="chapno">Chapter 13</div><h3>Building the book: a worked example</h3>
+<p>Six names, read at the week's close. Weights are units divided by their sum.</p>
+<div class="tbl "><table><thead><tr><th>Name</th><th>CVG STATE</th><th>Units</th><th>Weight</th></tr></thead><tbody><tr><td>A</td><td><span class="chip c-bull">Buy 3.6</span> · DISLOCATED</td><td><span class="num">3.6</span></td><td><span class="num">32.4%</span></td></tr><tr><td>B</td><td><span class="chip c-bull">Buy 2.8</span> · TURNED</td><td><span class="num">2.8</span></td><td><span class="num">25.2%</span></td></tr><tr><td>C</td><td><span class="chip c-neut">Hold 1.5</span> · BUILDING</td><td><span class="num">1.5</span></td><td><span class="num">13.5%</span></td></tr><tr><td>D</td><td><span class="chip c-bull">Accumulate 1.4</span> · BASING</td><td><span class="num">1.4</span></td><td><span class="num">12.6%</span></td></tr><tr><td>E</td><td><span class="chip c-neut">Wait 1.0</span> · IDLE</td><td><span class="num">1.0</span></td><td><span class="num">9.0%</span></td></tr><tr><td>F</td><td><span class="chip c-bear">Trim 0.8</span> · PAID</td><td><span class="num">0.8</span></td><td><span class="num">7.2%</span></td></tr><tr><td>Total</td><td></td><td><span class="num">11.1</span></td><td><span class="num">100% (rounded)</span></td></tr></tbody></table></div>
+<p>With a small book, one name can grow large. A practical cap of about a tenth of the book per name keeps the plan diversified <span class="ev ev-u">Unmeasured</span>. The more names, the closer you get to how the units were measured.</p>
+</section>
+
+<section class="chap" id="inv-risk"><div class="chapno">Chapter 14</div><h3>Investor risk</h3>
+<ul>
+ <li><b>Trend filters trade return for drawdown.</b> On 119 markets, holding only while the trail was up cut the worst drawdown from −73.5% to −35%, but gave up about 11 points of yearly growth (13.5% against 24.4%) <span class="ev ev-m">Measured</span>. Use Accepted momentum as an investor's filter only if a shallower drawdown matters more to you than return.</li>
+ <li><b>The ▲ is a lean.</b> About +0.05σ over 10 to 20 bars. It pays across many names and many events, not on any one <span class="ev ev-x">External</span>.</li>
+ <li><b>Gold is caution.</b> Reduce or wait; never read gold as a direction.</li>
+</ul>
+</section>
+</section>
+
+<section class="part" id="part-4"><div class="eyebrow">Part IV</div><h2>Trade guide · systematic and swing</h2>
+
+<section class="chap" id="am"><div class="chapno">Chapter 15</div><h3>Accepted momentum, the tested system</h3>
+<p>This is the one trade system in Pragati that passed a held-out test <span class="ev ev-m">Measured</span>. It was chosen by a fixed rule from eleven trials on data up to 2019, frozen, and then run once on 2020-26 and on 411 markets it had never seen.</p>
+<figure><div class="scroll"><svg viewBox="0 0 900 300" role="img" aria-label="How Accepted momentum decides long, flat or short">
+<rect x="40.0" y="20" width="11.9" height="190" class="f-neut" opacity="0.10"/>
+<rect x="51.7" y="20" width="11.9" height="190" class="f-bull" opacity="0.13"/>
+<rect x="63.4" y="20" width="11.9" height="190" class="f-bull" opacity="0.13"/>
+<rect x="75.1" y="20" width="11.9" height="190" class="f-bull" opacity="0.13"/>
+<rect x="86.9" y="20" width="11.9" height="190" class="f-bull" opacity="0.13"/>
+<rect x="98.6" y="20" width="11.9" height="190" class="f-bull" opacity="0.13"/>
+<rect x="110.3" y="20" width="11.9" height="190" class="f-bull" opacity="0.13"/>
+<rect x="122.0" y="20" width="11.9" height="190" class="f-bull" opacity="0.13"/>
+<rect x="133.7" y="20" width="11.9" height="190" class="f-bull" opacity="0.13"/>
+<rect x="145.4" y="20" width="11.9" height="190" class="f-bull" opacity="0.13"/>
+<rect x="157.1" y="20" width="11.9" height="190" class="f-bull" opacity="0.13"/>
+<rect x="168.9" y="20" width="11.9" height="190" class="f-bull" opacity="0.13"/>
+<rect x="180.6" y="20" width="11.9" height="190" class="f-bull" opacity="0.13"/>
+<rect x="192.3" y="20" width="11.9" height="190" class="f-bull" opacity="0.13"/>
+<rect x="204.0" y="20" width="11.9" height="190" class="f-bull" opacity="0.13"/>
+<rect x="215.7" y="20" width="11.9" height="190" class="f-bull" opacity="0.13"/>
+<rect x="227.4" y="20" width="11.9" height="190" class="f-bull" opacity="0.13"/>
+<rect x="239.1" y="20" width="11.9" height="190" class="f-bull" opacity="0.13"/>
+<rect x="250.9" y="20" width="11.9" height="190" class="f-bull" opacity="0.13"/>
+<rect x="262.6" y="20" width="11.9" height="190" class="f-bull" opacity="0.13"/>
+<rect x="274.3" y="20" width="11.9" height="190" class="f-bull" opacity="0.13"/>
+<rect x="286.0" y="20" width="11.9" height="190" class="f-bull" opacity="0.13"/>
+<rect x="297.7" y="20" width="11.9" height="190" class="f-bull" opacity="0.13"/>
+<rect x="309.4" y="20" width="11.9" height="190" class="f-bull" opacity="0.13"/>
+<rect x="321.1" y="20" width="11.9" height="190" class="f-bull" opacity="0.13"/>
+<rect x="332.9" y="20" width="11.9" height="190" class="f-bull" opacity="0.13"/>
+<rect x="344.6" y="20" width="11.9" height="190" class="f-bull" opacity="0.13"/>
+<rect x="356.3" y="20" width="11.9" height="190" class="f-bull" opacity="0.13"/>
+<rect x="368.0" y="20" width="11.9" height="190" class="f-bull" opacity="0.13"/>
+<rect x="379.7" y="20" width="11.9" height="190" class="f-bull" opacity="0.13"/>
+<rect x="391.4" y="20" width="11.9" height="190" class="f-bull" opacity="0.13"/>
+<rect x="403.1" y="20" width="11.9" height="190" class="f-bull" opacity="0.13"/>
+<rect x="414.9" y="20" width="11.9" height="190" class="f-neut" opacity="0.10"/>
+<rect x="426.6" y="20" width="11.9" height="190" class="f-bull" opacity="0.13"/>
+<rect x="438.3" y="20" width="11.9" height="190" class="f-bull" opacity="0.13"/>
+<rect x="450.0" y="20" width="11.9" height="190" class="f-bull" opacity="0.13"/>
+<rect x="461.7" y="20" width="11.9" height="190" class="f-bull" opacity="0.13"/>
+<rect x="473.4" y="20" width="11.9" height="190" class="f-bull" opacity="0.13"/>
+<rect x="485.1" y="20" width="11.9" height="190" class="f-neut" opacity="0.10"/>
+<rect x="496.9" y="20" width="11.9" height="190" class="f-neut" opacity="0.10"/>
+<rect x="508.6" y="20" width="11.9" height="190" class="f-neut" opacity="0.10"/>
+<rect x="520.3" y="20" width="11.9" height="190" class="f-neut" opacity="0.10"/>
+<rect x="532.0" y="20" width="11.9" height="190" class="f-bear" opacity="0.13"/>
+<rect x="543.7" y="20" width="11.9" height="190" class="f-bear" opacity="0.13"/>
+<rect x="555.4" y="20" width="11.9" height="190" class="f-bear" opacity="0.13"/>
+<rect x="567.1" y="20" width="11.9" height="190" class="f-bear" opacity="0.13"/>
+<rect x="578.9" y="20" width="11.9" height="190" class="f-bear" opacity="0.13"/>
+<rect x="590.6" y="20" width="11.9" height="190" class="f-bear" opacity="0.13"/>
+<rect x="602.3" y="20" width="11.9" height="190" class="f-bear" opacity="0.13"/>
+<rect x="614.0" y="20" width="11.9" height="190" class="f-bear" opacity="0.13"/>
+<rect x="625.7" y="20" width="11.9" height="190" class="f-bear" opacity="0.13"/>
+<rect x="637.4" y="20" width="11.9" height="190" class="f-bear" opacity="0.13"/>
+<rect x="649.1" y="20" width="11.9" height="190" class="f-bear" opacity="0.13"/>
+<rect x="660.9" y="20" width="11.9" height="190" class="f-bear" opacity="0.13"/>
+<rect x="672.6" y="20" width="11.9" height="190" class="f-bear" opacity="0.13"/>
+<rect x="684.3" y="20" width="11.9" height="190" class="f-bear" opacity="0.13"/>
+<rect x="696.0" y="20" width="11.9" height="190" class="f-bear" opacity="0.13"/>
+<rect x="707.7" y="20" width="11.9" height="190" class="f-bear" opacity="0.13"/>
+<rect x="719.4" y="20" width="11.9" height="190" class="f-bear" opacity="0.13"/>
+<rect x="731.1" y="20" width="11.9" height="190" class="f-bear" opacity="0.13"/>
+<rect x="742.9" y="20" width="11.9" height="190" class="f-bear" opacity="0.13"/>
+<rect x="754.6" y="20" width="11.9" height="190" class="f-bear" opacity="0.13"/>
+<rect x="766.3" y="20" width="11.9" height="190" class="f-bear" opacity="0.13"/>
+<rect x="778.0" y="20" width="11.9" height="190" class="f-bear" opacity="0.13"/>
+<rect x="789.7" y="20" width="11.9" height="190" class="f-bear" opacity="0.13"/>
+<rect x="801.4" y="20" width="11.9" height="190" class="f-bear" opacity="0.13"/>
+<rect x="813.1" y="20" width="11.9" height="190" class="f-bear" opacity="0.13"/>
+<rect x="824.9" y="20" width="11.9" height="190" class="f-bear" opacity="0.13"/>
+<rect x="836.6" y="20" width="11.9" height="190" class="f-bear" opacity="0.13"/>
+<rect x="848.3" y="20" width="11.9" height="190" class="f-bear" opacity="0.13"/>
+<polyline points="45.9,140.4 57.6,140.4 69.3,140.4 81.0,140.4 92.7,140.4 104.4,140.4 116.1,138.5 127.9,134.1 139.6,129.3 151.3,125.2 163.0,123.7 174.7,121.5 186.4,120.6 198.1,120.9 209.9,117.8 221.6,111.1 233.3,106.5 245.0,104.8 256.7,104.4 268.4,102.6 280.1,103.5 291.9,101.8 303.6,97.0 315.3,99.4 327.0,97.7 338.7,99.4 350.4,97.3 362.1,96.4 373.9,89.6 385.6,84.4 397.3,83.3 409.0,82.3 420.7,86.1 432.4,89.0 444.1,89.7 455.9,88.3 467.6,86.4 479.3,87.8 491.0,85.2 502.7,86.7 514.4,85.1 526.1,85.5 537.9,89.3 549.6,90.9 561.3,92.1 573.0,89.9 584.7,91.5 596.4,88.6 608.1,91.1 619.9,94.1 631.6,97.9 643.3,104.1 655.0,108.9 666.7,112.5 678.4,115.2 690.1,114.0 701.9,114.6 713.6,113.0 725.3,117.9 737.0,123.5 748.7,125.4 760.4,129.3 772.1,128.1 783.9,125.8 795.6,124.0 807.3,124.2 819.0,128.0 830.7,133.4 842.4,139.8 854.1,137.3" fill="none" class="s-va" stroke-dasharray="6 4" stroke-width="1.8"/>
+<path d="M40.0,168.1H51.7M51.7,168.1V168.1M51.7,168.1H63.4M63.4,168.1V168.1M63.4,168.1H75.1M75.1,168.1V168.1M75.1,168.1H86.9M86.9,168.1V168.1M86.9,168.1H98.6M98.6,168.1V168.1M98.6,168.1H110.3M110.3,168.1V121.8M110.3,121.8H122.0M122.0,121.8V121.8M122.0,121.8H133.7M133.7,121.8V121.8M133.7,121.8H145.4M145.4,121.8V121.8M145.4,121.8H157.1M157.1,121.8V121.8M157.1,121.8H168.9M168.9,121.8V121.8M168.9,121.8H180.6M180.6,121.8V107.2M180.6,107.2H192.3M192.3,107.2V107.2M192.3,107.2H204.0M204.0,107.2V107.2M204.0,107.2H215.7M215.7,107.2V107.2M215.7,107.2H227.4M227.4,107.2V107.2M227.4,107.2H239.1M239.1,107.2V107.2M239.1,107.2H250.9M250.9,107.2V105.7M250.9,105.7H262.6M262.6,105.7V105.7M262.6,105.7H274.3M274.3,105.7V105.7M274.3,105.7H286.0M286.0,105.7V105.7M286.0,105.7H297.7M297.7,105.7V105.7M297.7,105.7H309.4M309.4,105.7V105.7M309.4,105.7H321.1M321.1,105.7V95.6M321.1,95.6H332.9M332.9,95.6V95.6M332.9,95.6H344.6M344.6,95.6V95.6M344.6,95.6H356.3M356.3,95.6V95.6M356.3,95.6H368.0M368.0,95.6V95.6M368.0,95.6H379.7M379.7,95.6V95.6M379.7,95.6H391.4M391.4,95.6V95.6M391.4,95.6H403.1M403.1,95.6V95.6M403.1,95.6H414.9M414.9,95.6V95.6M414.9,95.6H426.6M426.6,95.6V95.6M426.6,95.6H438.3M438.3,95.6V95.6M438.3,95.6H450.0M450.0,95.6V95.6M450.0,95.6H461.7M461.7,95.6V95.6M461.7,95.6H473.4M473.4,95.6V95.6M473.4,95.6H485.1M485.1,95.6V95.6M485.1,95.6H496.9M496.9,95.6V95.6M496.9,95.6H508.6M508.6,95.6V95.6M508.6,95.6H520.3M520.3,95.6V95.6M520.3,95.6H532.0M532.0,95.6V67.1M532.0,67.1H543.7M543.7,67.1V67.1M543.7,67.1H555.4M555.4,67.1V67.1M555.4,67.1H567.1M567.1,67.1V67.1M567.1,67.1H578.9M578.9,67.1V67.1M578.9,67.1H590.6M590.6,67.1V67.1M590.6,67.1H602.3M602.3,67.1V121.2M602.3,121.2H614.0M614.0,121.2V121.2M614.0,121.2H625.7M625.7,121.2V121.2M625.7,121.2H637.4M637.4,121.2V121.2M637.4,121.2H649.1M649.1,121.2V121.2M649.1,121.2H660.9M660.9,121.2V121.2M660.9,121.2H672.6M672.6,121.2V121.2M672.6,121.2H684.3M684.3,121.2V121.2M684.3,121.2H696.0M696.0,121.2V121.2M696.0,121.2H707.7M707.7,121.2V121.2M707.7,121.2H719.4M719.4,121.2V121.2M719.4,121.2H731.1M731.1,121.2V121.2M731.1,121.2H742.9M742.9,121.2V122.4M742.9,122.4H754.6M754.6,122.4V122.4M754.6,122.4H766.3M766.3,122.4V122.4M766.3,122.4H778.0M778.0,122.4V122.4M778.0,122.4H789.7M789.7,122.4V122.4M789.7,122.4H801.4M801.4,122.4V122.4M801.4,122.4H813.1M813.1,122.4V131.0M813.1,131.0H824.9M824.9,131.0V131.0M824.9,131.0H836.6M836.6,131.0V131.0M836.6,131.0H848.3M848.3,131.0V131.0M848.3,131.0H860.0" fill="none" class="s-ink" stroke-width="2.4"/>
+<polyline points="45.9,140.4 57.6,135.7 69.3,125.0 81.0,113.1 92.7,103.0 104.4,99.3 116.1,94.0 127.9,91.9 139.6,95.7 151.3,94.8 163.0,86.1 174.7,81.2 186.4,79.5 198.1,81.9 209.9,78.9 221.6,78.6 233.3,75.0 245.0,68.8 256.7,77.9 268.4,75.0 280.1,79.6 291.9,81.2 303.6,84.6 315.3,75.0 327.0,67.8 338.7,61.6 350.4,62.2 362.1,66.7 373.9,73.3 385.6,76.7 397.3,81.6 409.0,82.3 420.7,88.8 432.4,83.4 444.1,84.3 455.9,77.8 467.6,81.0 479.3,86.8 491.0,95.9 502.7,96.0 514.4,94.7 526.1,98.4 537.9,100.6 549.6,106.7 561.3,113.5 573.0,119.6 584.7,134.5 596.4,144.6 608.1,148.9 619.9,152.7 631.6,145.7 643.3,141.2 655.0,137.8 666.7,136.5 678.4,148.0 690.1,146.7 701.9,150.6 713.6,146.8 725.3,147.4 737.0,148.2 748.7,150.2 760.4,150.8 772.1,160.6 783.9,168.4 795.6,160.7 807.3,157.3 819.0,158.7 830.7,159.6 842.4,160.7 854.1,141.7" fill="none" class="s-poc" stroke-width="1.6"/>
+<rect x="40.0" y="228" width="11.7" height="16" class="f-neut" opacity="0.45"/>
+<rect x="51.7" y="228" width="11.7" height="16" class="f-bull" opacity="0.9"/>
+<rect x="63.4" y="228" width="11.7" height="16" class="f-bull" opacity="0.9"/>
+<rect x="75.1" y="228" width="11.7" height="16" class="f-bull" opacity="0.9"/>
+<rect x="86.9" y="228" width="11.7" height="16" class="f-bull" opacity="0.9"/>
+<rect x="98.6" y="228" width="11.7" height="16" class="f-bull" opacity="0.9"/>
+<rect x="110.3" y="228" width="11.7" height="16" class="f-bull" opacity="0.9"/>
+<rect x="122.0" y="228" width="11.7" height="16" class="f-bull" opacity="0.9"/>
+<rect x="133.7" y="228" width="11.7" height="16" class="f-bull" opacity="0.9"/>
+<rect x="145.4" y="228" width="11.7" height="16" class="f-bull" opacity="0.9"/>
+<rect x="157.1" y="228" width="11.7" height="16" class="f-bull" opacity="0.9"/>
+<rect x="168.9" y="228" width="11.7" height="16" class="f-bull" opacity="0.9"/>
+<rect x="180.6" y="228" width="11.7" height="16" class="f-bull" opacity="0.9"/>
+<rect x="192.3" y="228" width="11.7" height="16" class="f-bull" opacity="0.9"/>
+<rect x="204.0" y="228" width="11.7" height="16" class="f-bull" opacity="0.9"/>
+<rect x="215.7" y="228" width="11.7" height="16" class="f-bull" opacity="0.9"/>
+<rect x="227.4" y="228" width="11.7" height="16" class="f-bull" opacity="0.9"/>
+<rect x="239.1" y="228" width="11.7" height="16" class="f-bull" opacity="0.9"/>
+<rect x="250.9" y="228" width="11.7" height="16" class="f-bull" opacity="0.9"/>
+<rect x="262.6" y="228" width="11.7" height="16" class="f-bull" opacity="0.9"/>
+<rect x="274.3" y="228" width="11.7" height="16" class="f-bull" opacity="0.9"/>
+<rect x="286.0" y="228" width="11.7" height="16" class="f-bull" opacity="0.9"/>
+<rect x="297.7" y="228" width="11.7" height="16" class="f-bull" opacity="0.9"/>
+<rect x="309.4" y="228" width="11.7" height="16" class="f-bull" opacity="0.9"/>
+<rect x="321.1" y="228" width="11.7" height="16" class="f-bull" opacity="0.9"/>
+<rect x="332.9" y="228" width="11.7" height="16" class="f-bull" opacity="0.9"/>
+<rect x="344.6" y="228" width="11.7" height="16" class="f-bull" opacity="0.9"/>
+<rect x="356.3" y="228" width="11.7" height="16" class="f-bull" opacity="0.9"/>
+<rect x="368.0" y="228" width="11.7" height="16" class="f-bull" opacity="0.9"/>
+<rect x="379.7" y="228" width="11.7" height="16" class="f-bull" opacity="0.9"/>
+<rect x="391.4" y="228" width="11.7" height="16" class="f-bull" opacity="0.9"/>
+<rect x="403.1" y="228" width="11.7" height="16" class="f-bull" opacity="0.9"/>
+<rect x="414.9" y="228" width="11.7" height="16" class="f-neut" opacity="0.45"/>
+<rect x="426.6" y="228" width="11.7" height="16" class="f-bull" opacity="0.9"/>
+<rect x="438.3" y="228" width="11.7" height="16" class="f-bull" opacity="0.9"/>
+<rect x="450.0" y="228" width="11.7" height="16" class="f-bull" opacity="0.9"/>
+<rect x="461.7" y="228" width="11.7" height="16" class="f-bull" opacity="0.9"/>
+<rect x="473.4" y="228" width="11.7" height="16" class="f-bull" opacity="0.9"/>
+<rect x="485.1" y="228" width="11.7" height="16" class="f-neut" opacity="0.45"/>
+<rect x="496.9" y="228" width="11.7" height="16" class="f-neut" opacity="0.45"/>
+<rect x="508.6" y="228" width="11.7" height="16" class="f-neut" opacity="0.45"/>
+<rect x="520.3" y="228" width="11.7" height="16" class="f-neut" opacity="0.45"/>
+<rect x="532.0" y="228" width="11.7" height="16" class="f-bear" opacity="0.9"/>
+<rect x="543.7" y="228" width="11.7" height="16" class="f-bear" opacity="0.9"/>
+<rect x="555.4" y="228" width="11.7" height="16" class="f-bear" opacity="0.9"/>
+<rect x="567.1" y="228" width="11.7" height="16" class="f-bear" opacity="0.9"/>
+<rect x="578.9" y="228" width="11.7" height="16" class="f-bear" opacity="0.9"/>
+<rect x="590.6" y="228" width="11.7" height="16" class="f-bear" opacity="0.9"/>
+<rect x="602.3" y="228" width="11.7" height="16" class="f-bear" opacity="0.9"/>
+<rect x="614.0" y="228" width="11.7" height="16" class="f-bear" opacity="0.9"/>
+<rect x="625.7" y="228" width="11.7" height="16" class="f-bear" opacity="0.9"/>
+<rect x="637.4" y="228" width="11.7" height="16" class="f-bear" opacity="0.9"/>
+<rect x="649.1" y="228" width="11.7" height="16" class="f-bear" opacity="0.9"/>
+<rect x="660.9" y="228" width="11.7" height="16" class="f-bear" opacity="0.9"/>
+<rect x="672.6" y="228" width="11.7" height="16" class="f-bear" opacity="0.9"/>
+<rect x="684.3" y="228" width="11.7" height="16" class="f-bear" opacity="0.9"/>
+<rect x="696.0" y="228" width="11.7" height="16" class="f-bear" opacity="0.9"/>
+<rect x="707.7" y="228" width="11.7" height="16" class="f-bear" opacity="0.9"/>
+<rect x="719.4" y="228" width="11.7" height="16" class="f-bear" opacity="0.9"/>
+<rect x="731.1" y="228" width="11.7" height="16" class="f-bear" opacity="0.9"/>
+<rect x="742.9" y="228" width="11.7" height="16" class="f-bear" opacity="0.9"/>
+<rect x="754.6" y="228" width="11.7" height="16" class="f-bear" opacity="0.9"/>
+<rect x="766.3" y="228" width="11.7" height="16" class="f-bear" opacity="0.9"/>
+<rect x="778.0" y="228" width="11.7" height="16" class="f-bear" opacity="0.9"/>
+<rect x="789.7" y="228" width="11.7" height="16" class="f-bear" opacity="0.9"/>
+<rect x="801.4" y="228" width="11.7" height="16" class="f-bear" opacity="0.9"/>
+<rect x="813.1" y="228" width="11.7" height="16" class="f-bear" opacity="0.9"/>
+<rect x="824.9" y="228" width="11.7" height="16" class="f-bear" opacity="0.9"/>
+<rect x="836.6" y="228" width="11.7" height="16" class="f-bear" opacity="0.9"/>
+<rect x="848.3" y="228" width="11.7" height="16" class="f-bear" opacity="0.9"/>
+<text x="40" y="262" class="t-small f-muted">Position: green LONG · grey FLAT (the two disagree) · red SHORT</text>
+<line x1="40" x2="66" y1="280" y2="280" class="s-ink" stroke-width="2.4"/><text x="72" y="284" class="t-small f-ink">trail (six-month): the SIDE</text>
+<line x1="340" x2="366" y1="280" y2="280" class="s-va" stroke-dasharray="6 4" stroke-width="1.8"/><text x="372" y="284" class="t-small f-ink">momentum boundary: where S turns</text>
+<line x1="680" x2="706" y1="280" y2="280" class="s-poc" stroke-width="1.6"/><text x="712" y="284" class="t-small f-ink">price</text>
+<text x="40" y="298" class="t-tiny f-muted">Schematic, synthetic series. The chart draws the trail only; S and its turning price are in the readout.</text>
+</svg></div><figcaption><b>Plate 4 · How the position is decided.</b> The trail's side and momentum's direction must agree.</figcaption></figure>
+<div class="tbl "><table><thead><tr><th>Rule</th><th>Exactly</th></tr></thead><tbody><tr><td>Side</td><td>The acceptance trail on a 126-bar (six-month) window: up while value has migrated and ratcheted up, down while it has migrated down</td></tr><tr><td>Momentum score S</td><td>The 1-, 3-, 6- and 12-month moves of the close (21, 63, 126, 252 bars), each divided by volatility × √horizon, capped at ±2, averaged and halved, so S lies between −1 and +1</td></tr><tr><td>Position</td><td>Side × max(0, side × S): LONG with size S when both say up, SHORT with size |S| when both say down, FLAT when they disagree</td></tr><tr><td>Decide and trade</td><td>Read at the close; trade at the next open. Never on the forming bar</td></tr><tr><td>Size</td><td>Weight = size × 10% ÷ annualised volatility, capped at 2 (two times the market's capital slice)</td></tr><tr><td>Rebalance</td><td>Weekly. Skip a resize smaller than a tenth of the target. Change sides at once</td></tr></tbody></table></div>
+<h4>Worked sizing example</h4>
+<div class="math">Book ₹10,00,000 across 20 markets  →  slice per market ₹50,000
+Stock X: readout says LONG 0.62; annualised volatility 28%
+weight   = 0.62 × 10% ÷ 28%                  = 0.221
+notional = 0.221 × ₹50,000                    = ₹11,071
+price ₹2,500  →  buy 4 shares (₹10,000), the nearest whole lot
+Cap: weight never above 2.0 (notional ₹1,00,000 for this slice)</div>
+</section>
+
+<section class="chap" id="am-book"><div class="chapno">Chapter 16</div><h3>Running it as a portfolio</h3>
+<div class="tbl "><table><thead><tr><th>Holdout</th><th>Sharpe, net of costs</th><th>Timing beyond leaning long</th><th>Worst drawdown</th><th>Markets positive</th></tr></thead><tbody><tr><td>411 unseen markets</td><td><span class="num">+0.79 (t 4.0)</span></td><td><span class="num">t 4.1</span></td><td><span class="num">−3.7%</span></td><td><span class="num">79%</span></td></tr><tr><td>119 markets, 2020-26</td><td><span class="num">+1.21 (t 3.7)</span></td><td><span class="num">t 2.2</span></td><td><span class="num">−2.5%</span></td><td><span class="num">80%</span></td></tr></tbody></table></div>
+<ul>
+ <li><b>The edge is a portfolio's.</b> On one market the median Sharpe was only +0.23 to +0.38, and about a quarter of markets lost money over the period. Run the same rules on many markets at once.</li>
+ <li><b>It did not beat plain momentum</b> by the pre-registered test. It matched it at lower turnover and drawdown.</li>
+ <li><b>Costs.</b> At twice the assumed costs the Sharpe was still +0.69 and +1.11.</li>
+ <li><b>Risk level.</b> At 10% per market the diversified book ran at about 1.6% volatility. Reaching a useful risk level needs futures-style leverage; shorting Indian cash stocks overnight needs stock or index futures.</li>
+ <li><b>Where it was weak.</b> The INR currency pairs lost; crypto was about flat (Chapter 22).</li>
+</ul>
+<div class="note"><b>Before capital:</b> six months of paper trading at the same costs, then one-tenth of the intended size for six months. Stop if the drawdown exceeds 1.5 times the backtest's worst, or if the rolling 12-month Sharpe stays below zero for two quarters.</div>
+</section>
+
+<section class="chap" id="overlay"><div class="chapno">Chapter 17</div><h3>Discretionary overlays</h3>
+<p>These add context to a trade. None of them was tested as a rule <span class="ev ev-u">Unmeasured</span>. Use them to adjust timing or size within the system's rules, not to replace them.</p>
+<div class="tbl "><table><thead><tr><th>Overlay</th><th>Use it to</th><th>Caution</th></tr></thead><tbody><tr><td>Grid family</td><td>Avoid adding to a long in PAID, STALLING or DISTRIBUTION; prefer adds in BASING or FADING</td><td>The grid is an investor's horizon</td></tr><tr><td>▲ during an AM short</td><td>Tighten or reduce the short: capitulation leans up for 10 to 20 bars</td><td>The system stays short by rule</td></tr><tr><td>OI character</td><td>A breakout on long build-up is committed; one on short covering is fragile</td><td>Builds did not predict continuation <span class="ev ev-x">External</span></td></tr><tr><td>AUCTION probe</td><td>A probe against your side is a warning, not an exit: the break is not accepted yet</td><td>Accepted breaks flip the trail at the close</td></tr><tr><td>Migration</td><td>Migrating with your side supports holding; Shifting against it is an early warning</td><td>Unmeasured</td></tr><tr><td>Quiet regime (gold)</td><td>Expect amplified readings; size down</td><td>A display state, not a direction</td></tr></tbody></table></div>
+</section>
+
+<section class="chap" id="stops"><div class="chapno">Chapter 18</div><h3>Stops, targets and invalidation</h3>
+<p>The system exits by its own rules. For a discretionary trader, Pragati's structure gives natural levels <span class="ev ev-u">Unmeasured</span>.</p>
+<div class="tbl "><table><thead><tr><th>Level</th><th>Long trade</th><th>Short trade</th></tr></thead><tbody><tr><td>The trail</td><td>The floor of accepted value. A close below it with the POC following and value migrating flips the trail</td><td>The ceiling, mirrored</td></tr><tr><td>VAL / VAH</td><td>Initial stop below the session VAL</td><td>Initial stop above the session VAH</td></tr><tr><td>POC</td><td>First target from below value; the balance point</td><td>First target from above value</td></tr><tr><td>Naked POC</td><td>An unfinished level above: a target</td><td>An unfinished level below: a target</td></tr><tr><td>Prior session VAH / VAL</td><td>Acceptance above the prior VAH supports the trade</td><td>Acceptance below the prior VAL supports it</td></tr><tr><td>VWAP</td><td>Holding above the session VWAP intraday</td><td>Holding below it</td></tr></tbody></table></div>
+</section>
+</section>
+
+<section class="part" id="part-5"><div class="eyebrow">Part V</div><h2>Permutations and combinations</h2>
+
+<section class="chap" id="mx-a"><div class="chapno">Chapter 19</div><h3>Matrix A · The system against the grid: 27 cases</h3>
+<p>Rows are the nine grid families; columns are Accepted momentum's three positions. In each case, TRADE follows the tested system <span class="ev ev-m">Measured</span> and INVEST follows the family's action <span class="ev ev-x">External</span>. The combined reading is reasoning <span class="ev ev-u">Unmeasured</span>. When they conflict, each book follows its own tool (Chapter 23).</p>
+<div class="tbl matrix"><table><thead><tr><th>Grid family</th><th><span class="chip c-bull">AM LONG</span></th><th><span class="chip c-neut">AM FLAT</span></th><th><span class="chip c-bear">AM SHORT</span></th></tr></thead><tbody><tr><td><b>UP · cheap</b><br><span class="mono" style="font-size:12px">TURNED</span><br><span class="chip c-neut">Buy 3</span></td><td><div class="mx "><b>Aligned. Trend, buyers and a cheap price agree: the strongest constructive picture.</b><br><span class="mono" style="font-size:12px">TRADE</span> Hold the system's size.<br><span class="mono" style="font-size:12px">INVEST</span> Buy toward 3 units.</div></td><td><div class="mx "><b>Buyers are early; long momentum has not caught up.</b><br><span class="mono" style="font-size:12px">TRADE</span> No position: the system is flat.<br><span class="mono" style="font-size:12px">INVEST</span> Buy toward 3 units. The grid leads here.</div></td><td><div class="mx "><b>A turn against a falling trend: buyers take control while price is still cheap.</b><br><span class="mono" style="font-size:12px">TRADE</span> The system stays short until its rules flip it. Expect a conflict.<br><span class="mono" style="font-size:12px">INVEST</span> Build in stages. Buy toward 3 units.</div></td></tr><tr><td><b>UP · fair</b><br><span class="mono" style="font-size:12px">BUILDING</span><br><span class="chip c-neut">Hold 1.5</span></td><td><div class="mx "><b>A healthy trend at a fair price.</b><br><span class="mono" style="font-size:12px">TRADE</span> Hold.<br><span class="mono" style="font-size:12px">INVEST</span> Hold 1.5. Do not chase.</div></td><td><div class="mx "><b>Buyers in control, no trend yet.</b><br><span class="mono" style="font-size:12px">TRADE</span> Flat.<br><span class="mono" style="font-size:12px">INVEST</span> Hold.</div></td><td><div class="mx "><b>A bounce inside a downtrend.</b><br><span class="mono" style="font-size:12px">TRADE</span> Short, usually small (S is small).<br><span class="mono" style="font-size:12px">INVEST</span> Hold. No adds.</div></td></tr><tr><td><b>UP · rich</b><br><span class="mono" style="font-size:12px">PAID</span><br><span class="chip c-neut">Trim 0.75</span></td><td><div class="mx "><b>A late trend: the move is already paid for.</b><br><span class="mono" style="font-size:12px">TRADE</span> Hold the system's size; it sizes by S. Do not add.<br><span class="mono" style="font-size:12px">INVEST</span> Trim toward 0.75.</div></td><td><div class="mx "><b>Stretched, with no trend behind it.</b><br><span class="mono" style="font-size:12px">TRADE</span> Flat.<br><span class="mono" style="font-size:12px">INVEST</span> Trim.</div></td><td><div class="mx "><b>A squeeze into a downtrend, at a rich price.</b><br><span class="mono" style="font-size:12px">TRADE</span> Short.<br><span class="mono" style="font-size:12px">INVEST</span> Trim or avoid.</div></td></tr><tr><td><b>FAINT · cheap</b><br><span class="mono" style="font-size:12px">BASING</span><br><span class="chip c-neut">Accumulate 1.5</span></td><td><div class="mx "><b>A pullback inside an uptrend, now cheap.</b><br><span class="mono" style="font-size:12px">TRADE</span> Hold.<br><span class="mono" style="font-size:12px">INVEST</span> Accumulate.</div></td><td><div class="mx "><b>Basing: cheap, nobody in control.</b><br><span class="mono" style="font-size:12px">TRADE</span> Flat.<br><span class="mono" style="font-size:12px">INVEST</span> Accumulate slowly.</div></td><td><div class="mx "><b>Cheap inside a downtrend, nobody in control.</b><br><span class="mono" style="font-size:12px">TRADE</span> Short.<br><span class="mono" style="font-size:12px">INVEST</span> Accumulate small. Wait for DOWN · cheap or a turn.</div></td></tr><tr><td><b>FAINT · fair</b><br><span class="mono" style="font-size:12px">IDLE</span><br><span class="chip c-neut">Wait 1</span></td><td><div class="mx "><b>The trend is resting.</b><br><span class="mono" style="font-size:12px">TRADE</span> Hold.<br><span class="mono" style="font-size:12px">INVEST</span> Wait. Hold what you have.</div></td><td><div class="mx "><b>Nothing to read.</b><br><span class="mono" style="font-size:12px">TRADE</span> Flat.<br><span class="mono" style="font-size:12px">INVEST</span> Wait.</div></td><td><div class="mx "><b>The downtrend is resting.</b><br><span class="mono" style="font-size:12px">TRADE</span> Short.<br><span class="mono" style="font-size:12px">INVEST</span> Wait.</div></td></tr><tr><td><b>FAINT · rich</b><br><span class="mono" style="font-size:12px">STALLING</span><br><span class="chip c-neut">Trim 0.75</span></td><td><div class="mx "><b>An uptrend stalling at a rich price.</b><br><span class="mono" style="font-size:12px">TRADE</span> Hold. Watch for the system to go flat.<br><span class="mono" style="font-size:12px">INVEST</span> Trim.</div></td><td><div class="mx "><b>Rich and stalling.</b><br><span class="mono" style="font-size:12px">TRADE</span> Flat.<br><span class="mono" style="font-size:12px">INVEST</span> Trim.</div></td><td><div class="mx "><b>Weak, rich, falling.</b><br><span class="mono" style="font-size:12px">TRADE</span> Short.<br><span class="mono" style="font-size:12px">INVEST</span> Trim or avoid.</div></td></tr><tr><td><b>DOWN · cheap</b><br><span class="mono" style="font-size:12px">DISLOCATED</span><br><span class="chip c-neut">Buy 4 · ▲ here</span></td><td><div class="mx "><b>A capitulation dip inside a long uptrend.</b><br><span class="mono" style="font-size:12px">TRADE</span> Long holds; its size falls as S falls.<br><span class="mono" style="font-size:12px">INVEST</span> Buy toward 4 units. Add on the ▲.</div></td><td><div class="mx "><b>Capitulation, trend undecided.</b><br><span class="mono" style="font-size:12px">TRADE</span> Flat.<br><span class="mono" style="font-size:12px">INVEST</span> Stage in. Add on the ▲.</div></td><td><div class="mx "><b>Capitulation inside a downtrend: the classic conflict between horizons.</b><br><span class="mono" style="font-size:12px">TRADE</span> Short, by the trend rule.<br><span class="mono" style="font-size:12px">INVEST</span> Stage in small. The ▲ is the trigger. Not on crypto.</div></td></tr><tr><td><b>DOWN · fair</b><br><span class="mono" style="font-size:12px">FADING</span><br><span class="chip c-neut">Accumulate 1.5</span></td><td><div class="mx "><b>Sellers inside an uptrend, fair price.</b><br><span class="mono" style="font-size:12px">TRADE</span> Hold.<br><span class="mono" style="font-size:12px">INVEST</span> Accumulate.</div></td><td><div class="mx "><b>Fading.</b><br><span class="mono" style="font-size:12px">TRADE</span> Flat.<br><span class="mono" style="font-size:12px">INVEST</span> Accumulate slowly.</div></td><td><div class="mx "><b>A downtrend with sellers in control.</b><br><span class="mono" style="font-size:12px">TRADE</span> Short.<br><span class="mono" style="font-size:12px">INVEST</span> Accumulate small.</div></td></tr><tr><td><b>DOWN · rich</b><br><span class="mono" style="font-size:12px">DISTRIBUTION</span><br><span class="chip c-neut">Exit 0.25 · ▼ here</span></td><td><div class="mx "><b>Sellers have taken a rich price while the long trend is still up: early distribution.</b><br><span class="mono" style="font-size:12px">TRADE</span> Long until the system flips. Its size will fade.<br><span class="mono" style="font-size:12px">INVEST</span> Exit toward 0.25.</div></td><td><div class="mx "><b>Distribution.</b><br><span class="mono" style="font-size:12px">TRADE</span> Flat.<br><span class="mono" style="font-size:12px">INVEST</span> Exit.</div></td><td><div class="mx "><b>Distribution inside a downtrend: aligned to the downside.</b><br><span class="mono" style="font-size:12px">TRADE</span> Short.<br><span class="mono" style="font-size:12px">INVEST</span> Exit.</div></td></tr></tbody></table></div>
+</section>
+
+<section class="chap" id="mx-b"><div class="chapno">Chapter 20</div><h3>Matrix B · Open interest against location in value</h3>
+<p>The OI row's character, read against where the close sits in the session profile (the panel's Location row, or the price against VAH and VAL). Practitioner readings <span class="ev ev-u">Unmeasured</span>, except where tagged.</p>
+<div class="tbl "><table><thead><tr><th>OI character</th><th>Above value</th><th>In value</th><th>Below value</th></tr></thead><tbody><tr><td><span class="chip c-bull">Long build-up</span></td><td>New longs pushing for acceptance higher. Watch for the trail to accept</td><td>New longs inside balance</td><td>Longs adding below value: bottom-fishing with commitment</td></tr><tr><td><span class="chip c-bear">Short build-up</span></td><td>Shorts leaning against a breakout</td><td>New shorts inside balance</td><td>A breakdown with commitment</td></tr><tr><td><span class="chip c-gold">Short covering</span></td><td>A rally paid for by exits beyond value: fragile. Short-covering rallies lagged <span class="ev ev-x">External</span></td><td>Covering inside balance</td><td>A relief bounce from below value</td></tr><tr><td><span class="chip c-gold">Long unwinding</span></td><td>Longs leaving up high: a distribution risk</td><td>Liquidation inside balance</td><td>Liquidation below value: fuel for a capitulation</td></tr><tr><td><span class="chip c-neut">Balanced · Price flat</span></td><td>No read</td><td>No read</td><td>No read</td></tr></tbody></table></div>
+</section>
+
+<section class="chap" id="mx-c"><div class="chapno">Chapter 21</div><h3>Matrix C · Trail side against migration</h3>
+<div class="tbl "><table><thead><tr><th>Migration (AUCTION STATE)</th><th>Trail ↑</th><th>Trail ↓</th></tr></thead><tbody><tr><td><span class="chip c-bull">Migrating ↑</span></td><td>Value moving with the trail. Steps are likely</td><td>Value has left upward. A close above with the POC following flips the trail up</td></tr><tr><td><span class="chip c-bull">Shifting ↑</span></td><td>The POC has left the old value upward. Supportive</td><td>An early warning for the down trail</td></tr><tr><td><span class="chip c-neut">Balance</span></td><td>Value has not moved. The trail holds flat</td><td>The trail holds flat</td></tr><tr><td><span class="chip c-bear">Shifting ↓</span></td><td>An early warning for the up trail</td><td>The POC has left downward. Supportive</td></tr><tr><td><span class="chip c-bear">Migrating ↓</span></td><td>Value has left downward. A close below with the POC following flips the trail down</td><td>Value moving with the trail. Steps are likely</td></tr></tbody></table></div>
+<p>Add the WHY cell: a <span class="chip c-gold">probe</span> is a break without acceptance and often fails back; "accepted, flips at the close" means all three conditions hold on the live bar. Unmeasured <span class="ev ev-u">Unmeasured</span>.</p>
+</section>
+
+<section class="chap" id="mx-d"><div class="chapno">Chapter 22</div><h3>Matrix D · Asset class against evidence</h3>
+<div class="tbl "><table><thead><tr><th>Asset class</th><th>▲ and grid units <span class="ev ev-x">External</span></th><th>Accepted momentum, Sharpe by class <span class="ev ev-m">Measured</span></th><th>Open interest</th></tr></thead><tbody><tr><td>NSE stocks</td><td>Positive, all eras</td><td><span class="num">+1.02</span> (2020-26) · <span class="num">+0.84</span> (unseen)</td><td>Measured on NSE F&amp;O <span class="ev ev-x">External</span></td></tr><tr><td>Indices</td><td>Positive, all eras</td><td><span class="num">+0.98</span> (2020-26)</td><td>On index futures</td></tr><tr><td>ETFs</td><td>Positive, all eras</td><td><span class="num">+1.18</span> (2020-26)</td><td>None</td></tr><tr><td>Commodities</td><td>Positive, all eras</td><td><span class="num">+0.47</span> (2020-26)</td><td>On futures</td></tr><tr><td>FX</td><td>Positive, all eras</td><td><span class="num">−0.17</span> (INR pairs, 2020-26)</td><td>None on spot</td></tr><tr><td>Crypto</td><td><b>Fails</b>: drawn gold</td><td><span class="num">+0.29</span> (2020-26) · <span class="num">−0.04</span> (unseen)</td><td>On perpetuals</td></tr></tbody></table></div>
+<p>US stocks and world indices were not in the Accepted momentum test.</p>
+</section>
+
+<section class="chap" id="conflict"><div class="chapno">Chapter 23</div><h3>When readings disagree</h3>
+<div class="steps">
+ <div class="step"><div><b>Data first.</b><p>Non-standard chart, warming, paused, stale or gold: there is no reading. Do nothing new.</p></div></div>
+ <div class="step"><div><b>The horizon chooses the tool.</b><p>A trading book follows Accepted momentum. An investment book follows the grid's units. Do not let one book borrow the other's signal.</p></div></div>
+ <div class="step"><div><b>Gold reduces size; it never sets direction.</b><p>Held rows, probes, quiet regimes, crowded books and short covering all mean the same thing: smaller, or later.</p></div></div>
+ <div class="step"><div><b>Do not trade the untested parts.</b><p>The 20-bar trail, the ◆, R and H measured null or negative as signals. Read them as structure.</p></div></div>
+ <div class="step"><div><b>Crypto is the exception.</b><p>Skip the capitulation plan there.</p></div></div>
+</div>
+</section>
+</section>
+
+<section class="part" id="part-6"><div class="eyebrow">Part VI</div><h2>Reference</h2>
+
+<section class="chap" id="alerts"><div class="chapno">Chapter 24</div><h3>Alerts</h3>
+<div class="tbl "><table><thead><tr><th>Alert</th><th>How</th><th>Carries</th></tr></thead><tbody><tr><td>Everything, once</td><td>Create an alert on Pragati with the condition "Any alert() function call"</td><td>▲, ▼, capitulation entered and left (setting 2), Accepted momentum's position changes or trail flips (setting 5, off by default), with ticker, interval, grid action and both tapes</td></tr><tr><td>One event</td><td>Choose a single alertcondition entry</td><td>▲ capitulation turn · ▼ distribution · ◆ long / short · R and H divergences</td></tr></tbody></table></div>
+<p>Alerts fire once, at the bar's close, in realtime only.</p>
+</section>
+
+<section class="chap" id="settings"><div class="chapno">Chapter 25</div><h3>Settings reference</h3>
+<div class="tbl "><table><thead><tr><th>Group</th><th>Setting</th><th>Default</th><th>Change it when</th></tr></thead><tbody><tr><td>1 · View</td><td>View · Palette · Pane background</td><td>Full · Auto · Grid state</td><td>Core for the pane alone; Declaration to tint the last ▲▼</td></tr><tr><td>2 · Signals</td><td>▲▼ · cooldown · capitulation alerts · ◆</td><td>On · 10 bars · On · Off</td><td>Rarely. The ◆ is off for a measured reason</td></tr><tr><td>3 · Trace and tapes</td><td>Trace · conviction ladder · value ladder · momentum drawing</td><td>Conviction × Value · Ladder down · Ladder up · Separate band</td><td>Amalgamated folds momentum into each tape: TALL means a confirmed edge</td></tr><tr><td>4 · Pane display</td><td>Histogram, gain, shading, quiet desaturation, trace intensity</td><td>On, 2.0, Expansion + slope, On, On</td><td>Display only</td></tr><tr><td>5 · Acceptance trail</td><td>Trail · Accepted momentum · ribbon · probes · alerts</td><td>On · On · On · On · Off</td><td>Turn Accepted momentum off for the structural 20-bar trail</td></tr><tr><td>6 · Readout</td><td>Position · OI row · gold cast · CVG row · AUCTION row</td><td>Bottom left · On · On · On · On</td><td>Move it if the profile is off</td></tr><tr><td>7 · Volume profile</td><td>Master · intrabar · volume · bins · value area · layers</td><td>On · On · On · ATR, 4 per ATR · 70%</td><td>Fixed ticks for tick-based levels</td></tr><tr><td>8 · Panel</td><td>Information panel · detail</td><td>Off · Detailed</td><td>On to diagnose a reading</td></tr><tr><td>9 · Conviction engine</td><td>Lookback · smoothing · signal · k · normalization · participation · zones</td><td>20 · 3 · 9 · 0.5 · 200 · Auto · ±30 / ±60</td><td>Avoid. Every number was measured at these values</td></tr><tr><td>10 · Value model</td><td>Macro hedge · clock · leg mix · θ</td><td>Auto · Daily · 0.5 · 1.5</td><td>Weekly clock on daily-and-above charts</td></tr><tr><td>11 · Divergence</td><td>R · H and their pivots</td><td>Off</td><td>Only to see them; they measured null</td></tr></tbody></table></div>
+</section>
+
+<section class="chap" id="evidence"><div class="chapno">Chapter 26</div><h3>What is measured, and what is not</h3>
+<div class="tbl "><table><thead><tr><th>Component</th><th>Grade</th><th>Result</th></tr></thead><tbody><tr><td>Accepted momentum</td><td><span class="ev ev-m">Measured</span></td><td>Holdout Sharpe +0.79 (411 unseen markets) and +1.21 (2020-26), net of costs; timing t 4.1 and 2.2; did not beat plain momentum</td></tr><tr><td>20-bar acceptance trail as a trade</td><td><span class="ev ev-m">Measured</span></td><td>No timing skill: what it earned was drift. Structure only</td></tr><tr><td>Trend filter for investing</td><td><span class="ev ev-m">Measured</span></td><td>Drawdown −35% against −73.5%, growth 13.5% against 24.4% a year</td></tr><tr><td>▲ capitulation turn and state</td><td><span class="ev ev-x">External</span></td><td>Positive in all three eras, daily and weekly, outside crypto; about +0.05σ over 10 to 20 bars</td></tr><tr><td>▼ distribution state</td><td><span class="ev ev-x">External</span></td><td>Followed by underperformance in every era</td></tr><tr><td>Grid units</td><td><span class="ev ev-x">External</span></td><td>Positive in all three eras outside crypto</td></tr><tr><td>Declaration (held ▲▼)</td><td><span class="ev ev-x">External</span></td><td>No edge</td></tr><tr><td>◆, R, H</td><td><span class="ev ev-x">External</span></td><td>Negative, about zero, negative or mixed</td></tr><tr><td>Open interest</td><td><span class="ev ev-x">External</span></td><td>Short-covering rallies lagged; builds did not predict continuation</td></tr><tr><td>Volume profile, migration, probes, HVN / LVN, VWAP, IB</td><td><span class="ev ev-u">Unmeasured</span></td><td>Reference structure</td></tr><tr><td>Every combination in Part V</td><td><span class="ev ev-u">Unmeasured</span></td><td>Reasoning from the measured parts</td></tr></tbody></table></div>
+<p>Known limits: the Accepted momentum test is mostly Indian markets plus crypto, and its NSE stocks are today's listings (survivorship). The v9 audit's figures come from a separate repository.</p>
+</section>
+
+<section class="chap" id="glossary"><div class="chapno">Chapter 27</div><h3>Glossary</h3>
+<div class="tbl "><table><thead><tr><th>Term</th><th>Meaning</th></tr></thead><tbody><tr><td>Acceptance</td><td>A close beyond the trail with the window's POC beyond it and value migrated that way. Only acceptance flips the trail</td></tr><tr><td>Capitulation</td><td>Sellers in control across the ladder at a price cheap past θ: the DOWN · cheap cell</td></tr><tr><td>Conviction</td><td>The share of the window's participation-weighted effort that became net movement</td></tr><tr><td>Family</td><td>One of the grid's nine cells, named for its action</td></tr><tr><td>Held</td><td>A grid row kept in place because no push confirmed the tape's move</td></tr><tr><td>Impulse</td><td>A histogram column past k standard deviations of its history (↑↑)</td></tr><tr><td>Ladder down / up</td><td>Reading the timeframes below the chart (inside each bar) or above it</td></tr><tr><td>Migration</td><td>This window's value area against the one six months earlier: Migrating (no overlap), Shifting (only the POC left), Balance</td></tr><tr><td>Naked POC</td><td>A prior session's POC that price has not traded back through</td></tr><tr><td>POC · VAH · VAL</td><td>The most-traded price; the top and bottom of the 70% value area</td></tr><tr><td>Probe</td><td>A close beyond the trail without acceptance</td></tr><tr><td>Push gate</td><td>Conviction's histogram on the move's side, not turning, not quiet</td></tr><tr><td>Quiet regime</td><td>Raw volatility in the bottom fifth of its history: readings are magnified</td></tr><tr><td>S</td><td>Accepted momentum's score, −1 to +1, from the 1-, 3-, 6- and 12-month moves</td></tr><tr><td>Sharpe</td><td>Return per unit of volatility, yearly. t is how far from zero it is, in standard errors</td></tr><tr><td>θ (theta)</td><td>Samanvaya's value threshold, ±43 on the pane at the default 1.5</td></tr><tr><td>Units</td><td>The relative weight a family gives a name in a portfolio</td></tr></tbody></table></div>
+</section>
+
+<section class="chap" id="card"><div class="chapno">Chapter 28</div><h3>Quick card</h3>
+<div class="quick">
+ <div class="card"><h4>Every close</h4><ul><li>Gold anywhere? Smaller, or later.</li><li>Trader: read the AUCTION row's CHART cell; act at the next open.</li><li>Investor: read the CVG row's STATE at the week's last close.</li></ul></div>
+ <div class="card"><h4>Investor</h4><ul><li>Weight = units ÷ total units.</li><li>Stage into DOWN · cheap; add on the ▲.</li><li>Trim in PAID and STALLING; exit in DISTRIBUTION.</li><li>Not on crypto.</li></ul></div>
+ <div class="card"><h4>Trader</h4><ul><li>LONG or SHORT only when trail and momentum agree.</li><li>Weight = size × 10% ÷ volatility, cap 2.</li><li>Many markets, weekly rebalance.</li><li>Paper first, then a tenth.</li></ul></div>
+ <div class="card"><h4>Never</h4><ul><li>Trade the forming bar.</li><li>Read gold as a direction.</li><li>Lean on the ◆, R, H or the 20-bar trail.</li><li>Use non-standard candles.</li></ul></div>
+</div>
+<p class="disclaimer">This manual is educational. It describes how an indicator works and how it was tested; it is not investment advice. Past results, including held-out tests, do not guarantee future results. Trade only what you can afford to lose, and paper-trade first.</p>
+</section>
+</section>
+
+</main></div>
