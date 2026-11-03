@@ -188,4 +188,144 @@ appendix as **exploratory**, not as tests.
 
 ## 6 · Results
 
-(Appended once, after run 2.)
+Run 2 (`results-a1.json`) decides the verdicts. Run 2b (`results-a1b.json`,
+z clipped to ±5) is given in brackets wherever its t differs by more than 0.3.
+Run 1 is in `results.json`: identical where it was finite.
+
+**How to read the tables.**
+- **Excess** is in σ units. It is the outcome beyond the hypothesis's
+  baseline, averaged within each market and then across markets.
+- **t** treats markets as the units.
+- **m** is the number of markets with at least 3 events; **events** is the
+  pooled count.
+- The trail is N = 126, the default, unless marked otherwise.
+
+### 6.1 · The trail's probes (F1)
+
+| | DEV | HB | HA |
+|---|---|---|---|
+| Probe onsets | 6,012 | 3,019 | 31,961 |
+| Flipped within 10 bars | 2.3% | 1.9% | 1.9% |
+| Flipped within 20 bars | 4.5% | 3.8% | 4.2% |
+| Back on the trail's side within 5 bars | 56.9% | 57.5% | 56.9% |
+| Median probe length (bars) | 4 | 4 | 4 |
+| **F1** excess on the trail's side, 10 bars | −0.076 (t −3.0) | −0.048 (t −1.9) | −0.070 (t −8.5) |
+| **F1** excess on the trail's side, 20 bars | −0.092 (t −2.2) | −0.038 (t −1.4) | −0.080 (t −8.7) |
+
+**F1 · not supported, and the opposite.** A probe is not a fakeout the trend
+shrugs off:
+- after a probe onset, the trail's side does **worse** than its typical bar,
+  in all three sets and at both horizons;
+- yet the 126-bar trail almost never flips: under 5% within 20 bars.
+
+So the probe is a **caution on the trend**, which is what its gold mark says.
+It is not a break to fade, and not a break to chase.
+
+The 20-bar trail (secondary):
+
+| | DEV | HB | HA |
+|---|---|---|---|
+| Flipped within 10 / 20 bars | 26.9% / 59.4% | 27.6% / 58.6% | 26.1% / 58.6% |
+| Back on the trail's side within 5 bars | 55.9% | 56.0% | 55.4% |
+| F1 excess, 10 bars | −0.056 (t −3.4) | −0.039 (t −2.3) | −0.048 (t −8.2) |
+| F1 excess, 20 bars | −0.041 (t −2.0) | −0.095 (t −4.7) | −0.059 (t −8.9) |
+
+At 20 bars, most probes become flips (59% within 20 bars). That is about the
+rate seen on driftless random walks (58%), so a short trail's probes say little
+beyond its own mechanics. F1 is the same sign as at 126 bars.
+
+### 6.2 · What gets accepted (F2), flip within 20 bars
+
+| Feature at the onset | N | DEV | HB | HA | Verdict |
+|---|---|---|---|---|---|
+| a · push against the trail | 126 | 3.6% vs 5.3% (t −2.7) | 3.3% vs 4.2% (t −1.6) | 3.4% vs 4.8% (t −5.3) | not supported (opposite) |
+| b · migration already toward the break | 126 | 27.6% vs 4.2% (t +3.6, m 10) | 15.7% vs 3.6% (t +1.2, m 6) | 15.2% vs 4.0% (t +4.4, m 87) | **consistent** |
+| c · close ≥ 0.5 ATR beyond the trail | 126 | 5.2% vs 4.2% (t +1.9) | 4.1% vs 3.6% (t +0.2) | 4.3% vs 4.1% (t −0.4) | not supported |
+| d · participation w ≥ 1.5 | 126 | 4.6% vs 4.5% (t −0.1) | 3.3% vs 3.9% (t −2.4) | 3.2% vs 4.5% (t −5.4) | not supported (opposite) |
+| a · push against the trail | 20 | 60.6% vs 57.0% (t +3.4) | 59.6% vs 56.9% (t +1.2) | 60.4% vs 55.4% (t +8.6) | consistent |
+| b · migration toward the break | 20 | 61.2% vs 59.2% (t +1.9) | 68.3% vs 57.3% (t +5.0) | 61.9% vs 58.2% (t +5.1) | consistent |
+| c · close ≥ 0.5 ATR beyond | 20 | 70.5% vs 54.6% (t +14.1) | 67.6% vs 54.4% (t +8.4) | 70.6% vs 53.8% (t +37.5) | **confirmed** |
+| d · participation w ≥ 1.5 | 20 | 65.5% vs 57.6% (t +4.8) | 62.4% vs 57.4% (t +2.5) | 61.8% vs 57.3% (t +9.7) | **confirmed** |
+
+**By count of conditions met (pooled flip rate within 20 bars):**
+
+| Conditions met | 0 | 1 | 2 | 3 | 4 |
+|---|---|---|---|---|---|
+| N 20 · DEV | 52.0% | 56.5% | 63.8% | 73.2% | 76.8% (99) |
+| N 20 · HB | 49.1% | 56.8% | 63.4% | 69.2% | 65.9% (44) |
+| N 20 · HA | 51.1% | 56.2% | 62.1% | 71.3% | 71.9% (558) |
+| N 126 · HA | 4.5% | 4.4% | 3.7% | 3.1% | 11.9% (42) |
+
+On the 20-bar trail, a deep break on heavy participation, with the push and
+migration behind it, is accepted about 70% of the time, against about 50% with
+none of them. On the 126-bar trail only migration matters. Breaks that are
+hard and heavy flip it *less*: a six-month floor is not broken by one day's
+force.
+
+### 6.3 · Entries (N = 126)
+
+| ID | Entry | 10 bars: DEV | HB | HA | 20 bars: DEV | HB | HA | Verdict |
+|---|---|---|---|---|---|---|---|---|
+| S1 | rejection of a probe | −0.029 (−1.4) | +0.019 (+0.7) | −0.041 (−5.3) | −0.056 (−1.6) | +0.051 (+1.6) | −0.044 (−4.7) | not supported |
+| S2 | acceptance (the flip) | +0.024 (+0.6) | +0.088 (+1.6) | +0.075 (+4.4) | +0.045 (+1.2) | +0.105 (+1.7) | +0.106 (+6.7) | **consistent** |
+| S3 | pullback into value, AM agreeing | −0.003 (−0.2) | +0.008 (+0.4) | −0.001 (−0.1) | −0.014 (−0.9) | −0.048 (−2.2) | −0.007 (−1.0) | not supported |
+| S4 | breakout from value, AM agreeing | +0.062 (+4.1) | +0.050 (+2.5) | +0.064 (+10.4) | +0.043 (+2.3) | +0.042 (+2.1) [1.8] | +0.054 (+8.1) | no prediction; positive, t ≥ 2 everywhere at 10 bars |
+| S3 − S4 | pullback minus breakout | −0.067 (−4.3) | −0.042 (−2.5) | −0.064 (−10.9) | −0.069 (−5.6) | −0.090 (−5.2) | −0.061 (−11.5) | the breakout is better, everywhere |
+
+Events: S1 5,135 / 2,605 / 27,039; S2 949 / 477 / 5,189; S3 9,289 / 4,552 /
+49,427; S4 9,025 / 4,463 / 48,248. The hit rates (z > 0) are 50% to 54%
+throughout. These are small leans on average, not setups that win most of the
+time.
+
+**S4 was not predicted**, so by §4 it cannot be called confirmed. It came out
+positive with t ≥ 2 in all three sets at 10 bars, in both runs. The manual
+reports it as a measured observation that a fresh holdout must confirm. The
+practical reading matches momentum: with the trend, a close **out of value**
+in its direction beats a pullback **into** value.
+
+### 6.4 · Context (S5, N = 126, 20 bars)
+
+| | DEV | HB | HA | Verdict |
+|---|---|---|---|---|
+| AM agreeing: migrating with the trail, minus balance | +0.053 (t +1.9) | +0.081 (t +2.3) | +0.036 (t +3.8) | **consistent** |
+
+### 6.5 · The investor's filter (I1)
+
+| Set | Markets | Time invested | Filter: CAGR · vol · Sharpe · max DD | Buy-and-hold: CAGR · vol · Sharpe · max DD |
+|---|---|---|---|---|
+| DEV (1992–2019) | 106 | 46% | 11.5% · 14.7% · 0.82 · −31% | 20.0% · 28.0% · 0.79 · −58% |
+| HB (2020–26) | 106 | 53% | 7.4% · 9.4% · 0.81 · −29% | 18.2% · 17.5% · 1.04 · −36% |
+| HA (1997–2026) | 391 | 43% | 16.5% · 11.7% · 1.36 · −28% | 37.8% · 25.5% · 1.39 · −64% |
+
+**I1 · not confirmed.** The drawdown condition held in all three sets. The
+Sharpe condition failed in HB, where buy-and-hold's Sharpe was 0.23 higher.
+
+The filter roughly halves the deepest drawdown, at about half the return,
+while invested a little under half the time. These are equal-weight
+portfolios, rebalanced daily. HA is today's NSE listings, so it carries
+survivorship. Its buy-and-hold CAGR is flattered by both, and only the
+filter-against-buy-and-hold comparison on the same markets is meaningful.
+
+### 6.6 · Exploratory, not pre-registered (S at N = 20)
+
+| | 10 bars: DEV | HB | HA |
+|---|---|---|---|
+| S2 acceptance | +0.070 (+3.7) | +0.145 (+5.2) | +0.045 (+5.3) |
+| S4 breakout | +0.000 (0.0) | +0.042 (+4.0) | +0.051 (+13.0) |
+| S5 migration | −0.030 (−1.1) | +0.076 (+3.8) | −0.069 (−7.0) |
+
+These are reported because they were computed, not because they were tested.
+
+### 6.7 · Verdicts in one line each
+
+- **F1:** the opposite of the prediction. A probe weakens the trend's next
+  weeks.
+- **F2b:** consistent at 126.
+- **F2c and F2d:** confirmed at 20 bars.
+- **S2 and S5:** consistent.
+- **S1 and S3:** not supported.
+- **S4:** positive everywhere, but unpredicted.
+- **I1:** not confirmed, though its drawdown half held.
+
+Nothing here makes a trading system on its own. What it changes is how the
+probe, the break and the pullback are taught.
