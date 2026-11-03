@@ -252,3 +252,39 @@ def plate_am():
     out.append(f'<text x="{L}" y="{H - 2}" class="t-tiny f-muted">Schematic, synthetic series. The chart draws the trail only; S and its turning price are in the readout.</text>')
     out.append('</svg>')
     return "\n".join(out)
+
+
+def cover_art():
+    """Abstract pane for the cover: tapes, columns and trace in the indicator's dark palette."""
+    W, H, N = 1000, 360, 72
+    trace = []
+    for i in range(N):
+        t = i / (N - 1)
+        v = 16 + 42 * math.sin(2 * math.pi * (t * 1.1 + 0.03)) - 50 * math.exp(-((t - 0.6) / 0.1) ** 2) + 5 * math.sin(i * 0.85)
+        trace.append(max(-92, min(92, v)))
+    sig = ema(trace, 9)
+    hist = [a - b for a, b in zip(trace, sig)]
+    y = lambda v: 180 - v * 1.6
+    bw = W / N
+    out = [f'<svg viewBox="0 0 {W} {H}" preserveAspectRatio="none" aria-hidden="true">']
+    mc = ema([v * 1.1 for v in trace], 5)
+    mv = ema([(-v) * 0.8 for v in trace], 12)
+    for i in range(N):
+        x = i * bw
+        out.append(f'<rect x="{x:.1f}" y="{y(86):.1f}" width="{bw - 1:.1f}" height="7" fill="{"#6EDDC3" if mc[i] > 0 else "#E25336"}" opacity="{0.9 if abs(mc[i]) > 30 else 0.3}"/>')
+        out.append(f'<rect x="{x:.1f}" y="{y(-82):.1f}" width="{bw - 1:.1f}" height="7" fill="{"#6EDDC3" if mv[i] > 0 else "#E25336"}" opacity="{0.9 if abs(mv[i]) > 30 else 0.3}"/>')
+    for i in range(1, N):
+        h = hist[i] * 2.2
+        grow = abs(hist[i]) > abs(hist[i - 1])
+        op = 0.95 if grow and abs(h) > 9 else (0.62 if grow else 0.28)
+        col = "#E3CE63" if 15 <= i <= 17 else ("#6EDDC3" if h >= 0 else "#E25336")
+        out.append(f'<rect x="{i * bw + 2:.1f}" y="{min(y(0), y(h)):.1f}" width="{bw - 4:.1f}" height="{abs(y(h) - y(0)):.1f}" fill="{col}" opacity="{op}"/>')
+    out.append(f'<line x1="0" x2="{W}" y1="{y(0)}" y2="{y(0)}" stroke="#8A97A0" stroke-width="1" opacity="0.5"/>')
+    for v in (43, -43):
+        out.append(f'<line x1="0" x2="{W}" y1="{y(v):.1f}" y2="{y(v):.1f}" stroke="#8A97A0" stroke-dasharray="2 4" stroke-width="1" opacity="0.6"/>')
+    pts = " ".join(f"{i * bw + bw / 2:.1f},{y(v):.1f}" for i, v in enumerate(trace))
+    out.append(f'<polyline points="{pts}" fill="none" stroke="#E3E9EC" stroke-width="2.6"/>')
+    k = max(range(N), key=lambda i: -trace[i])
+    out.append(f'<text x="{k * bw + bw / 2:.1f}" y="{y(-60) + 26:.1f}" text-anchor="middle" font-size="26" fill="#6EDDC3" font-family="sans-serif">▲</text>')
+    out.append('</svg>')
+    return "\n".join(out)

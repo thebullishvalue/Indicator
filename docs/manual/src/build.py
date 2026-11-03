@@ -68,7 +68,8 @@ figcaption b{color:var(--ink)}
 ol.callouts{columns:2 280px;column-gap:28px;font-size:14.5px;padding-left:22px;margin:12px 0 0}
 ol.callouts li{break-inside:avoid;margin-bottom:6px}
 .tbl{overflow-x:auto;margin:16px 0;border:1px solid var(--line);border-radius:6px;background:var(--surface)}
-table{border-collapse:collapse;width:100%;font-size:14.5px;min-width:560px}
+table{border-collapse:collapse;width:100%;font-size:14.5px;min-width:560px;table-layout:fixed}
+td,th{overflow-wrap:anywhere}
 th,td{text-align:left;vertical-align:top;padding:9px 12px;border-bottom:1px solid var(--line)}
 th{font-family:var(--display);font-stretch:88%;font-weight:700;font-size:13.5px;letter-spacing:.02em;background:var(--tint-neut)}
 tr:last-child td{border-bottom:none}
@@ -147,10 +148,23 @@ svg .t-callout{font-size:11.5px;font-weight:700;fill:var(--surface);font-family:
 }
 """
 
+import re as _re0
+WIDTHS = {("Grid family", 4): [22, 26, 26, 26], ("You see in WHY", 3): [34, 38, 28], ("STATE", 3): [30, 10, 60],
+          ("Cell", 3): [12, 48, 40], ("Row", 2): [30, 70], ("Mark", 4): [18, 34, 10, 38], ("You see", 3): [30, 38, 32],
+          ("Family", 5): [16, 18, 13, 18, 35], ("Name", 4): [10, 50, 18, 22], ("Rule", 2): [20, 80],
+          ("Holdout", 5): [26, 20, 20, 17, 17], ("Class", 7): [22, 13, 13, 13, 13, 13, 13], ("Overlay", 3): [22, 44, 34],
+          ("Level", 3): [22, 39, 39], ("OI character", 4): [22, 26, 26, 26], ("Migration (AUCTION STATE)", 3): [26, 37, 37],
+          ("Asset class", 5): [16, 24, 20, 20, 20], ("When", 4): [10, 44, 23, 23], ("Alert", 3): [18, 36, 46],
+          ("Group", 4): [18, 34, 24, 24], ("Component", 3): [30, 13, 57], ("Term", 2): [24, 76]}
+
 def tbl(head, rows, cls=""):
+    key = (_re0.sub(r"<[^>]+>", "", head[0]).strip(), len(head))
+    w = WIDTHS[key]
+    assert len(w) == len(head) and sum(w) == 100, key
+    cg = "<colgroup>" + "".join(f'<col style="width:{x}%">' for x in w) + "</colgroup>"
     h = "".join(f"<th>{c}</th>" for c in head)
     b = "".join("<tr>" + "".join(f"<td>{c}</td>" for c in r) + "</tr>" for r in rows)
-    return f'<div class="tbl {cls}"><table><thead><tr>{h}</tr></thead><tbody>{b}</tbody></table></div>'
+    return f'<div class="tbl {cls}"><table>{cg}<thead><tr>{h}</tr></thead><tbody>{b}</tbody></table></div>'
 
 def cell(fam, act, units, cls, actcls, mark=""):
     mk = f'<span class="mk">{mark}</span>' if mark else ""
@@ -228,7 +242,7 @@ def build():
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..900&family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:ital,wght@0,400;0,600;0,700;1,400&display=swap">
 <style>{CSS}
-.matrix td{{min-width:190px}} .mx{{font-size:13.5px;line-height:1.45}} .mx b{{font-weight:600}}
+.matrix table{{min-width:760px}} .mx{{font-size:13.5px;line-height:1.45}} .mx b{{font-weight:600}}
 </style>
 <div class="wrap">
 <nav class="toc" aria-label="Contents">{nav}</nav>
@@ -239,7 +253,7 @@ def build():
   <h1>Pragati Field Manual</h1>
   <div class="q">"Is this move paid for, and is it paid for on every timeframe?"</div>
   <p class="lede">How to read every part of the indicator, how to invest with its grid, how to trade its tested trend system, and what every combination of readings means. Each claim is tagged with how well it is known.</p>
-  <div class="meta"><span>Manual 1.1 · for Pragati v9.9</span><span>Daily charts are the default and the tested timeframe</span><span>Educational, not financial advice</span></div>
+  <div class="meta"><span>Manual 1.2 · for Pragati v9.9</span><span>Daily charts are the default and the tested timeframe</span><span>Educational, not financial advice</span></div>
 </header>
 <nav class="contents" aria-label="Contents">{nav}</nav>
 
@@ -440,7 +454,7 @@ def build():
 </section>
 </section>
 
-<section class="part" id="part-3"><div class="eyebrow">Part III</div><h2>Investment guide · weeks to months</h2>
+<section class="part" id="part-3"><div class="eyebrow">Part III · weeks to months</div><h2>Investment guide</h2>
 
 <section class="chap" id="inv-frame"><div class="chead"><div class="chapno">Chapter ⟦#⟧</div><h3>The investor's frame</h3></div>
 <p>For investing, the grid is the tool. Each name in your universe sits in one family, and its units say how much weight it deserves relative to the others. You hold everything you would hold anyway, more of what is cheap with sellers exhausted, and less of what is rich with sellers in control. Units are relative weights for a book of many names, not a buy-or-sell switch for one.</p>
@@ -503,7 +517,7 @@ def build():
 </section>
 </section>
 
-<section class="part" id="part-4"><div class="eyebrow">Part IV</div><h2>Trade guide · systematic and swing</h2>
+<section class="part" id="part-4"><div class="eyebrow">Part IV · systematic and swing</div><h2>Trade guide</h2>
 
 <section class="chap" id="am"><div class="chead"><div class="chapno">Chapter ⟦#⟧</div><h3>Accepted momentum, the tested system</h3></div>
 <p>This is the one trade system in Pragati that passed a held-out test {M}. It was chosen by a fixed rule from eleven trials on data up to 2019, frozen, and then run once on 2020-26 and on 411 markets it had never seen.</p>

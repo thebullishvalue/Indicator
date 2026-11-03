@@ -44,3 +44,25 @@
 
 1. **Confirm v9.9 loads on TradingView** after the RE10045 fix. The manual describes v9.9 behaviour.
 2. **Optional:** replace the synthetic plates with screenshots of a real chart. That needs the owner's charts.
+
+## 1.2 · the print edition
+
+**The owner's verdict on 1.1:** the PDF content was misaligned on its pages and did not look finished.
+
+**Cause.** The PDF was the responsive web page printed as it stood:
+- paragraphs kept a web reading width, so text, tables and figures ended at different right edges;
+- grids of cards and steps reflowed into uneven columns;
+- process diagrams wrapped with orphaned arrows;
+- tables sized their columns to their contents;
+- there was no cover, no contents and no part opener.
+
+**1.2 is a book designed for A4**, built from the same content by `src/print_edition.py`:
+- **One grid.** A single 176 mm text column with every block on its edges, and fixed column widths for all 24 tables (shared with the web page).
+- **Components redrawn for print.** Ruled step rows, aligned two-column timelines in place of arrow flows, and fixed two- and three-column card grids.
+- **A designed cover**, rendered on its own and joined in front.
+- **Part openers** that list their chapters, and a running header and footer.
+- **A contents page with real page numbers.** The body is laid out once, each chapter's page is read back with `pdftotext`, the numbers are written in, and the build checks that the second layout lands every chapter on the same page.
+
+The result is 24 pages, down from 29, with no stranded headings or widowed list items. The only short pages are the last pages of Parts I, III and V, where the next part begins.
+
+Rebuild with `python3 src/print_edition.py OUT.pdf`. It needs Playwright's Chromium, poppler's `pdftotext` and `pdfunite`, and the fonts listed in `src/fonts/fonts.css`.
