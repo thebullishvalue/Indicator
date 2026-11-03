@@ -26,10 +26,14 @@ import base64, html as _h, json, os, re, subprocess, sys
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, HERE)
 import build
+import kit
 from plates import cover_art
 
-EDITION, DATE = "Manual 1.3", "November 2026"
-TOP, BOT, INNER, OUTER = 24, 26, 24, 28            # mm
+EDITION, DATE = "Manual 2.0", "November 2026"
+TOP, BOT, INNER, OUTER = 24, 26, 24, 28            # mm (for the head and folio templates)
+# Page margins in whole CSS pixels (96 per inch): Chromium rounds millimetres to pixels per side, so 26 + 26 mm and
+# 24 + 28 mm gave text columns a pixel apart and different line breaks between the layout and the final pass.
+TOP_PX, BOT_PX, INNER_PX, OUTER_PX = 91, 98, 91, 105    # 24.1, 25.9, 24.1 and 27.8 mm; layout uses 98 + 98
 W = os.path.join(HERE, "work"); os.makedirs(W, exist_ok=True)
 
 def _font(url):
@@ -59,7 +63,11 @@ main p{margin:0;max-width:none;text-align:justify;orphans:2;widows:2}
 main p+p{text-indent:1.3em}
 main ul,main ol{margin:5pt 0 6pt;padding-left:15pt;max-width:none}
 main li{max-width:none;margin:0 0 2.5pt;text-align:justify;break-inside:avoid}
-section.chap>ul,section.chap>ol:not(.callouts){break-inside:avoid}
+section.chap>ul,section.chap>ol:not(.callouts){break-inside:auto}
+section.chap>ul>li:first-child{break-after:avoid}
+section.chap>ul>li:last-child{break-before:avoid}
+.obj{break-after:avoid}
+.pp-title,.chapter-head .ct{text-wrap:balance}
 a{color:inherit;text-decoration:none}
 code,.k,.mono{font-family:var(--mono);font-size:.86em}
 /* ── part pages: recto, a page of their own ── */
@@ -76,6 +84,7 @@ section.part>.eyebrow,section.part>h2{display:none}
 .pp-list .t{flex:1 1 auto}
 .pp-list .pg{flex:0 0 auto;font-family:var(--mono);font-size:8.6pt;color:var(--muted)}
 .blank-page{break-before:page;break-after:page;height:2mm}
+.pp-title,.chapter-head .ct,.chead h3,main h4,.tcap,figcaption b,.setup .sh b,th{hyphens:manual;-webkit-hyphens:manual}
 /* ── chapter openings: a new page, the title sunk ── */
 .chapter-head{break-before:page;border:none;margin:0 0 22pt;padding:44mm 0 0}
 .chapter-head .chapno{font-family:var(--display);font-weight:700;font-size:9.4pt;letter-spacing:.36em;text-transform:uppercase;color:var(--accent)}
@@ -247,6 +256,14 @@ INDEX_TERMS = [
  ("STALLING", ["STALLING"]), ("θ, value threshold", ["θ"]), ("timeframes", ["timeframe"]), ("TURNED", ["TURNED"]), ("TWAP", ["TWAP"]), ("units", ["units"]),
  ("value area, VAH and VAL", ["value area", "VAH"]), ("value tape", ["value tape"]), ("volatility", ["volatility"]), ("volume profile", ["volume profile", "session profile"]),
  ("VWAP", ["VWAP"]), ("▲ capitulation turn", ["▲"]), ("▼ distribution", ["▼"]), ("◆ continuation", ["◆"]),
+ ("breakout from value", ["breakout from value", "break of value", "out of value"]), ("pullback into value", ["pullback into value", "back into value"]),
+ ("campaign", ["campaign"]), ("case study", ["reconstructed by the reference"]), ("checklist", ["checklist"]), ("context stack", ["context stack"]),
+ ("decision tree", ["decision tree"]), ("drills", ["drill"]), ("FLAT · disagree", ["FLAT · disagree"]), ("flip", ["flips", "flipped"]),
+ ("journal", ["journal"]), ("kill rule", ["kill rule"]), ("ladder", ["ladder"]), ("lots", ["lot size", " lots"]),
+ ("participation weight w", ["participation weight"]), ("phase", ["phase"]), ("portfolio heat", ["portfolio heat", "cluster"]),
+ ("rebalance band", ["10% band", "more than 10%"]), ("regime", ["regime"]), ("setup card", ["setup card"]), ("setup lab", ["setup lab"]),
+ ("Samanvaya", ["Samanvaya"]), ("slice", ["slice"]), ("staging", ["thirds", "staged", "stages"]), ("structural OI bar", ["structural"]),
+ ("transition regime", ["transition"]), ("trend filter", ["trend filter"]), ("trust ρ", ["trust"]), ("watchlist", ["watchlist"]),
 ]
 
 BACKM = (("card", "Quick reference card"), ("glossary", "Glossary"), ("index", "Index"), ("colophon", "Colophon"))
@@ -305,12 +322,12 @@ def main_doc(style, html, struct, blanks=(), pages=None, index_html="", index_bl
     if index_blank:
         index_html = '<div class="blank-page"></div>' + index_html
     html = html.replace("</main>", index_html + colophon + "</main>", 1)
-    return f'<!doctype html><html lang="en"><head><meta charset="utf-8"><title>Pragati Field Manual</title><style>{FONTS}</style><style>{style}{BOOK_CSS}</style></head><body>{html}</body></html>'
+    return f'<!doctype html><html lang="en"><head><meta charset="utf-8"><title>Pragati Field Manual</title><style>{FONTS}</style><style>{style}{BOOK_CSS}{kit.PRINT_CSS}</style></head><body>{html}</body></html>'
 
 def render_layout(doc, name):
     src = os.path.join(W, name + ".html"); out = os.path.join(W, name + ".pdf")
     open(src, "w", encoding="utf-8").write(doc)
-    m = json.dumps({"top": f"{TOP}mm", "bottom": f"{BOT}mm", "left": f"{(INNER + OUTER) / 2}mm", "right": f"{(INNER + OUTER) / 2}mm"})
+    m = json.dumps({"top": f"{TOP_PX}px", "bottom": f"{BOT_PX}px", "left": f"{(INNER_PX + OUTER_PX) // 2}px", "right": f"{(INNER_PX + OUTER_PX) // 2}px"})
     subprocess.run(["node", os.path.join(HERE, "render_book.js"), "layout", src, m, out], check=True)
     return src, out
 
@@ -321,7 +338,7 @@ def page_texts(pdf):
     return t
 
 def locate(texts, struct):
-    sq = lambda s: re.sub(r"[\s\u00ad-]+", "", s)
+    sq = lambda s: re.sub(r"[\s\u00ad\u2010\u2011-]+", "", s)
     T = [sq(t) for t in texts]
     where, roles = {}, {}
     def first(pred, start, what):
@@ -385,22 +402,22 @@ def build_index(texts, where):
             f'<div class="index">{"".join(out)}</div></section>')
 
 def head(text, align, inner_left):
-    l, r = (INNER, OUTER) if inner_left else (OUTER, INNER)
-    return (f'<div style="width:100%;margin:0 {r}mm 0 {l}mm;font-family:Helvetica,Arial,sans-serif;font-size:6.8px;letter-spacing:.12em;'
+    l, r = (INNER_PX, OUTER_PX) if inner_left else (OUTER_PX, INNER_PX)
+    return (f'<div style="width:100%;margin:0 {r}px 0 {l}px;font-family:Helvetica,Arial,sans-serif;font-size:6.8px;letter-spacing:.12em;'
             f'text-transform:uppercase;color:#6B757D;display:flex;justify-content:{align};padding-bottom:3px;border-bottom:0.5px solid #CCD3D8">'
             f'<span>{text}</span></div>')
 
 def foot(text, align, inner_left):
-    l, r = (INNER, OUTER) if inner_left else (OUTER, INNER)
-    return (f'<div style="width:100%;margin:0 {r}mm 0 {l}mm;font-family:Helvetica,Arial,sans-serif;font-size:7.6px;color:#5A646C;'
+    l, r = (INNER_PX, OUTER_PX) if inner_left else (OUTER_PX, INNER_PX)
+    return (f'<div style="width:100%;margin:0 {r}px 0 {l}px;font-family:Helvetica,Arial,sans-serif;font-size:7.6px;color:#5A646C;'
             f'display:flex;justify-content:{align}"><span>{text}</span></div>')
 
 def render_pages(src, specs, tag):
     job = {"pages": []}
     for k, sp in specs:
         odd = k % 2 == 1
-        l, r = (INNER, OUTER) if odd else (OUTER, INNER)
-        job["pages"].append({"n": k, "out": os.path.join(W, f"{tag}{k:03d}.pdf"), "margin": {"top": f"{TOP}mm", "bottom": f"{BOT}mm", "left": f"{l}mm", "right": f"{r}mm"},
+        l, r = (INNER_PX, OUTER_PX) if odd else (OUTER_PX, INNER_PX)
+        job["pages"].append({"n": k, "out": os.path.join(W, f"{tag}{k:03d}.pdf"), "margin": {"top": f"{TOP_PX}px", "bottom": f"{BOT_PX}px", "left": f"{l}px", "right": f"{r}px"},
                              "header": sp.get("header"), "footer": sp.get("footer")})
     jf = os.path.join(W, tag + "job.json"); json.dump(job, open(jf, "w"))
     subprocess.run(["node", os.path.join(HERE, "render_book.js"), "pages", src, jf, ""], check=True)
@@ -438,15 +455,16 @@ def front_doc(struct, where, tags_html):
 <p>Set in IBM Plex Serif, IBM Plex Sans, IBM Plex Mono and Archivo.</p></div>
 <div class="pg"><h1 class="fm">Contents</h1><div class="toc">{"".join(toc)}</div></div>
 <div class="pg howto"><h1 class="fm">How to use this manual</h1>
-<p>Pragati answers one question about a market: whether a move is paid for, and on every timeframe. This manual explains each thing it draws and prints, then shows how to use it two ways. Part III treats it as an investor's allocation map, and Part IV as a trader's tested trend system. Part V works through how the readings combine.</p>
-<p>Read Part I first. Parts II to V can be read in any order, and Part VI is for reference.</p>
+<p>Pragati answers one question about a market: whether a move is paid for, and on every timeframe. This book teaches it in the order a reader becomes fluent. Part I is the foundation and Part II the knowledge base, every engine from the bar up. Part III reads every state; Part IV reads them in context; Part V separates fakeouts from acceptance, with measured numbers. Parts VI and VII are the trade and investment guides, Part VIII six real markets reconstructed, Part IX the combinations, Part X drills with answers, and Part XI the reference.</p>
+<p>Read Part I first, then follow the mastery path in chapter 3. Each chapter opens with what it will let you do.</p>
 <h4>How well each claim is known</h4>
 <p>Pragati was built and audited in public, and many of its parts were tested on markets, but not all of them. Every claim carries one of three tags.</p>
 {leg}
 <h4>Conventions</h4>
 <ul>
 <li>Text in a monospace face, and coloured chips such as <code>LONG 0.62</code>, show what the indicator itself prints.</li>
-<li>"Section 9.1" refers to a numbered section, and "chapter 5" to a chapter that has no sections. Figures and tables are numbered by chapter.</li>
+<li>"Section 16.2" refers to a numbered section, and "chapter 11" to a chapter that has no sections. Figures and tables are numbered by chapter.</li>
+<li>Case studies marked <i>reconstructed</i> are real daily bars run through the repository's reference engine; walkthroughs marked <i>constructed</i> were written to teach, and no market produced them.</li>
 <li>▲ ▼ ◆ × are the marks the indicator draws. Gold always means caution and never a direction.</li>
 <li>Every figure in this manual is drawn from the indicator's defaults on daily charts, which is how it was tested.</li>
 </ul></div>
@@ -514,7 +532,7 @@ def main(out_pdf):
     fsrc = os.path.join(W, "front.html")
     open(fsrc, "w", encoding="utf-8").write(front_doc(struct, where, tags_html))
     fl = os.path.join(W, "front_layout.pdf")
-    subprocess.run(["node", os.path.join(HERE, "render_book.js"), "layout", fsrc, json.dumps({"top": f"{TOP}mm", "bottom": f"{BOT}mm", "left": f"{(INNER + OUTER) / 2}mm", "right": f"{(INNER + OUTER) / 2}mm"}), fl], check=True)
+    subprocess.run(["node", os.path.join(HERE, "render_book.js"), "layout", fsrc, json.dumps({"top": f"{TOP_PX}px", "bottom": f"{BOT_PX}px", "left": f"{(INNER_PX + OUTER_PX) // 2}px", "right": f"{(INNER_PX + OUTER_PX) // 2}px"}), fl], check=True)
     ft = page_texts(fl); nf = len(ft)
     fspecs = [(k, {} if k <= 2 or not ft[k - 1].strip() else {"footer": foot(roman(k), "flex-end" if k % 2 else "flex-start", k % 2 == 1)}) for k in range(1, nf + 1)]
     fronts = render_pages(fsrc, fspecs, "f")
@@ -543,10 +561,10 @@ def main(out_pdf):
     open(bksrc, "w", encoding="utf-8").write(f"""<!doctype html><html lang="en"><head><meta charset="utf-8"><style>{FONTS}</style><style>{COVER_CSS}{BACK_CSS}</style></head><body><div class="cv bk">
 <div class="top"><span>BullishValue</span><span>{EDITION} · {DATE}</span></div>
 <div class="bt">Pragati<br><span>Field Manual</span></div>
-<p class="lead">Pragati asks one question of a market: is this move paid for, and is it paid for on every timeframe? This manual reads every element it draws and prints, and then uses it two ways.</p>
-<div class="two"><div><b>Investment guide</b><span>The Conviction-Value Grid as an allocation map: nine families, their units, the capitulation plan and how to build a book.</span></div>
-<div><b>Trade guide</b><span>Accepted momentum, the trend system that passed a held-out test on 411 unseen markets, with its exact sizing, rebalance and kill rules.</span></div></div>
-<p class="sm">Every claim carries its evidence: measured, external or unmeasured. Four matrices and worked scenarios cover how the readings combine and what to do when they disagree.</p>
+<p class="lead">Pragati asks one question of a market: is this move paid for, and is it paid for on every timeframe? This book teaches every engine behind the answer, and how to read, trade and invest with it.</p>
+<div class="two"><div><b>Measured, not asserted</b><span>A pre-registered study on 119 markets and 411 unseen ones: what a probe does to a trend, which breaks get accepted, and which entries around value carry timing.</span></div>
+<div><b>Real markets</b><span>Six markets reconstructed bar by bar, chosen by a rule fixed in advance, losers included. Then the setups, the sizing and the drills to master them.</span></div></div>
+<p class="sm">Every claim carries its evidence: measured, external or unmeasured. Thirty-two chapters, from the bar's conviction to the book's kill rule.</p>
 <div class="foot"><span>For Pragati v9.9 on TradingView</span><span>Educational, not financial advice</span></div></div></body></html>""")
     bk = os.path.join(W, "back.pdf")
     subprocess.run(["node", os.path.join(HERE, "render_book.js"), "layout", bksrc, json.dumps({"top": "0", "bottom": "0", "left": "0", "right": "0"}), bk], check=True)

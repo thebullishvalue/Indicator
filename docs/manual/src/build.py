@@ -1,6 +1,7 @@
 import os, sys
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from plates import plate_pane, plate_chart, plate_am
+import kit, kb, context, trade2, invest2, casestudies, mastery
 
 M = '<span class="ev ev-m">Measured</span>'
 X = '<span class="ev ev-x">External</span>'
@@ -159,16 +160,29 @@ svg .t-callout{font-size:11.5px;font-weight:700;fill:var(--surface);font-family:
 """
 
 import re as _re0
-STRUCTURE = [
- ("part-1", "Basics", [("c1", "Getting started", ["setup", "sixty"]), ("c2", "The visual language", ["colour", "pane", "chart"]), ("c3", "The engines in plain words", ["engines"])]),
- ("part-2", "Reading every state", [("c4", "The Conviction-Value Grid", ["grid"]), ("c5", "The readout table", ["readout"]), ("c6", "Panel, marks and troubleshooting", ["panel", "signals", "trouble"])]),
- ("part-3", "Investment guide", [("c7", "Investing with the grid", ["inv-frame", "inv-families"]), ("c8", "Plan, book and risk", ["inv-cap", "inv-book", "inv-risk"])]),
- ("part-4", "Trade guide", [("c9", "Accepted momentum", ["am", "am-book"]), ("c10", "Discretion and structure", ["overlay", "stops"])]),
- ("part-5", "Permutations and combinations", [("c11", "The four matrices", ["mx-a", "mx-b", "mx-c", "mx-d"]), ("c12", "Scenarios and conflicts", ["scen", "conflict"])]),
- ("part-6", "Reference", [("c13", "Alerts and settings", ["alerts", "settings"]), ("c14", "What is measured", ["evidence"])]),
+PARTS = [
+ ("part-1", "Part I", "", "Foundations", [("c1", "Getting started", ["setup", "sixty"]), ("c2", "The visual language", ["colour", "pane", "chart"]), ("c3", "How Pragati thinks", ["thesis", "engines", "path"])]),
+ ("part-2", "Part II", " · how every engine works", "The knowledge base", [("c4", "The conviction engine", ["kb-bar", "kb-scale", "kb-hist"]), ("c5", "The value engine", ["kb-vlegs", "kb-vscale"]),
+   ("c6", "The ladder and the four tapes", ["kb-ladder", "kb-tapes", "kb-trace"]), ("c7", "The grid engine and the signals", ["kb-grid", "kb-units", "kb-sig"]),
+   ("c8", "The auction engine and Accepted momentum", ["kb-prof", "kb-trail", "kb-am"]), ("c9", "The session profile and open interest", ["kb-vp", "kb-oi"]),
+   ("c10", "Timing, repainting and limits", ["kb-repaint", "kb-limits"])]),
+ ("part-3", "Part III", "", "Reading every state", [("c11", "The Conviction-Value Grid", ["grid"]), ("c12", "The readout table", ["readout"]), ("c13", "Panel, marks and troubleshooting", ["panel", "signals", "trouble"])]),
+ ("part-4", "Part IV", "", "Reading in context", [("c14", "The context stack", ["ctx-stack", "ctx-routine", "ctx-tf"]), ("c15", "Regimes, and how meaning changes", ["ctx-regime", "ctx-meaning", "ctx-class"])]),
+ ("part-5", "Part V", " · measured", "Fakeouts and traps", [("c16", "Probes and acceptance", ["fk-life", "fk-num", "fk-check", "fk-entry"]), ("c17", "The trap catalogue", ["fk-traps", "fk-protocol"])]),
+ ("part-6", "Part VI", " · systematic and swing", "Trade guide", [("c18", "Accepted momentum", ["am", "am-book"]), ("c19", "Initiating and positioning", ["pos-time", "pos-size", "pos-scale", "pos-heat"]),
+   ("c20", "The trading setups", ["ts-card", "ts-am", "ts-break", "ts-accept", "ts-probe", "ts-cap", "ts-dist", "ts-session", "ts-none"]),
+   ("c21", "Managing and reviewing", ["overlay", "stops", "mg-exit", "mg-journal"])]),
+ ("part-7", "Part VII", " · weeks to months", "Investment guide", [("c22", "Investing with the grid", ["inv-frame", "inv-families"]),
+   ("c23", "The investing setups", ["inv-cap", "is-filter", "is-stage", "is-trim", "is-rebal", "is-watch"]), ("c24", "The book and its risk", ["inv-book", "inv-risk"])]),
+ ("part-8", "Part VIII", " · real and constructed", "Case studies", [("c25", "Real markets, reconstructed", ["cs-method", "cs-nifty", "cs-rel", "cs-gold", "cs-inr", "cs-btc", "cs-bank", "cs-book"]),
+   ("c26", "Full-stack walkthroughs", ["scen", "wk-more"])]),
+ ("part-9", "Part IX", "", "Permutations and combinations", [("c27", "The four matrices", ["mx-a", "mx-b", "mx-c", "mx-d"]), ("c28", "Conflicts and the decision tree", ["conflict", "tree"])]),
+ ("part-10", "Part X", " · practice", "Mastery", [("c29", "Drills", ["dr-read", "dr-ctx", "dr-fake", "dr-size"]), ("c30", "Answers and checklists", ["dr-ans", "checklists"])]),
+ ("part-11", "Part XI", "", "Reference", [("c31", "Alerts and settings", ["alerts", "settings"]), ("c32", "What is measured", ["evidence", "ev-lab"])]),
 ]
+STRUCTURE = [(pid, ptitle, chs) for pid, _, _, ptitle, chs in PARTS]
 BACK = [("card", "Quick reference card"), ("glossary", "Glossary")]
-FIGS = {"pane": "pane", "chart": "chart", "grid": "grid", "am": "am"}     # figure key -> its section
+FIGS = {"pane": "pane", "chart": "chart", "grid": "grid", "am": "am", **casestudies.FIGS}     # figure key -> its section
 TITLES = {("Grid family", 4): ["The system against the grid, all 27 cases"], ("You see in WHY", 3): ["Phases in the WHY cell"],
           ("STATE", 3): ["OI row states"], ("Cell", 3): ["CVG row cells", "AUCTION row cells"], ("Row", 2): ["Information panel rows"],
           ("Mark", 4): ["Signals and marks"], ("You see", 3): ["Symptoms, causes and fixes"], ("Family", 5): ["The nine families as investment actions"],
@@ -210,6 +224,8 @@ def structure(html):
         lab = f"section {secnum[sid]}" if secnum[sid] else f"chapter {chnum[chap_of[sid]]}"
         return f'<a href="#{sid}">{lab}</a>'
     html = _re.sub(r"⟦ref:([\w-]+)⟧", ref, html)
+    html = _re.sub(r"⟦chap:(c\d+)⟧", lambda m: f'<a href="#{m.group(1)}">chapter {chnum[m.group(1)]}</a>', html)
+    html = _re.sub(r"⟦Chap:(c\d+)⟧", lambda m: f'<a href="#{m.group(1)}">Chapter {chnum[m.group(1)]}</a>', html)
     # figures and tables, numbered within their chapter in reading order
     marks = [(m.start(), "ch", m.group(1)) for m in _re.finditer(r'<div class="chapter-head" id="(c\d+)">', html)]
     marks += [(m.start(), "back", None) for m in _re.finditer(r'<div class="chapter-head back">', html)]
@@ -319,7 +335,7 @@ def build():
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..900&family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:ital,wght@0,400;0,600;0,700;1,400&display=swap">
-<style>{CSS}
+<style>{CSS}{kit.EXTRA_CSS}
 .matrix table{{min-width:760px}} .mx{{font-size:13.5px;line-height:1.45}} .mx b{{font-weight:600}}
 </style>
 <div class="wrap">
@@ -330,8 +346,8 @@ def build():
   <div class="eyebrow">Pragati v9.9 · BullishValue · Field manual</div>
   <h1>Pragati Field Manual</h1>
   <div class="q">"Is this move paid for, and is it paid for on every timeframe?"</div>
-  <p class="lede">How to read every part of the indicator, how to invest with its grid, how to trade its tested trend system, and what every combination of readings means. Each claim is tagged with how well it is known.</p>
-  <div class="meta"><span>Manual 1.3 · for Pragati v9.9</span><span>Daily charts are the default and the tested timeframe</span><span>Educational, not financial advice</span></div>
+  <p class="lede">How every engine works, how to read a chart in context, how to tell a probe from an acceptance, how to trade the tested trend system and invest with the grid, six real markets reconstructed, and drills to practise on. Each claim is tagged with how well it is known.</p>
+  <div class="meta"><span>Manual 2.0 · for Pragati v9.9</span><span>Daily charts are the default and the tested timeframe</span><span>Educational, not financial advice</span></div>
 </header>
 <nav class="contents" aria-label="Contents">{nav}</nav>
 
@@ -554,7 +570,7 @@ def build():
 ])}
 </section>
 
-<section class="chap" id="inv-cap"><div class="chead"><div class="chapno">Chapter ⟦#⟧</div><h3>The capitulation plan</h3></div>
+<section class="chap" id="inv-cap"><div class="chead"><div class="chapno">Chapter ⟦#⟧</div><h3>I1 · The capitulation plan</h3></div>
 <p>The one event the v9 audit found positive in every era is the capitulation turn. This is a staged plan around it. The staging itself is a house rule {U}; the state and the turn are {X}.</p>
 <div class="flow">
  <div><b>1 · Enter DOWN · cheap</b>The green tint appears; STATE reads Buy 4. Buy the first third.</div><div class="arrow" aria-hidden="true">→</div>
@@ -588,7 +604,7 @@ def build():
 
 <section class="chap" id="inv-risk"><div class="chead"><div class="chapno">Chapter ⟦#⟧</div><h3>Investor risk</h3></div>
 <ul>
- <li><b>Trend filters trade return for drawdown.</b> On 119 markets, holding only while the 20-bar trail was up cut the worst drawdown from −73.5% to −35%, but gave up about 11 points of yearly growth (13.5% against 24.4%) {M}. The 200-day average and plain momentum made the same trade. Accepted momentum was tested as a trading system, not as a long-only filter for an investment book.</li>
+ <li><b>Trend filters trade return for drawdown.</b> On 119 markets, holding only while the 20-bar trail was up cut the worst drawdown from −73.5% to −35%, but gave up about 11 points of yearly growth (13.5% against 24.4%) {M}. The 200-day average and plain momentum made the same trade. Accepted momentum used the same way, as a long-only filter, halved the drawdown in all three sets of the setup lab at about half the return (⟦ref:is-filter⟧) {M}.</li>
  <li><b>The ▲ is a lean.</b> About +0.05σ over 10 to 20 bars. It pays across many names and many events, not on any one {X}.</li>
  <li><b>Gold is caution.</b> Reduce or wait; never read gold as a direction.</li>
 </ul>
@@ -643,7 +659,7 @@ Cap: weight never above 2.0 (notional ₹1,00,000 for this slice)</div>
  ["Grid family", "Avoid adding to a long in PAID, STALLING or DISTRIBUTION; prefer adds in BASING or FADING", "The grid is an investor's horizon"],
  ["▲ during an AM short", "Tighten or reduce the short: capitulation leans up for 10 to 20 bars", "The system stays short by rule"],
  ["OI character", "A breakout on long build-up is committed; one on short covering is fragile", "Builds did not predict continuation " + X],
- ["AUCTION probe", "A probe against your side is a warning, not an exit: the break is not accepted yet", "Accepted breaks flip the trail at the close"],
+ ["AUCTION probe", "A probe against your side is a caution, not an exit: the side did worse than usual afterwards, but fewer than 1 in 20 flip the 126-bar trail " + M, "Accepted breaks flip the trail at the close"],
  ["Migration", "Migrating with your side supports holding; Shifting against it is an early warning", "Unmeasured"],
  ["Quiet regime (gold)", "Expect amplified readings; size down", "A display state, not a direction"],
 ])}
@@ -688,7 +704,7 @@ Cap: weight never above 2.0 (notional ₹1,00,000 for this slice)</div>
  ['<span class="chip c-bear">Shifting ↓</span>', "An early warning for the up trail", "The POC has left downward. Supportive"],
  ['<span class="chip c-bear">Migrating ↓</span>', "Value has left downward. A close below with the POC following flips the trail down", "Value moving with the trail. Steps are likely"],
 ])}
-<p>Add the WHY cell: a <span class="chip c-gold">probe</span> is a break without acceptance and often fails back; "accepted, flips at the close" means all three conditions hold on the live bar. Unmeasured {U}.</p>
+<p>Add the WHY cell. A <span class="chip c-gold">probe</span> is a break without acceptance. On the default 126-bar trail fewer than one in twenty is followed by a flip within 20 bars, yet the trail's side then does worse than usual for 10 to 20 bars (⟦ref:fk-num⟧) {M}. "Accepted, flips at the close" means all three conditions hold on the live bar.</p>
 </section>
 
 <section class="chap" id="mx-d"><div class="chead"><div class="chapno">Chapter ⟦#⟧</div><h3>Matrix D · Asset class against evidence</h3></div>
@@ -776,8 +792,10 @@ Cap: weight never above 2.0 (notional ₹1,00,000 for this slice)</div>
  ["Declaration (held ▲▼)", X, "No edge"],
  ["◆, R, H", X, "Negative, about zero, negative or mixed"],
  ["Open interest", X, "Short-covering rallies lagged; builds did not predict continuation"],
- ["Volume profile, migration, probes, HVN / LVN, VWAP, IB", U, "Reference structure"],
- ["Every combination in Part V", U, "Reasoning from the measured parts"],
+ ["Probes, acceptance and entries around value (setup lab)", M, "A probe weakens the trend's next weeks; on the 20-bar trail deep and heavy breaks are accepted more often; breakouts from value beat pullbacks into it (⟦ref:ev-lab⟧)"],
+ ["Accepted momentum as an investor's filter (setup lab I1)", M, "Drawdown roughly halved, return roughly halved; Sharpe lower than buy-and-hold in 2020-26"],
+ ["Session profile, HVN / LVN, naked POCs, VWAP, IB", U, "Reference structure"],
+ ["Every combination in Part IX", U, "Reasoning from the measured parts"],
 ])}
 <p>Known limits: the Accepted momentum test is mostly Indian markets plus crypto, and its NSE stocks are today's listings (survivorship). The v9 audit's figures come from a separate repository.</p>
 </section>
@@ -787,6 +805,8 @@ Cap: weight never above 2.0 (notional ₹1,00,000 for this slice)</div>
  <div class="card"><h4>Every close</h4><ul><li>Gold anywhere? Smaller, or later.</li><li>Trader: read the AUCTION row's CHART cell; act at the next open.</li><li>Investor: read the CVG row's STATE at the week's last close.</li></ul></div>
  <div class="card"><h4>Investor</h4><ul><li>Weight = units ÷ total units.</li><li>Stage into DOWN · cheap; add on the ▲.</li><li>Trim in PAID and STALLING; exit in DISTRIBUTION.</li><li>Not on crypto.</li></ul></div>
  <div class="card"><h4>Trader</h4><ul><li>LONG or SHORT only when trail and momentum agree.</li><li>Weight = size × 10% ÷ volatility, cap 2.</li><li>Many markets, weekly rebalance.</li><li>Paper first, then a tenth.</li></ul></div>
+ <div class="card"><h4>Breaks</h4><ul><li>A probe is a caution on the trend, not a fakeout to fade.</li><li>126-bar trail: only migration toward a break makes acceptance likely.</li><li>20-bar trail: depth ≥ 0.5 ATR and weight ≥ 1.5 raise acceptance.</li><li>With the trend, act on the break of value, not the pullback into it.</li></ul></div>
+ <div class="card"><h4>Setups</h4><ul><li>T1 Accepted momentum is the only system.</li><li>T2 break of value: within the target.</li><li>T4 probe against you: hold, never add.</li><li>I2 trend filter: about half the drawdown, half the return.</li></ul></div>
  <div class="card"><h4>Never</h4><ul><li>Trade the forming bar.</li><li>Read gold as a direction.</li><li>Lean on the ◆, R, H or the 20-bar trail.</li><li>Use non-standard candles.</li></ul></div>
 </div>
 </section>
@@ -795,23 +815,33 @@ Cap: weight never above 2.0 (notional ₹1,00,000 for this slice)</div>
 {tbl(["Term", "Meaning"], [
  ["Acceptance", "A close beyond the trail with the window's POC beyond it and value migrated that way. Only acceptance flips the trail"],
  ["Build-up · covering · unwinding", "Open interest rising with the price move (new positions), or falling (positions closing)"],
+ ["Campaign", "A run of the traded weight on one side, from the rebalance that opens it to the one that closes it"],
  ["Capitulation", "Sellers in control across the ladder at a price cheap past θ: the DOWN · cheap cell"],
  ["Conviction", "The share of the window's participation-weighted effort that became net movement"],
  ["Family", "One of the grid's nine cells, named for its action"],
+ ["Flip", "The trail changing side on acceptance: a close beyond it, the POC beyond it, and value migrated that way"],
  ["Held", "A grid row kept in place because no push confirmed the tape's move"],
  ["HVN · LVN", "High- and low-volume nodes: local peaks and troughs in the session profile"],
  ["IBH · IBL", "The initial balance: the high and low of the session's first bars (12 by default), intraday only"],
  ["Impulse", "A histogram column past k standard deviations of its history (↑↑)"],
+ ["Kill rule", "Stop the book if its drawdown passes 1.5 times the backtest's worst, or its rolling 12-month Sharpe stays below zero for two quarters"],
  ["Ladder down / up", "Reading the timeframes below the chart (inside each bar) or above it"],
  ["Migration", "This window's value area against the one six months earlier: Migrating (no overlap), Shifting (only the POC left), Balance"],
  ["Naked POC", "A prior session's POC that price has not traded back through"],
+ ["Phase", "A momentum's standing side against its level tape's edge: running or pausing for conviction, reverting or widening for value"],
  ["POC · VAH · VAL", "The most-traded price; the top and bottom of the 70% value area"],
  ["Probe", "A close beyond the trail without acceptance"],
+ ["Probe onset", "A probe's first bar, the one marked with a gold ×"],
  ["Push gate", "Conviction's histogram on the move's side, not turning, not quiet"],
  ["Quiet regime", "Raw volatility in the bottom fifth of its history: readings are magnified"],
+ ["Rebalance band", "The tested rule: on a rebalance day a market's weight changes only if its target moved more than 10% of itself"],
  ["S", "Accepted momentum's score, −1 to +1, from the 1-, 3-, 6- and 12-month moves"],
+ ["Setup card", "The fixed form every setup in this book takes: context, trigger, entry, size, stop, exit, evidence and failure"],
  ["Sharpe", "Return per unit of volatility, yearly. t is how far from zero it is, in standard errors"],
+ ["Slice", "A market's share of capital in an equal-risk book: the capital divided by the number of markets"],
+ ["Structural bar", "An OI change of more than half the book, or beyond 3σ and over a fifth of it: an expiry or roll, kept out of the statistics"],
  ["θ (theta)", "Samanvaya's value threshold, ±43 on the pane at the default 1.5"],
+ ["Transition", "The regime in which the trail and momentum disagree, so Accepted momentum reads FLAT · disagree"],
  ["Units", "The relative weight a family gives a name in a portfolio"],
  ["VWAP · TWAP", "The session's volume-weighted average price; time-weighted when the symbol has no usable volume"],
 ])}
@@ -821,6 +851,28 @@ Cap: weight never above 2.0 (notional ₹1,00,000 for this slice)</div>
 
 </main></div>
 """
+    # 2.0 · the 1.x sections and the new modules, reassembled in PARTS order
+    import re as _r2
+    head = html[:html.index('<section class="part" id="part-1">')]
+    legacy = {m.group(1): m.group(0) for m in _r2.finditer(r'<section class="chap" id="([\w-]+)">.*?</section>', html, _r2.S)}
+    new = {}
+    for mod in (kb, context, trade2, invest2, casestudies, mastery):
+        new.update(mod.S)
+    pool = {**legacy, **new}
+    used = set()
+    body = []
+    for pid, label, sub, ptitle, chs in PARTS:
+        body.append(f'<section class="part" id="{pid}"><div class="eyebrow">{label}{sub}</div><h2>{ptitle}</h2>\n')
+        for cid, ctitle, secs in chs:
+            for sid in secs:
+                assert sid in pool, sid
+                body.append(pool[sid]); used.add(sid)
+        body.append("</section>\n")
+    back = "".join(pool[b] for b, _ in BACK)
+    used |= {b for b, _ in BACK}
+    unused = sorted(set(new) - used)
+    assert not unused, unused
+    html = head + "".join(body) + back + "\n</main></div>\n"
     html, chnum, secnum, sectitle = structure(html)
     import re as _re
     navh = []

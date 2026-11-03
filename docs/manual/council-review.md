@@ -109,3 +109,21 @@ The result is 24 pages, down from 29, with no stranded headings or widowed list 
 - the web edition has no horizontal scroll at 390 px.
 
 Rebuild with `python3 src/book.py OUT.pdf`. It needs Playwright's Chromium and poppler's `pdftotext` and `pdfunite`. The fonts (SIL Open Font License) are fetched on first run into `src/fonts/`. `python3 src/build.py OUT.html` builds the web page.
+
+## 2.0 · the master's edition
+
+The owner asked for a far more granular book: case studies, trade initiation
+and positioning, contextual reading, fakeouts, and trading and investing
+setups.
+
+A multi-tier council planned and wrote it:
+- the charter and the mastery test, the tiers, and Rounds 1 to 6 are in
+  `council-2.0.md`;
+- the fakeout and setup claims were pre-registered and tested first, in
+  `docs/setup-lab.md`;
+- the result is 11 parts, 32 chapters and 158 pages.
+
+Rebuild:
+- the book: `python3 src/book.py OUT.pdf`;
+- the web page: `python3 src/build.py OUT.html`;
+- the case data: `python3 research/case_extract.py --data … --cache … --out docs/manual/src/cases`.
