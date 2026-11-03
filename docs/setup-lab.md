@@ -153,6 +153,39 @@ case types are:
 A case chosen this way can lose. That is the point: cases show how the
 readings unfold, not that they win.
 
+## 5a · Amendment 1 (2026-11-03, after run 1, before run 2)
+
+**What run 1 showed.** On HA, F1, S1 and S2 came out numerically invalid:
+mean excesses of the order of 10^8 σ. The cause is a defect in the measuring
+stick, not a market effect:
+- 38 markets, mostly suspended or illiquid NSE stocks, carry stretches of
+  unchanged prices;
+- there the EWMA volatility σ_t falls to zero (to 1e-17), and z = r ÷ (σ√h)
+  divides by it;
+- the D-side baselines include those bars, while the AM-agree baselines
+  mostly do not, because S is undefined there. That is why S3, S4, S5 and I1
+  were finite.
+
+All of run 1's output was seen before this amendment was written. Run 1 is
+kept unchanged in `research/results/setup-lab/results.json`.
+
+**The fix.** It is chosen on principle, applies to every set and hypothesis,
+and changes no definition, horizon, baseline or pass mark:
+- **Primary (run 2):** a bar is **stale** when σ_t is below a quarter of the
+  median of its own last 1,000 values. That uses no look-ahead and needs at
+  least 250 values. Stale bars are dropped as events and as baseline bars.
+  A genuinely quiet market, such as USDINR at its calmest, stays well above a
+  quarter of its own median; a frozen price does not.
+- **Sensitivity (run 2b):** no bar is dropped, and z is clipped to ±5.
+
+Run 2 decides the verdicts. Run 2b is reported beside it. Where the two
+disagree, the verdict is the weaker of the two. I1 does not use z and is
+unchanged.
+
+**Seen, so stated.** The protocol pre-registered the S hypotheses at N = 126
+only. The harness also computed them at N = 20. Those rows are reported in an
+appendix as **exploratory**, not as tests.
+
 ## 6 · Results
 
-(Appended once, after the run.)
+(Appended once, after run 2.)
