@@ -29,94 +29,113 @@ HAR range .25/.40/.35 x k  0.398  0.319  0.318  0.294  0.329  0.288   0.531
 HAR range .3/.4/.3 x k     0.401  0.322  0.315  0.296  0.330  0.284   0.541
 
 1. CALIBRATION  target: cone 80% (10% each tail), stop touched 20%   [mean across instruments]
-                      cover     up     dn  stopL  stopS
-kind                                                   
-fixed gaussian        0.823  0.097  0.080  0.174  0.185
-kasauti (per regime)  0.800  0.101  0.098  0.199  0.200
-one multiplier        0.800  0.100  0.100  0.200  0.200
+                          cover     up     dn  stopL  stopS
+kind                                                       
+fixed normal              0.823  0.097  0.080  0.174  0.185
+kasauti (regime + trend)  0.799  0.101  0.100  0.200  0.201
+one width                 0.800  0.100  0.100  0.200  0.200
+regime only               0.800  0.101  0.098  0.199  0.200
 
 worst-case: share of instrument-eras whose realised cone coverage is within 3 points of 80%, and stop within 3 of 20%
-                         ok    okS
-kind                              
-fixed gaussian        0.607  0.569
-kasauti (per regime)  0.941  0.991
-one multiplier        0.993  1.000
+                             ok    okS
+kind                                  
+fixed normal              0.607  0.569
+kasauti (regime + trend)  0.989  0.998
+one width                 0.993  1.000
+regime only               0.941  0.991
 
 cone coverage by class and era
-era                          03-12  13-19  20-26
-kind                 cls                        
-fixed gaussian       bond    0.831  0.818  0.841
-                     cmdty   0.807  0.805  0.819
-                     crypto    NaN  0.816  0.814
-                     fx      0.846  0.832  0.857
-                     index   0.838  0.819  0.831
-                     nse     0.831  0.809  0.811
-                     us      0.844  0.813  0.812
-kasauti (per regime) bond    0.817  0.788  0.810
-                     cmdty   0.804  0.799  0.798
-                     crypto    NaN  0.808  0.807
-                     fx      0.820  0.793  0.812
-                     index   0.812  0.786  0.804
-                     nse     0.810  0.793  0.797
-                     us      0.811  0.788  0.793
-one multiplier       bond    0.808  0.792  0.805
-                     cmdty   0.802  0.799  0.797
-                     crypto    NaN  0.809  0.800
-                     fx      0.810  0.794  0.803
-                     index   0.805  0.793  0.802
-                     nse     0.803  0.798  0.797
-                     us      0.804  0.796  0.796
+era                              03-12  13-19  20-26
+kind                     cls                        
+fixed normal             bond    0.831  0.818  0.841
+                         cmdty   0.807  0.805  0.819
+                         crypto    NaN  0.816  0.814
+                         fx      0.846  0.832  0.857
+                         index   0.838  0.819  0.831
+                         nse     0.831  0.809  0.811
+                         us      0.844  0.813  0.812
+kasauti (regime + trend) bond    0.808  0.789  0.806
+                         cmdty   0.803  0.795  0.798
+                         crypto    NaN  0.805  0.803
+                         fx      0.811  0.795  0.806
+                         index   0.805  0.789  0.804
+                         nse     0.803  0.797  0.797
+                         us      0.805  0.790  0.797
+one width                bond    0.808  0.792  0.805
+                         cmdty   0.802  0.799  0.797
+                         crypto    NaN  0.809  0.800
+                         fx      0.810  0.794  0.803
+                         index   0.805  0.793  0.802
+                         nse     0.803  0.798  0.797
+                         us      0.804  0.796  0.796
+regime only              bond    0.817  0.788  0.810
+                         cmdty   0.804  0.799  0.798
+                         crypto    NaN  0.808  0.807
+                         fx      0.820  0.793  0.812
+                         index   0.812  0.786  0.804
+                         nse     0.810  0.793  0.797
+                         us      0.811  0.788  0.793
 
 long-stop touch rate by class and era
-era                          03-12  13-19  20-26
-kind                 cls                        
-fixed gaussian       bond    0.138  0.156  0.156
-                     cmdty   0.158  0.179  0.162
-                     crypto    NaN  0.172  0.179
-                     fx      0.164  0.177  0.170
-                     index   0.179  0.191  0.177
-                     nse     0.184  0.182  0.172
-                     us      0.168  0.173  0.177
-kasauti (per regime) bond    0.185  0.201  0.206
-                     cmdty   0.194  0.199  0.203
-                     crypto    NaN  0.201  0.199
-                     fx      0.187  0.211  0.196
-                     index   0.195  0.206  0.195
-                     nse     0.197  0.200  0.202
-                     us      0.194  0.203  0.203
-one multiplier       bond    0.195  0.197  0.207
-                     cmdty   0.199  0.196  0.205
-                     crypto    NaN  0.203  0.199
-                     fx      0.194  0.206  0.201
-                     index   0.196  0.203  0.201
-                     nse     0.199  0.200  0.203
-                     us      0.198  0.201  0.202
+era                              03-12  13-19  20-26
+kind                     cls                        
+fixed normal             bond    0.138  0.156  0.156
+                         cmdty   0.158  0.179  0.162
+                         crypto    NaN  0.172  0.179
+                         fx      0.164  0.177  0.170
+                         index   0.179  0.191  0.177
+                         nse     0.184  0.182  0.172
+                         us      0.168  0.173  0.177
+kasauti (regime + trend) bond    0.190  0.200  0.210
+                         cmdty   0.197  0.200  0.201
+                         crypto    NaN  0.207  0.198
+                         fx      0.192  0.208  0.198
+                         index   0.196  0.204  0.197
+                         nse     0.198  0.201  0.203
+                         us      0.196  0.202  0.203
+one width                bond    0.195  0.197  0.207
+                         cmdty   0.199  0.196  0.205
+                         crypto    NaN  0.203  0.199
+                         fx      0.194  0.206  0.201
+                         index   0.196  0.203  0.201
+                         nse     0.199  0.200  0.203
+                         us      0.198  0.201  0.202
+regime only              bond    0.185  0.201  0.206
+                         cmdty   0.194  0.199  0.203
+                         crypto    NaN  0.201  0.199
+                         fx      0.187  0.211  0.196
+                         index   0.195  0.206  0.195
+                         nse     0.197  0.200  0.202
+                         us      0.194  0.203  0.203
 
 spread across instruments (std of realised coverage):
-                      cover  stopL
-kind                              
-fixed gaussian        0.028  0.025
-kasauti (per regime)  0.017  0.011
-one multiplier        0.009  0.006
+                          cover  stopL
+kind                                  
+fixed normal              0.028  0.025
+kasauti (regime + trend)  0.011  0.009
+one width                 0.009  0.006
+regime only               0.017  0.011
 
 1b. coverage by risk regime at forecast time
-                      cover                  stopL                
-reg                    calm normal stressed   calm normal stressed
-kind                                                              
-fixed gaussian        0.800  0.829    0.852  0.185  0.170    0.162
-kasauti (per regime)  0.797  0.802    0.810  0.202  0.198    0.195
-one multiplier        0.762  0.808    0.843  0.235  0.194    0.159
-per regime eta .01    0.796  0.806    0.818  0.201  0.196    0.190
-per regime eta .05    0.798  0.800    0.804  0.201  0.200    0.198
+                          cover                  stopL                
+reg                        calm normal stressed   calm normal stressed
+kind                                                                  
+fixed normal              0.800  0.829    0.852  0.185  0.170    0.162
+kasauti (regime + trend)  0.793  0.800    0.809  0.203  0.199    0.195
+kasauti, eta .01          0.791  0.802    0.816  0.204  0.199    0.191
+kasauti, eta .05          0.796  0.799    0.804  0.202  0.200    0.197
+one width                 0.762  0.808    0.843  0.235  0.194    0.159
+regime only               0.797  0.802    0.810  0.202  0.198    0.195
 
 instrument-eras within 3 points of target, and mean cone width (log)
-                         ok    okS  cover  stopL      w
-kind                                                   
-fixed gaussian        0.607  0.569  0.823  0.174  0.140
-kasauti (per regime)  0.941  0.991  0.800  0.199  0.134
-one multiplier        0.993  1.000  0.800  0.200  0.137
-per regime eta .01    0.878  0.964  0.803  0.197  0.134
-per regime eta .05    0.989  0.998  0.799  0.200  0.140
+                             ok    okS  cover  stopL      w
+kind                                                       
+fixed normal              0.607  0.569  0.823  0.174  0.140
+kasauti (regime + trend)  0.989  0.998  0.799  0.200  0.137
+kasauti, eta .01          0.948  0.995  0.800  0.199  0.134
+kasauti, eta .05          0.998  0.998  0.799  0.201  0.151
+one width                 0.993  1.000  0.800  0.200  0.137
+regime only               0.941  0.991  0.800  0.199  0.134
 
 the usual alternative - a k x ATR(14) stop: share of the time it is touched within 10 bars
       mean    std    min    max
@@ -136,96 +155,346 @@ us        0.307
 2. EXPOSURE DIAL vs BUY AND HOLD   full sample, mean across 151 instruments, net of costs, one-bar delay
                           expo     sh   h_sh   cagr  h_cagr    vol  h_vol     dd   h_dd  calmar  h_calmar  sh>hold  dd<hold  calmar>hold
 v                                                                                                                                       
-risk dial, cap 1.0       0.944  0.555  0.534  0.126    0.13  0.275  0.318 -0.545 -0.617   0.229     0.209    0.689    0.921        0.682
-risk dial, cap 1.5       1.197  0.549  0.534  0.141    0.13  0.331  0.318 -0.620 -0.617   0.233     0.209    0.576    0.517        0.623
-risk dial, cap 2.0       1.266  0.541  0.534  0.143    0.13  0.344  0.318 -0.660 -0.617   0.231     0.209    0.570    0.457        0.589
-risk x trend, floor .5   0.770  0.540  0.534  0.109    0.13  0.224  0.318 -0.451 -0.617   0.235     0.209    0.517    0.993        0.682
-risk x trend, floor .25  0.682  0.518  0.534  0.098    0.13  0.201  0.318 -0.410 -0.617   0.230     0.209    0.391    0.993        0.603
-risk x trend, floor 0    0.595  0.482  0.534  0.086    0.13  0.183  0.318 -0.385 -0.617   0.214     0.209    0.272    0.987        0.477
+risk dial, cap 1.0       0.906  0.556  0.534  0.123    0.13  0.266  0.318 -0.530 -0.617   0.231     0.209    0.715    0.974        0.709
+risk dial, cap 1.5       1.171  0.557  0.534  0.141    0.13  0.324  0.318 -0.605 -0.617   0.238     0.209    0.623    0.576        0.656
+risk dial, cap 2.0       1.246  0.550  0.534  0.144    0.13  0.339  0.318 -0.648 -0.617   0.236     0.209    0.583    0.503        0.636
+risk x trend, floor .5   0.757  0.548  0.534  0.109    0.13  0.220  0.318 -0.442 -0.617   0.240     0.209    0.589    1.000        0.735
+risk x trend, floor .25  0.673  0.533  0.534  0.099    0.13  0.198  0.318 -0.400 -0.617   0.240     0.209    0.477    0.993        0.669
+risk x trend, floor 0    0.587  0.503  0.534  0.087    0.13  0.181  0.318 -0.370 -0.617   0.229     0.209    0.351    0.993        0.570
 
 by era: Sharpe followed / hold, maxDD followed / hold, share of instruments with shallower DD and with higher Sharpe
                                   sh   h_sh     dd   h_dd  dd_win  sh_win
 v                       era                                              
-risk dial, cap 1.0      03-12  0.578  0.530 -0.469 -0.559   0.944   0.803
-                        13-19  0.557  0.567 -0.364 -0.372   0.600   0.380
-                        20-26  0.522  0.527 -0.392 -0.459   0.887   0.490
-risk dial, cap 1.5      03-12  0.596  0.530 -0.512 -0.559   0.711   0.810
-                        13-19  0.536  0.567 -0.446 -0.372   0.073   0.313
-                        20-26  0.493  0.527 -0.445 -0.459   0.497   0.338
-risk dial, cap 2.0      03-12  0.593  0.530 -0.526 -0.559   0.683   0.761
-                        13-19  0.519  0.567 -0.471 -0.372   0.060   0.313
-                        20-26  0.487  0.527 -0.452 -0.459   0.464   0.291
-risk x trend, floor .5  03-12  0.562  0.530 -0.379 -0.559   1.000   0.683
-                        13-19  0.514  0.567 -0.299 -0.372   0.987   0.180
-                        20-26  0.485  0.527 -0.324 -0.459   1.000   0.338
-risk x trend, floor .25 03-12  0.541  0.530 -0.338 -0.559   0.993   0.542
-                        13-19  0.477  0.567 -0.271 -0.372   0.987   0.173
-                        20-26  0.450  0.527 -0.297 -0.459   1.000   0.245
-risk x trend, floor 0   03-12  0.505  0.530 -0.305 -0.559   0.986   0.458
-                        13-19  0.424  0.567 -0.250 -0.372   0.967   0.153
-                        20-26  0.400  0.527 -0.284 -0.459   0.993   0.185
+risk dial, cap 1.0      03-12  0.581  0.530 -0.456 -0.559   0.986   0.817
+                        13-19  0.561  0.567 -0.352 -0.372   0.867   0.440
+                        20-26  0.520  0.527 -0.380 -0.459   0.960   0.477
+risk dial, cap 1.5      03-12  0.607  0.530 -0.503 -0.559   0.725   0.824
+                        13-19  0.545  0.567 -0.438 -0.372   0.087   0.367
+                        20-26  0.496  0.527 -0.438 -0.459   0.563   0.351
+risk dial, cap 2.0      03-12  0.605  0.530 -0.517 -0.559   0.676   0.782
+                        13-19  0.530  0.567 -0.465 -0.372   0.073   0.347
+                        20-26  0.491  0.527 -0.446 -0.459   0.536   0.344
+risk x trend, floor .5  03-12  0.577  0.530 -0.371 -0.559   1.000   0.718
+                        13-19  0.527  0.567 -0.295 -0.372   0.993   0.200
+                        20-26  0.485  0.527 -0.321 -0.459   1.000   0.318
+risk x trend, floor .25 03-12  0.560  0.530 -0.330 -0.559   0.993   0.620
+                        13-19  0.495  0.567 -0.266 -0.372   0.993   0.213
+                        20-26  0.460  0.527 -0.291 -0.459   0.993   0.252
+risk x trend, floor 0   03-12  0.532  0.530 -0.293 -0.559   0.986   0.507
+                        13-19  0.447  0.567 -0.242 -0.372   0.987   0.200
+                        20-26  0.416  0.527 -0.274 -0.459   0.993   0.199
 
 by class (full sample)
                                  sh  h_sh    dd  h_dd  sh_win
 v                      cls                                   
-risk dial, cap 1.0     bond    0.66  0.61 -0.20 -0.25    0.83
-                       cmdty   0.35  0.33 -0.65 -0.72    0.69
-                       crypto  0.65  0.68 -0.85 -0.88    0.22
-                       fx      0.09  0.11 -0.36 -0.39    0.31
-                       index   0.53  0.50 -0.43 -0.54    0.78
-                       nse     0.72  0.70 -0.63 -0.68    0.77
-                       us      0.59  0.56 -0.52 -0.62    0.76
-risk x trend, floor .5 bond    0.66  0.61 -0.16 -0.25    0.83
-                       cmdty   0.33  0.33 -0.57 -0.72    0.44
-                       crypto  0.69  0.68 -0.74 -0.88    0.44
-                       fx      0.07  0.11 -0.30 -0.39    0.23
-                       index   0.51  0.50 -0.33 -0.54    0.61
-                       nse     0.71  0.70 -0.52 -0.68    0.59
-                       us      0.56  0.56 -0.42 -0.62    0.50
+risk dial, cap 1.0     bond    0.67  0.61 -0.20 -0.25    1.00
+                       cmdty   0.35  0.33 -0.63 -0.72    0.62
+                       crypto  0.65  0.68 -0.84 -0.88    0.33
+                       fx      0.10  0.11 -0.35 -0.39    0.46
+                       index   0.53  0.50 -0.42 -0.54    0.94
+                       nse     0.72  0.70 -0.61 -0.68    0.67
+                       us      0.59  0.56 -0.51 -0.62    0.80
+risk x trend, floor .5 bond    0.70  0.61 -0.15 -0.25    1.00
+                       cmdty   0.33  0.33 -0.55 -0.72    0.50
+                       crypto  0.68  0.68 -0.74 -0.88    0.44
+                       fx      0.09  0.11 -0.28 -0.39    0.31
+                       index   0.52  0.50 -0.32 -0.54    0.61
+                       nse     0.72  0.70 -0.51 -0.68    0.67
+                       us      0.57  0.56 -0.42 -0.62    0.60
 
 3. THE NINE STATES, pooled: next-10-bar return in sigma, minus the group mean of that era (x100)   [share of bars, t clustered by date]
                    share   all     t  03-12  13-19  20-26
-down · broke down   0.03 -0.51 -0.13  -3.23   6.18  -2.88
-down · inside       0.11  0.02  0.01  -4.83   0.84   8.19
-down · broke up     0.01  4.95  1.01   7.57  -3.05   7.99
-flat · broke down   0.05 -3.85 -0.86  -3.88   4.77 -12.55
-flat · inside       0.33 -0.84 -0.58  -1.18  -0.76  -0.37
-flat · broke up     0.03  0.95  0.50   4.17  -2.84  -0.07
-up · broke down     0.02 -0.93 -0.27  -4.11   6.66  -4.57
-up · inside         0.35  0.93  0.62   2.68  -0.56  -0.14
-up · broke up       0.06  1.76  0.94   4.35  -1.31   1.52
+down · broke down   0.03 -0.43 -0.11  -3.96   5.77  -1.17
+down · inside       0.12 -0.04 -0.01  -4.87   0.94   7.86
+down · broke up     0.01  6.32  1.20  11.40  -3.76   4.11
+flat · broke down   0.05 -3.78 -0.87  -3.76   4.23 -12.10
+flat · inside       0.33 -0.85 -0.58  -1.22  -0.67  -0.43
+flat · broke up     0.03  1.02  0.55   4.40  -3.08  -0.49
+up · broke down     0.02 -0.80 -0.23  -4.20   7.68  -4.78
+up · inside         0.35  0.93  0.61   2.73  -0.68  -0.10
+up · broke up       0.06  1.74  0.93   4.14  -1.02   1.34
 
 crypto
                      all     t       n
-down · broke down -13.07 -1.09  1051.0
-down · inside      -6.44 -0.85  6501.0
-down · broke up    -1.56 -0.09   170.0
-flat · broke down  -4.36 -0.61  1216.0
-flat · inside      -2.94 -0.51  8764.0
-flat · broke up     8.82  1.00  1066.0
-up · broke down     1.32  0.17   456.0
-up · inside         4.40  0.76  7758.0
-up · broke up      27.04  3.15  1582.0
+down · broke down -14.01 -1.16  1071.0
+down · inside      -5.96 -0.78  6399.0
+down · broke up   -10.80 -0.62   252.0
+flat · broke down  -5.69 -0.85  1240.0
+flat · inside      -2.92 -0.50  8679.0
+flat · broke up     9.48  1.13  1127.0
+up · broke down    -0.16 -0.02   507.0
+up · inside         4.70  0.81  7841.0
+up · broke up      28.17  3.14  1448.0
 
 4. THE LEDGER, OUT OF SAMPLE. Entries into a state the chart's own history had already 'proven' - what the next 10 bars did (sigma x100: raw, and against the group's mean)
                n  instruments    raw  vs_group   hit
 proven                                              
--1          81.0          6.0   0.08     -7.86  0.53
- 0      155426.0        151.0   6.36     -0.49  0.55
- 1         170.0          6.0  14.26      6.71  0.54
+-1          88.0          3.0  11.04      2.70  0.49
+ 0      155790.0        151.0   6.39     -0.46  0.55
+ 1          85.0          5.0  24.66     16.98  0.56
 by era
                mean   size
 proven era                
--1     03-12   1.60     10
-       13-19  -5.82     30
-       20-26   4.02     41
- 0     03-12   4.88  65881
-       13-19   9.21  44382
-       20-26   5.72  45163
- 1     03-12  44.83      2
-       13-19  26.89     65
-       20-26   5.69    103
+-1     03-12  -1.77     25
+       13-19  14.84     39
+       20-26  18.22     24
+ 0     03-12   5.10  66441
+       13-19   9.19  44085
+       20-26   5.54  45264
+ 1     03-12 -16.72      2
+       13-19  21.06     43
+       20-26  30.61     40
 
-share of bars on which the current state reads proven: 0.0017  +: 0.0011  -: 0.0006
+share of bars on which the current state reads proven: 0.0011  +: 0.0005  -: 0.0007
 random-walk control (should be ~4.6% by chance at |z|>=2 without shrinkage, far less with):
- proven share on random walks: 0.0046
+ proven share on random walks: 0.0044
+
+5. THE TAPES
+5a. RISK TAPE. What forecast risk did over the next 10 bars (median log change x100), by regime
+regime
+calm        0.6
+normal     -2.7
+stressed   -7.9
+
+risk momentum candidates - median next-10-bar log change in risk x100, by regime (rows) and momentum tercile within regime (cols)
+short over long (0.5 ln vS/vL)
+mb        low  mid  high
+regime                  
+calm      2.2  0.9  -1.9
+normal   -1.0 -2.0  -6.1
+stressed -4.4 -7.0 -15.8
+   share of bars on which risk was HIGHER 10 bars later:
+mb         low   mid  high
+regime                    
+calm      0.59  0.54  0.43
+normal    0.46  0.43  0.33
+stressed  0.35  0.31  0.21
+change over the last 10 bars (ln sig/sig[10])
+mb        low  mid  high
+regime                  
+calm      1.7  1.2  -1.4
+normal   -1.3 -1.6  -5.8
+stressed -5.7 -5.6 -15.1
+   share of bars on which risk was HIGHER 10 bars later:
+mb         low   mid  high
+regime                    
+calm      0.57  0.55  0.45
+normal    0.45  0.44  0.34
+stressed  0.32  0.33  0.22
+
+fixed cut on the 10-bar change: falling < -0.10 | steady | rising > +0.10   share of bars, median next change x100, share higher
+         share    med  higher
+rm                           
+falling   0.25  -1.32    0.45
+steady    0.56  -1.14    0.46
+rising    0.19 -10.54    0.26
+by era (median next change x100)
+rm     falling  steady  rising
+era                           
+03-12     -1.4    -1.5    -9.8
+13-19     -0.9    -0.9   -10.9
+20-26     -1.6    -0.8   -11.1
+
+5b. RETURN PER UNIT OF RISK (next bar, sigma x100) by risk regime - does the reward for risk fall when risk is high?
+regime  calm  normal  stressed
+grp                           
+crypto  0.13    1.91      4.48
+equity  3.63    3.79      2.26
+macro   1.64    2.21      0.88
+by era, ex crypto
+regime  calm  normal  stressed
+era                           
+03-12   4.33    4.02      0.26
+13-19   3.15    2.88      2.83
+20-26   1.25    3.31      2.90
+by risk momentum, ex crypto
+rm     falling  steady  rising
+era                           
+03-12     3.59    3.57    0.78
+13-19     2.71    3.60    1.62
+20-26     2.17    2.82    1.60
+
+5c. STRETCH LADDER. Rungs 5, 10, 20, 40 bars, each with its own learned 80% cone. Share of bars by number of rungs outside:
+           0      1      2      3      4
+above  0.746  0.150  0.065  0.028  0.011
+below  0.767  0.128  0.062  0.030  0.014
+the cone drawn on such a bar - did it still hold? (target 80 / 10 / 10; long stop 20)
+           share   held  above  below  long_stop  short_stop
+state                                                       
+1-2 above  0.215  0.815  0.099  0.086      0.174       0.199
+1-2 below  0.181  0.795  0.098  0.108      0.226       0.192
+3-4 above  0.039  0.811  0.104  0.084      0.174       0.223
+3-4 below  0.044  0.786  0.101  0.113      0.264       0.204
+inside     0.522  0.793  0.104  0.102      0.199       0.204
+next 10 bars' return in sigma x100, against the group mean of the era (ex crypto)
+era        03-12  13-19  20-26
+state                         
+1-2 above    2.8   -2.4    0.9
+1-2 below   -3.7    3.0   -0.7
+3-4 above    3.2   -3.8    1.2
+3-4 below   -1.8    6.1   -4.1
+inside       0.0   -0.3    0.2
+
+5d. TREND TAPE. The cone drawn in each trend state - did it hold? (target 80 / 10 / 10)
+       share   held  above  below  long_stop  short_stop
+trend                                                   
+down   0.145  0.798  0.110  0.093      0.194       0.209
+flat   0.411  0.798  0.102  0.100      0.201       0.202
+up     0.444  0.800  0.099  0.101      0.202       0.199
+
+6. OTHER SETTINGS. Realised against target, mean across instruments, and share of instruments within 3 points
+          cone_target   cone  cone_ok  stop_target   stop  stop_ok
+setting                                                           
+H 5               0.8  0.801      1.0          0.2  0.199      1.0
+H 20              0.8  0.799      1.0          0.2  0.200      1.0
+H 40              0.8  0.798      1.0          0.2  0.201      1.0
+cone 50%          0.5  0.503      1.0          0.2  0.200      1.0
+cone 90%          0.9  0.899      1.0          0.2  0.200      1.0
+stop 10%          0.8  0.800      1.0          0.1  0.101      1.0
+stop 30%          0.8  0.800      1.0          0.3  0.299      1.0
+
+7. WEEKLY BARS (resampled): 144 instruments, 1140 settled forecasts each (median)
+cone                   0.804
+cone_within3           0.965
+stop                   0.193
+stop_within3           0.993
+normal_cone            0.828
+normal_cone_within3    0.458
+normal_stop            0.162
+normal_stop_within3    0.396
+dial against hold: {'sharpe': 0.493, 'risk_only_sharpe': 0.511, 'hold_sharpe': 0.505, 'dd': -0.441, 'risk_only_dd': -0.499, 'hold_dd': -0.572, 'dd_shallower': 0.979, 'sharpe_higher': 0.354, 'risk_only_sharpe_higher': 0.535}
+        cover   stop  g_cover  g_stop
+cls                                  
+us      0.800  0.196    0.828   0.162
+nse     0.802  0.192    0.811   0.161
+index   0.812  0.189    0.852   0.173
+cmdty   0.802  0.192    0.826   0.158
+fx      0.820  0.192    0.859   0.156
+bond    0.805  0.192    0.816   0.138
+crypto  0.803  0.209    0.823   0.197
+
+8. HOURLY BARS (about two years): 151 instruments, 4817 settled forecasts each (median)
+cone                   0.800
+cone_within3           1.000
+stop                   0.200
+stop_within3           1.000
+normal_cone            0.816
+normal_cone_within3    0.795
+normal_stop            0.178
+normal_stop_within3    0.722
+dial against hold: {'sharpe': 0.264, 'risk_only_sharpe': 0.317, 'hold_sharpe': 0.416, 'dd': -0.246, 'risk_only_dd': -0.298, 'hold_dd': -0.33, 'dd_shallower': 0.947, 'sharpe_higher': 0.166, 'risk_only_sharpe_higher': 0.219}
+        cover   stop  g_cover  g_stop
+cls                                  
+us      0.801  0.199    0.814   0.176
+nse     0.800  0.200    0.816   0.179
+index   0.798  0.201    0.799   0.178
+cmdty   0.801  0.200    0.832   0.173
+fx      0.800  0.201    0.832   0.181
+bond    0.797  0.203    0.793   0.187
+crypto  0.800  0.201    0.823   0.183
+
+9. THE DIAL'S SHAPE. exposure = min(cap, (average risk / risk now)^power) x trend throttle
+                             expo     sh   h_sh     dd   h_dd  sh_win  dd_win
+v                    era                                                     
+power 1, no throttle 03-26  0.906  0.556  0.534 -0.530 -0.617   0.715   0.974
+                     03-12  0.892  0.581  0.530 -0.456 -0.559   0.817   0.986
+                     13-19  0.941  0.561  0.567 -0.352 -0.372   0.440   0.867
+                     20-26  0.889  0.520  0.527 -0.380 -0.459   0.477   0.960
+power 2, no throttle 03-26  0.877  0.555  0.534 -0.506 -0.617   0.623   0.934
+                     03-12  0.853  0.603  0.530 -0.411 -0.559   0.817   0.965
+                     13-19  0.934  0.551  0.567 -0.350 -0.372   0.353   0.793
+                     20-26  0.848  0.495  0.527 -0.366 -0.459   0.411   0.914
+power 1, floor .5    03-26  0.757  0.548  0.534 -0.442 -0.617   0.589   1.000
+                     03-12  0.748  0.577  0.530 -0.371 -0.559   0.718   1.000
+                     13-19  0.787  0.527  0.567 -0.295 -0.372   0.200   0.993
+                     20-26  0.740  0.485  0.527 -0.321 -0.459   0.318   1.000
+power 1.5, floor .5  03-26  0.742  0.548  0.534 -0.431 -0.617   0.570   0.993
+                     03-12  0.730  0.587  0.530 -0.351 -0.559   0.739   1.000
+                     13-19  0.780  0.524  0.567 -0.293 -0.372   0.233   0.987
+                     20-26  0.720  0.475  0.527 -0.313 -0.459   0.272   1.000
+power 2, floor .5    03-26  0.729  0.545  0.534 -0.423 -0.617   0.536   0.993
+                     03-12  0.714  0.590  0.530 -0.337 -0.559   0.725   1.000
+                     13-19  0.775  0.521  0.567 -0.291 -0.372   0.213   0.987
+                     20-26  0.703  0.464  0.527 -0.308 -0.459   0.278   1.000
+10. WHAT THE CONE LISTENS TO. target: held 80, above 10, below 10, stops 20
+overall: instrument-eras within 3 points, and mean widths (log)
+                            ok    okL    okS      w     ws
+v                                                         
+regime only              0.941  0.991  0.984  0.131  0.133
+regime + trend           0.989  0.998  0.993  0.133  0.136
+regime + trend + ladder  1.000  0.995  0.995  0.137  0.140
+
+by TREND state when the cone was drawn
+                                held  above  below  long_stop  short_stop
+v                       trend                                            
+regime only             down   0.777  0.133  0.090      0.177       0.267
+                        flat   0.804  0.102  0.094      0.183       0.202
+                        up     0.804  0.091  0.105      0.222       0.178
+regime + trend          down   0.798  0.110  0.093      0.194       0.209
+                        flat   0.798  0.102  0.100      0.201       0.202
+                        up     0.800  0.099  0.101      0.202       0.199
+regime + trend + ladder down   0.798  0.114  0.088      0.189       0.215
+                        flat   0.798  0.102  0.100      0.201       0.202
+                        up     0.800  0.097  0.104      0.204       0.196
+
+by RISK regime
+                                   held  above  below  long_stop  short_stop
+v                       reg                                                 
+regime only             calm      0.797  0.102  0.101      0.202       0.201
+                        normal    0.795  0.104  0.100      0.201       0.204
+                        stressed  0.808  0.098  0.094      0.195       0.197
+regime + trend          calm      0.794  0.104  0.103      0.203       0.204
+                        normal    0.795  0.104  0.101      0.202       0.204
+                        stressed  0.808  0.097  0.094      0.195       0.197
+regime + trend + ladder calm      0.792  0.105  0.104      0.204       0.204
+                        normal    0.797  0.102  0.101      0.202       0.203
+                        stressed  0.810  0.096  0.094      0.194       0.195
+
+by STRETCH ladder state
+                                    held  above  below  long_stop  short_stop
+v                       lad                                                  
+regime only             other      0.801  0.101  0.098      0.198       0.199
+                        3-4 below  0.778  0.119  0.103      0.232       0.248
+                        3-4 above  0.815  0.092  0.092      0.204       0.195
+regime + trend          other      0.798  0.102  0.100      0.198       0.201
+                        3-4 below  0.791  0.100  0.109      0.255       0.202
+                        3-4 above  0.815  0.099  0.087      0.182       0.214
+regime + trend + ladder other      0.798  0.101  0.100      0.200       0.201
+                        3-4 below  0.795  0.099  0.106      0.235       0.194
+                        3-4 above  0.817  0.100  0.083      0.181       0.213
+
+by RISK MOMENTUM
+                                  held  above  below  long_stop  short_stop
+v                       rm                                                 
+regime only             steady   0.794  0.106  0.100      0.202       0.208
+                        falling  0.808  0.097  0.094      0.187       0.193
+                        rising   0.808  0.093  0.098      0.210       0.191
+regime + trend          steady   0.792  0.107  0.101      0.202       0.209
+                        falling  0.810  0.096  0.094      0.182       0.191
+                        rising   0.804  0.094  0.102      0.218       0.192
+regime + trend + ladder steady   0.792  0.107  0.101      0.204       0.210
+                        falling  0.813  0.094  0.093      0.177       0.188
+                        rising   0.800  0.095  0.105      0.222       0.192
+
+11. THE DIAL'S STEP. Act only when the dial has moved by this much. Turnover is the sum of position changes per year.
+daily
+      sharpe   hold     dd  hold_dd  turnover  sh_win  dd_win
+step                                                         
+0.00   0.493  0.492 -0.470   -0.635     4.480   0.510   0.993
+0.05   0.501  0.492 -0.465   -0.635     2.408   0.576   0.993
+0.10   0.501  0.492 -0.463   -0.635     1.577   0.570   1.000
+0.20   0.504  0.492 -0.456   -0.635     0.844   0.570   1.000
+weekly
+      sharpe   hold     dd  hold_dd  turnover  sh_win  dd_win
+step                                                         
+0.00   0.492  0.505 -0.446   -0.572     0.934   0.331   0.993
+0.05   0.494  0.505 -0.443   -0.572     0.534   0.359   0.993
+0.10   0.493  0.505 -0.441   -0.572     0.360   0.359   0.993
+0.20   0.488  0.505 -0.439   -0.572     0.201   0.352   1.000
+hourly
+      sharpe   hold     dd  hold_dd  turnover  sh_win  dd_win
+step                                                         
+0.00   0.159  0.416 -0.268    -0.33    41.697   0.073   0.848
+0.05   0.227  0.416 -0.255    -0.33    27.700   0.119   0.927
+0.10   0.264  0.416 -0.246    -0.33    19.268   0.166   0.947
+0.20   0.308  0.416 -0.238    -0.33    10.099   0.225   0.974

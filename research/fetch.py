@@ -11,18 +11,19 @@ U = {
  "bond": "TLT IEF SHY LQD HYG TIP".split(),
 }
 S = requests.Session(); S.headers["User-Agent"] = "Mozilla/5.0"
+HOURLY = len(sys.argv) > 1 and sys.argv[1] == "1h"          # python3 fetch.py 1h -> the ~730 days of hourly bars Yahoo carries, into data1h/
 def get(args):
     cls, sym = args
-    fn = f"data/{cls}/{sym.replace('^','_').replace('=','_')}.csv"
+    fn = f"{'data1h' if HOURLY else 'data'}/{cls}/{sym.replace('^','_').replace('=','_')}.csv"
     if os.path.exists(fn): return sym, "cached"
     for k in range(4):
         try:
             r = S.get(f"https://query1.finance.yahoo.com/v8/finance/chart/{requests.utils.quote(sym)}",
-                      params=dict(period1=946684800, period2=int(time.time()), interval="1d", events="div,splits"), timeout=40)
+                      params=dict(range="730d", interval="1h") if HOURLY else dict(period1=946684800, period2=int(time.time()), interval="1d", events="div,splits"), timeout=40)
             if r.status_code != 200: time.sleep(2 * (k + 1)); continue
             res = r.json()["chart"]["result"][0]; q = res["indicators"]["quote"][0]
             df = pd.DataFrame(dict(open=q["open"], high=q["high"], low=q["low"], close=q["close"], volume=q["volume"],
-                 adj=res["indicators"]["adjclose"][0]["adjclose"]), index=pd.to_datetime(res["timestamp"], unit="s").normalize())
+                 adj=q["close"] if HOURLY else res["indicators"]["adjclose"][0]["adjclose"]), index=pd.to_datetime(res["timestamp"], unit="s") if HOURLY else pd.to_datetime(res["timestamp"], unit="s").normalize())
             df = df.dropna(subset=["close"]); df = df[~df.index.duplicated()]
             os.makedirs(os.path.dirname(fn), exist_ok=True); df.to_csv(fn); return sym, len(df)
         except Exception as e: err = repr(e)[:80]; time.sleep(2 * (k + 1))

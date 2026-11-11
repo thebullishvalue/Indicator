@@ -1,17 +1,17 @@
 import os, glob, numpy as np, pandas as pd
 CLASSES = ["us", "nse", "index", "cmdty", "fx", "bond", "crypto"]
 ERAS = [("2003", "2012"), ("2013", "2019"), ("2020", "2026")]
-def load():
+def load(root="data", minbars=1500):
     out = {}
     for c in CLASSES:
-        for fn in sorted(glob.glob(f"data/{c}/*.csv")):
+        for fn in sorted(glob.glob(f"{root}/{c}/*.csv")):
             d = pd.read_csv(fn, index_col=0, parse_dates=True)
             d = d[(d.close > 0) & (d.high >= d.low)].copy()
             k = (d.adj / d.close).where(d.adj > 0, 1.0)
             for col in ["open", "high", "low", "close"]: d[col] = d[col] * k
             d["open"] = d.open.where((d.open > 0) & (np.log(d.open / d.close).abs() < 0.3), d.close)   # missing or misprinted opens
             d = d[d.close.pct_change().abs().fillna(0) < 0.6]      # bad prints
-            if len(d) > 1500: out[os.path.basename(fn)[:-4]] = (c, d)
+            if len(d) > minbars: out[os.path.basename(fn)[:-4]] = (c, d)
     return out
 def feats(d, sig_n=63):
     lc = np.log(d.close); r = lc.diff()
