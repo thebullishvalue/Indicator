@@ -1,0 +1,231 @@
+UNIVERSE: 151 instruments, daily bars, Yahoo.  us 50, nse 39, index 18, cmdty 16, fx 13, bond 6, crypto 9
+
+0. THE RISK FORECAST
+HAR weights fitted 2001-2012 (short, medium, long):  range-based [0.088 0.492 0.349]  close-close [0.076 0.509 0.453]
+mean k (close-close var / range var): 0.926
+
+OUT OF SAMPLE 2013-2026, forecasting the next 10 bars' realised variance
+                           QLIKE  R2log   bias
+cc20                       0.509  0.646  1.409
+cc63                       0.437  0.668  1.220
+ewma20                     0.451  0.669  1.328
+ewma40                     0.405  0.685  1.211
+ewma100                    0.398  0.685  1.128
+HAR close-close (fit)      0.366  0.698  1.067
+HAR range (fit) x k        0.368  0.706  1.185
+HAR range .25/.40/.35 x k  0.354  0.708  1.112
+HAR range .3/.4/.3 x k     0.356  0.707  1.129
+
+QLIKE by class (OOS)
+cls                           us    nse  index  cmdty     fx   bond  crypto
+cc20                       0.578  0.453  0.444  0.390  0.461  0.374   0.889
+cc63                       0.482  0.385  0.438  0.353  0.389  0.401   0.667
+ewma20                     0.518  0.409  0.383  0.346  0.397  0.335   0.758
+ewma40                     0.461  0.364  0.367  0.318  0.361  0.332   0.627
+ewma100                    0.441  0.348  0.398  0.325  0.370  0.373   0.560
+HAR close-close (fit)      0.409  0.330  0.335  0.299  0.345  0.317   0.527
+HAR range (fit) x k        0.414  0.329  0.336  0.302  0.343  0.306   0.540
+HAR range .25/.40/.35 x k  0.398  0.319  0.318  0.294  0.329  0.288   0.531
+HAR range .3/.4/.3 x k     0.401  0.322  0.315  0.296  0.330  0.284   0.541
+
+1. CALIBRATION  target: cone 80% (10% each tail), stop touched 20%   [mean across instruments]
+                      cover     up     dn  stopL  stopS
+kind                                                   
+fixed gaussian        0.823  0.097  0.080  0.174  0.185
+kasauti (per regime)  0.800  0.101  0.098  0.199  0.200
+one multiplier        0.800  0.100  0.100  0.200  0.200
+
+worst-case: share of instrument-eras whose realised cone coverage is within 3 points of 80%, and stop within 3 of 20%
+                         ok    okS
+kind                              
+fixed gaussian        0.607  0.569
+kasauti (per regime)  0.941  0.991
+one multiplier        0.993  1.000
+
+cone coverage by class and era
+era                          03-12  13-19  20-26
+kind                 cls                        
+fixed gaussian       bond    0.831  0.818  0.841
+                     cmdty   0.807  0.805  0.819
+                     crypto    NaN  0.816  0.814
+                     fx      0.846  0.832  0.857
+                     index   0.838  0.819  0.831
+                     nse     0.831  0.809  0.811
+                     us      0.844  0.813  0.812
+kasauti (per regime) bond    0.817  0.788  0.810
+                     cmdty   0.804  0.799  0.798
+                     crypto    NaN  0.808  0.807
+                     fx      0.820  0.793  0.812
+                     index   0.812  0.786  0.804
+                     nse     0.810  0.793  0.797
+                     us      0.811  0.788  0.793
+one multiplier       bond    0.808  0.792  0.805
+                     cmdty   0.802  0.799  0.797
+                     crypto    NaN  0.809  0.800
+                     fx      0.810  0.794  0.803
+                     index   0.805  0.793  0.802
+                     nse     0.803  0.798  0.797
+                     us      0.804  0.796  0.796
+
+long-stop touch rate by class and era
+era                          03-12  13-19  20-26
+kind                 cls                        
+fixed gaussian       bond    0.138  0.156  0.156
+                     cmdty   0.158  0.179  0.162
+                     crypto    NaN  0.172  0.179
+                     fx      0.164  0.177  0.170
+                     index   0.179  0.191  0.177
+                     nse     0.184  0.182  0.172
+                     us      0.168  0.173  0.177
+kasauti (per regime) bond    0.185  0.201  0.206
+                     cmdty   0.194  0.199  0.203
+                     crypto    NaN  0.201  0.199
+                     fx      0.187  0.211  0.196
+                     index   0.195  0.206  0.195
+                     nse     0.197  0.200  0.202
+                     us      0.194  0.203  0.203
+one multiplier       bond    0.195  0.197  0.207
+                     cmdty   0.199  0.196  0.205
+                     crypto    NaN  0.203  0.199
+                     fx      0.194  0.206  0.201
+                     index   0.196  0.203  0.201
+                     nse     0.199  0.200  0.203
+                     us      0.198  0.201  0.202
+
+spread across instruments (std of realised coverage):
+                      cover  stopL
+kind                              
+fixed gaussian        0.028  0.025
+kasauti (per regime)  0.017  0.011
+one multiplier        0.009  0.006
+
+1b. coverage by risk regime at forecast time
+                      cover                  stopL                
+reg                    calm normal stressed   calm normal stressed
+kind                                                              
+fixed gaussian        0.800  0.829    0.852  0.185  0.170    0.162
+kasauti (per regime)  0.797  0.802    0.810  0.202  0.198    0.195
+one multiplier        0.762  0.808    0.843  0.235  0.194    0.159
+per regime eta .01    0.796  0.806    0.818  0.201  0.196    0.190
+per regime eta .05    0.798  0.800    0.804  0.201  0.200    0.198
+
+instrument-eras within 3 points of target, and mean cone width (log)
+                         ok    okS  cover  stopL      w
+kind                                                   
+fixed gaussian        0.607  0.569  0.823  0.174  0.140
+kasauti (per regime)  0.941  0.991  0.800  0.199  0.134
+one multiplier        0.993  1.000  0.800  0.200  0.137
+per regime eta .01    0.878  0.964  0.803  0.197  0.134
+per regime eta .05    0.989  0.998  0.799  0.200  0.140
+
+the usual alternative - a k x ATR(14) stop: share of the time it is touched within 10 bars
+      mean    std    min    max
+m                              
+1.5  0.426  0.034  0.270  0.524
+2.0  0.307  0.038  0.171  0.437
+3.0  0.153  0.035  0.053  0.285
+cls
+bond      0.312
+cmdty     0.354
+crypto    0.299
+fx        0.276
+index     0.357
+nse       0.275
+us        0.307
+
+2. EXPOSURE DIAL vs BUY AND HOLD   full sample, mean across 151 instruments, net of costs, one-bar delay
+                          expo     sh   h_sh   cagr  h_cagr    vol  h_vol     dd   h_dd  calmar  h_calmar  sh>hold  dd<hold  calmar>hold
+v                                                                                                                                       
+risk dial, cap 1.0       0.944  0.555  0.534  0.126    0.13  0.275  0.318 -0.545 -0.617   0.229     0.209    0.689    0.921        0.682
+risk dial, cap 1.5       1.197  0.549  0.534  0.141    0.13  0.331  0.318 -0.620 -0.617   0.233     0.209    0.576    0.517        0.623
+risk dial, cap 2.0       1.266  0.541  0.534  0.143    0.13  0.344  0.318 -0.660 -0.617   0.231     0.209    0.570    0.457        0.589
+risk x trend, floor .5   0.770  0.540  0.534  0.109    0.13  0.224  0.318 -0.451 -0.617   0.235     0.209    0.517    0.993        0.682
+risk x trend, floor .25  0.682  0.518  0.534  0.098    0.13  0.201  0.318 -0.410 -0.617   0.230     0.209    0.391    0.993        0.603
+risk x trend, floor 0    0.595  0.482  0.534  0.086    0.13  0.183  0.318 -0.385 -0.617   0.214     0.209    0.272    0.987        0.477
+
+by era: Sharpe followed / hold, maxDD followed / hold, share of instruments with shallower DD and with higher Sharpe
+                                  sh   h_sh     dd   h_dd  dd_win  sh_win
+v                       era                                              
+risk dial, cap 1.0      03-12  0.578  0.530 -0.469 -0.559   0.944   0.803
+                        13-19  0.557  0.567 -0.364 -0.372   0.600   0.380
+                        20-26  0.522  0.527 -0.392 -0.459   0.887   0.490
+risk dial, cap 1.5      03-12  0.596  0.530 -0.512 -0.559   0.711   0.810
+                        13-19  0.536  0.567 -0.446 -0.372   0.073   0.313
+                        20-26  0.493  0.527 -0.445 -0.459   0.497   0.338
+risk dial, cap 2.0      03-12  0.593  0.530 -0.526 -0.559   0.683   0.761
+                        13-19  0.519  0.567 -0.471 -0.372   0.060   0.313
+                        20-26  0.487  0.527 -0.452 -0.459   0.464   0.291
+risk x trend, floor .5  03-12  0.562  0.530 -0.379 -0.559   1.000   0.683
+                        13-19  0.514  0.567 -0.299 -0.372   0.987   0.180
+                        20-26  0.485  0.527 -0.324 -0.459   1.000   0.338
+risk x trend, floor .25 03-12  0.541  0.530 -0.338 -0.559   0.993   0.542
+                        13-19  0.477  0.567 -0.271 -0.372   0.987   0.173
+                        20-26  0.450  0.527 -0.297 -0.459   1.000   0.245
+risk x trend, floor 0   03-12  0.505  0.530 -0.305 -0.559   0.986   0.458
+                        13-19  0.424  0.567 -0.250 -0.372   0.967   0.153
+                        20-26  0.400  0.527 -0.284 -0.459   0.993   0.185
+
+by class (full sample)
+                                 sh  h_sh    dd  h_dd  sh_win
+v                      cls                                   
+risk dial, cap 1.0     bond    0.66  0.61 -0.20 -0.25    0.83
+                       cmdty   0.35  0.33 -0.65 -0.72    0.69
+                       crypto  0.65  0.68 -0.85 -0.88    0.22
+                       fx      0.09  0.11 -0.36 -0.39    0.31
+                       index   0.53  0.50 -0.43 -0.54    0.78
+                       nse     0.72  0.70 -0.63 -0.68    0.77
+                       us      0.59  0.56 -0.52 -0.62    0.76
+risk x trend, floor .5 bond    0.66  0.61 -0.16 -0.25    0.83
+                       cmdty   0.33  0.33 -0.57 -0.72    0.44
+                       crypto  0.69  0.68 -0.74 -0.88    0.44
+                       fx      0.07  0.11 -0.30 -0.39    0.23
+                       index   0.51  0.50 -0.33 -0.54    0.61
+                       nse     0.71  0.70 -0.52 -0.68    0.59
+                       us      0.56  0.56 -0.42 -0.62    0.50
+
+3. THE NINE STATES, pooled: next-10-bar return in sigma, minus the group mean of that era (x100)   [share of bars, t clustered by date]
+                   share   all     t  03-12  13-19  20-26
+down · broke down   0.03 -0.51 -0.13  -3.23   6.18  -2.88
+down · inside       0.11  0.02  0.01  -4.83   0.84   8.19
+down · broke up     0.01  4.95  1.01   7.57  -3.05   7.99
+flat · broke down   0.05 -3.85 -0.86  -3.88   4.77 -12.55
+flat · inside       0.33 -0.84 -0.58  -1.18  -0.76  -0.37
+flat · broke up     0.03  0.95  0.50   4.17  -2.84  -0.07
+up · broke down     0.02 -0.93 -0.27  -4.11   6.66  -4.57
+up · inside         0.35  0.93  0.62   2.68  -0.56  -0.14
+up · broke up       0.06  1.76  0.94   4.35  -1.31   1.52
+
+crypto
+                     all     t       n
+down · broke down -13.07 -1.09  1051.0
+down · inside      -6.44 -0.85  6501.0
+down · broke up    -1.56 -0.09   170.0
+flat · broke down  -4.36 -0.61  1216.0
+flat · inside      -2.94 -0.51  8764.0
+flat · broke up     8.82  1.00  1066.0
+up · broke down     1.32  0.17   456.0
+up · inside         4.40  0.76  7758.0
+up · broke up      27.04  3.15  1582.0
+
+4. THE LEDGER, OUT OF SAMPLE. Entries into a state the chart's own history had already 'proven' - what the next 10 bars did (sigma x100: raw, and against the group's mean)
+               n  instruments    raw  vs_group   hit
+proven                                              
+-1          81.0          6.0   0.08     -7.86  0.53
+ 0      155426.0        151.0   6.36     -0.49  0.55
+ 1         170.0          6.0  14.26      6.71  0.54
+by era
+               mean   size
+proven era                
+-1     03-12   1.60     10
+       13-19  -5.82     30
+       20-26   4.02     41
+ 0     03-12   4.88  65881
+       13-19   9.21  44382
+       20-26   5.72  45163
+ 1     03-12  44.83      2
+       13-19  26.89     65
+       20-26   5.69    103
+
+share of bars on which the current state reads proven: 0.0017  +: 0.0011  -: 0.0006
+random-walk control (should be ~4.6% by chance at |z|>=2 without shrinkage, far less with):
+ proven share on random walks: 0.0046

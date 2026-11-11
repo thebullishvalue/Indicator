@@ -1,0 +1,515 @@
+// This Pine Script® code is subject to the terms of the Mozilla Public License 2.0 at https://mozilla.org/MPL/2.0/
+// © BullishValue
+
+//@version=6
+// ═══════════════════════════════════════════════════════════════════════════
+//  KASAUTI · कसौटी  ·  CALIBRATED RISK, EXPOSURE AND SELF-AUDIT              v1.0
+//  "How far can it go, how much should I hold - and has that been true here?"
+//
+//  Kasauti is the touchstone: the black stone a goldsmith rubs metal on to see
+//  what it is. This script forecasts only what the data says can be forecast,
+//  states every forecast as a probability, and then tests itself on the chart.
+//
+//  WHY IT IS NOT AN OSCILLATOR. Measured first (research/, 151 instruments in
+//  seven classes, daily bars 2001-2026, three eras): no price or volume state
+//  tried - trend, stretch, dips, volume, overnight against session, efficiency
+//  - led the next 10 bars in a way that held in all three eras. What IS
+//  forecastable is RISK: the next 10 bars' variance is predicted out of sample
+//  with a log R² of 0.71. So this script forecasts risk and turns it into the
+//  three numbers a position needs: how far, how much, and where it is wrong.
+//
+//  WHAT IT DRAWS
+//    ON THE PRICE CHART
+//      CONE        where the close should land H bars from now, with the stated
+//                  probability (80% by default). Drawn forward from the last bar.
+//      LANDING     the cone that was drawn H bars ago, plotted at today's bar:
+//                  price outside it is a SURPRISE - by construction it happens
+//                  on the stated share of bars, no more and no fewer.
+//      STOPS       the level a long (short) stop must sit at to be TOUCHED
+//                  within H bars with the stated probability (20%), drawn
+//                  across the cone.
+//    IN THE PANE (one of three views)
+//      SURPRISE    the realised H-bar move divided by the forecast made H bars
+//                  ago, against the calibrated bands. An oscillator whose
+//                  extremes are a measured frequency, not a convention.
+//      EXPOSURE    the dial: how much of a full position to hold now.
+//      PROOF       this chart's own record: following the dial against buy
+//                  and hold, net of costs, one bar late.
+//    THE TABLE     risk, cone, stops and size, exposure, the state's ledger,
+//                  the calibration record and the proof - all for this chart.
+//
+//  HOW IT WORKS
+//    RISK      per-bar variance from the bar's whole range and its gap
+//              (Garman-Klass), blended over three horizons - 0.25 · 5-bar +
+//              0.40 · 22-bar + 0.35 · 252-bar - and rescaled to close-to-close.
+//              Beats a 20-bar standard deviation by 30% (QLIKE) out of sample.
+//    CONE      close · exp(± q · σ · √H). q is not a normal quantile: it is
+//              LEARNED. Every bar the forecast made H bars ago is settled; a
+//              miss widens q, a hit narrows it, in the ratio that makes the
+//              miss rate converge on the target (adaptive conformal
+//              inference). One q per side and per risk regime (calm, normal,
+//              stressed), so skew and fat tails are measured, not assumed.
+//    STOPS     the same, settled on the lowest low (highest high) of the H
+//              bars instead of the last close.
+//    EXPOSURE  risk dial = the instrument's own average risk / risk now,
+//              capped. Optional trend throttle between a floor and 1.
+//    LEDGER    nine states - trend down / flat / up × the surprise below /
+//              inside / above the cone. For each, the next H bars' return in
+//              σ, against this chart's own mean, shrunk toward "no edge". A
+//              state is called PROVEN only past two posterior σ.
+//
+//  MEASURED (research/results.txt; the Python port is research/kasauti.py)
+//    CALIBRATION   cone 80%: realised 80.1% across instruments; within 3 points
+//                  of target in 94% of instrument-eras (a fixed normal band:
+//                  61%). Stop 20%: realised 19.9%, within 3 points in 99%. A
+//                  2 × ATR(14) stop is touched anywhere from 17% to 44% of the
+//                  time depending on the instrument.
+//    EXPOSURE      risk dial alone: Sharpe 0.56 against 0.53 for buy and hold,
+//                  drawdown shallower on 92% of instruments. With the trend
+//                  throttle (default): Sharpe 0.54, mean worst drawdown −45%
+//                  against −62%, shallower on 99% of instruments in every era.
+//                  After 2013 neither beats buy and hold on Sharpe: this is
+//                  risk control, not a return engine.
+//    LEDGER        pooled, no state has |t| > 1.1 outside crypto. On a daily
+//                  chart almost every state will read UNPROVEN. That is the
+//                  finding, not a fault.
+//
+//  WHAT IT WILL NOT DO. It does not call direction. The cone is symmetric in
+//  probability, not a target. Calibration is a long-run frequency: a cone can
+//  miss several times in a row inside one shock. Stocks in the study are
+//  today's large caps, which flatters buy and hold and the dial alike.
+//
+//  REPAINT POSTURE. Everything is computed from the chart's own bars; nothing
+//  is requested. Values on the forming bar move until it closes; history and
+//  realtime compute the same numbers. Alerts fire on closed bars.
+// ═══════════════════════════════════════════════════════════════════════════
+indicator("Kasauti · Calibrated Risk, Exposure and Self-Audit", shorttitle = "Kasauti", overlay = false,
+     precision = 2, max_lines_count = 20, max_labels_count = 20, max_polylines_count = 5)
+
+// ───────────────────────────────────────────────────────────────────────────
+//  INPUTS
+// ───────────────────────────────────────────────────────────────────────────
+var string G_R = "1 · Risk forecast"
+var string G_E = "2 · Exposure"
+var string G_L = "3 · Ledger"
+var string G_D = "4 · Display"
+
+int    inpH     = input.int(10, "Horizon · H (bars)", minval = 2, maxval = 60, group = G_R, tooltip = "How far ahead every forecast looks. The cone is where the close should be H bars from now; a stop's probability is of being touched within H bars; the ledger scores the next H bars.\n\nEvery number in the study was measured at 10.")
+float  inpCover = input.float(80.0, "Cone coverage (%)", minval = 50.0, maxval = 98.0, step = 5.0, group = G_R, tooltip = "The share of the time the close H bars ahead should land inside the cone. The remainder is split equally above and below.\n\nThe cone LEARNS its width until this is true on this chart - the table's calibration row shows how close it is.")
+float  inpStop  = input.float(20.0, "Stop touch probability (%)", minval = 5.0, maxval = 50.0, step = 5.0, group = G_R, tooltip = "The long stop is the level price trades DOWN to within H bars this share of the time; the short stop mirrors it above.\n\nA tighter stop is touched more often. 20% means four holds in five reach the horizon untouched.")
+float  inpEta   = input.float(0.02, "Calibration speed", minval = 0.005, maxval = 0.10, step = 0.005, group = G_R, tooltip = "How far one settled forecast moves the learned width. Higher adapts faster and holds its target more tightly, at the cost of a wider, jumpier cone.\n\nMeasured at 0.01, 0.02 and 0.05: all calibrate; 0.02 gave the narrowest cone that still held its target.")
+bool   inpReg   = input.bool(true, "Calibrate per risk regime", group = G_R, tooltip = "Keep a separate learned width for calm, normal and stressed markets (risk in the bottom, middle or top third of its last 500 bars).\n\nMeasured: with a width per regime the cone held 80%, 80% and 81% in calm, normal and stressed markets, and was narrower on average than one width for all.")
+
+string inpMode  = input.string("Risk × trend", "Exposure dial", options = ["Risk × trend", "Risk only"], group = G_E, tooltip = "RISK ONLY - the instrument's own average risk divided by its risk now, capped. Hold less when the instrument is wilder than usual. Measured: the same return per unit of risk as buy and hold or a little better, drawdown shallower on 92% of instruments.\n\nRISK × TREND (default) - the same, multiplied by a trend throttle between the floor and 1. Measured: the worst drawdown about a quarter shallower than buy and hold, on 99% of instruments in every era, for about 0.02-0.05 of Sharpe after 2013. Insurance, with its premium stated.")
+float  inpCap   = input.float(1.0, "    Cap", minval = 0.25, maxval = 3.0, step = 0.25, group = G_E, tooltip = "The most the dial may read. 1.0 never levers: the dial only ever takes risk off.\n\nMeasured at 1.5 and 2.0: return rises with exposure but the drawdown advantage disappears.")
+float  inpFloor = input.float(0.5, "    Trend floor", minval = 0.0, maxval = 1.0, step = 0.25, group = G_E, tooltip = "The least the trend throttle may cut to. 0.5: a full downtrend halves the position, never closes it.\n\nMeasured: 0.5 kept buy and hold's Sharpe; 0.25 and 0 gave shallower drawdowns still and lost Sharpe on most instruments.")
+float  inpCost  = input.float(5.0, "    Cost (bp per unit of turnover)", minval = 0.0, maxval = 100.0, step = 1.0, group = G_E, tooltip = "Charged in the PROOF every time the dial changes, on the size of the change. 5 bp is what the study used; 10 for crypto.")
+float  inpRisk  = input.float(1.0, "Risk per trade (% of equity)", minval = 0.1, maxval = 10.0, step = 0.1, group = G_E, tooltip = "Used only for the table's size: the position, as a share of equity, that loses this much if the stop is touched.")
+
+float  inpTau   = input.float(0.10, "Prior · how large an edge is believable (σ)", minval = 0.02, maxval = 0.50, step = 0.01, group = G_L, tooltip = "The ledger starts from the belief that a state has NO edge, and that a real one is of this size, in σ over H bars. Evidence has to overcome that belief before a state reads PROVEN.\n\n0.10 is generous: pooled across 151 instruments the largest state edge outside crypto was 0.05. On random walks the ledger then calls a state proven on 0.5% of bars.")
+bool   inpMark  = input.bool(true, "Mark entries into a proven state", group = G_L, tooltip = "A small triangle on the price chart on the first bar of a state this chart's own history has proven - up for a positive edge, down for a negative one. Rare by design.")
+
+string inpPane  = input.string("Surprise", "Pane", options = ["Surprise", "Exposure", "Proof"], group = G_D, tooltip = "SURPRISE - the realised H-bar move divided by the forecast made H bars ago, against the calibrated bands.\n\nEXPOSURE - the dial.\n\nPROOF - cumulative growth, in log %, of following the dial against buy and hold on this chart: one bar late and net of the cost above.")
+bool   inpCone  = input.bool(true, "Forward cone", group = G_D, tooltip = "The cone drawn from the last bar to H bars ahead, with the stops across it.")
+bool   inpLand  = input.bool(true, "Landing band", group = G_D, tooltip = "The cone that was drawn H bars ago, plotted at each bar. A close outside it is a surprise.")
+bool   inpTrail = input.bool(false, "Stop history", group = G_D, tooltip = "Draws where the long and short stops stood on every past bar. Off by default: the current stops are always drawn across the forward cone and listed in the table.")
+bool   inpTbl   = input.bool(true, "Table", group = G_D)
+string inpPos   = input.string("Top right", "    Position", options = ["Top right", "Bottom right", "Top left", "Bottom left"], group = G_D)
+string inpTheme = input.string("Auto", "Palette", options = ["Auto", "Light", "Dark"], group = G_D)
+
+// ───────────────────────────────────────────────────────────────────────────
+//  PALETTE
+// ───────────────────────────────────────────────────────────────────────────
+float bgLum    = color.r(chart.bg_color) * 0.299 + color.g(chart.bg_color) * 0.587 + color.b(chart.bg_color) * 0.114
+bool  darkMode = inpTheme == "Dark" or (inpTheme == "Auto" and bgLum < 128)
+color C_UP    = darkMode ? #3FB980 : #08724A
+color C_DN    = darkMode ? #E4776A : #A8443A
+color C_NEUT  = darkMode ? #8A97A0 : #69757E
+color C_CONE  = darkMode ? #5B8FD6 : #2C5C99
+color C_GOLD  = darkMode ? #CFC257 : #7A6B15
+color C_TEXT  = darkMode ? #C9D1D6 : #2B3338
+color C_PANEL = darkMode ? color.new(#0D1215, 8) : color.new(#FFFFFF, 6)
+
+// ───────────────────────────────────────────────────────────────────────────
+//  HELPERS
+// ───────────────────────────────────────────────────────────────────────────
+f_tanh(float x) =>
+    float xc = math.max(-10.0, math.min(10.0, x))
+    float e  = math.exp(2.0 * xc)
+    (e - 1.0) / (e + 1.0)
+
+// Inverse normal CDF (Acklam), accurate to 2e-9. Used once, to start the
+// learned widths where a normal distribution would put them.
+f_invTail(float q) =>
+    (((((-7.784894002430293e-03 * q - 3.223964580411365e-01) * q - 2.400758277161838) * q - 2.549732539343734) * q + 4.374664141464968) * q + 2.938163982698783) /
+     ((((7.784695709041462e-03 * q + 3.224671290700398e-01) * q + 2.445134137142996) * q + 3.754408661907416) * q + 1.0)
+f_invNorm(float p) =>
+    float x = 0.0
+    if p < 0.02425
+        x := f_invTail(math.sqrt(-2.0 * math.log(p)))
+    else if p > 1.0 - 0.02425
+        x := -f_invTail(math.sqrt(-2.0 * math.log(1.0 - p)))
+    else
+        float q = p - 0.5
+        float r = q * q
+        x := (((((-3.969683028665376e+01 * r + 2.209460984245205e+02) * r - 2.759285104469687e+02) * r + 1.383577518672690e+02) * r - 3.066479806614716e+01) * r + 2.506628277459239) * q /
+             (((((-5.447609879822406e+01 * r + 1.615858368580409e+02) * r - 1.556989798598866e+02) * r + 6.680131188771972e+01) * r - 1.328068155288572e+01) * r + 1.0)
+    x
+
+f_pct(float x, string fmt) => na(x) ? "—" : str.tostring(100.0 * x, fmt) + "%"
+f_num(float x, string fmt) => na(x) ? "—" : str.tostring(x, fmt)
+f_px(float x)              => na(x) ? "—" : str.tostring(x, format.mintick)
+
+// ═══════════════════════════════════════════════════════════════════════════
+//  1 · THE RISK FORECAST
+//
+//  One bar's variance from its whole range and its gap (Garman-Klass), which
+//  uses about five times the information of a squared close-to-close return.
+//  Three horizons blended with fixed weights, then rescaled so the level
+//  matches close-to-close variance on this instrument. The weights are round
+//  numbers near a fit on 2001-2012 and beat that fit on 2013-2026.
+// ═══════════════════════════════════════════════════════════════════════════
+const int WARM = 252
+const int RN   = 500
+
+float lc = math.log(close)
+float lo = math.log(open)
+float r1 = lc - lc[1]
+float gp = lo - lc[1]
+float co = lc - lo
+float hl = math.log(high) - math.log(low)
+float gk = gp * gp + 0.5 * hl * hl - (2.0 * math.log(2.0) - 1.0) * co * co
+float v  = hl > 0.0 and gk > 0.0 ? gk : r1 * r1            // a bar with no range falls back to its squared return
+float vS = ta.ema(v, 5)
+float vM = ta.ema(v, 22)
+float vL = ta.ema(v, 252)
+float rL = ta.ema(r1 * r1, 252)
+float kk = vL > 0.0 ? math.max(0.5, math.min(2.0, rL / vL)) : 1.0
+float s0 = bar_index >= WARM ? math.sqrt(kk * (0.25 * vS + 0.40 * vM + 0.35 * vL)) : na
+float sig = s0 > 0.0 ? s0 : na                              // risk per bar, in log return
+float sH  = sig * math.sqrt(inpH)                           // risk over the horizon
+
+// The risk regime: where this bar's risk stands among the last RN bars.
+float prk = ta.percentrank(sig, RN)
+int   reg = inpReg and bar_index >= WARM + RN and not na(prk) ? (prk < 100.0 / 3.0 ? 0 : prk < 200.0 / 3.0 ? 1 : 2) : 1
+
+// Trend, in σ: the move over a quarter, a half and a whole year of bars, each
+// divided by what today's risk says such a move should be.
+float T = ((lc - lc[63]) / (sig * math.sqrt(63.0)) + (lc - lc[126]) / (sig * math.sqrt(126.0)) + (lc - lc[252]) / (sig * math.sqrt(252.0))) / 3.0
+
+// ═══════════════════════════════════════════════════════════════════════════
+//  2 · THE CONE AND THE STOPS · LEARNED WIDTHS
+//
+//  Each bar settles the forecast made H bars ago. u is where the close landed,
+//  wS and wR how far the lows and highs reached, all in units of that
+//  forecast's own σ. Each width q then moves by
+//
+//      q ← q · exp( η · ( miss − target ) )
+//
+//  so it rises on a miss and falls on a hit in exactly the ratio at which the
+//  miss rate equals the target. No distribution is assumed.
+// ═══════════════════════════════════════════════════════════════════════════
+float aTail = (1.0 - inpCover / 100.0) / 2.0
+float pTch  = inpStop / 100.0
+float zInit = f_invNorm(1.0 - aTail)
+float sInit = f_invNorm(1.0 - pTch / 2.0)                   // a Brownian path touches −b with probability 2·Φ(−b)
+
+var array<float> aU = array.new_float(3, zInit)             // cone, upper side, per regime
+var array<float> aD = array.new_float(3, zInit)             // cone, lower side
+var array<float> aS = array.new_float(3, sInit)             // long stop
+var array<float> aR = array.new_float(3, sInit)             // short stop
+
+float qU = na
+float qD = na
+float qS = na
+float qR = na
+
+float u  = (lc - lc[inpH]) / sH[inpH]
+float wS = (math.log(ta.lowest(low, inpH))   - lc[inpH]) / sH[inpH]
+float wR = (math.log(ta.highest(high, inpH)) - lc[inpH]) / sH[inpH]
+
+bool settled = not na(u) and not na(qU[inpH])
+bool mU = settled and u  >  qU[inpH]                        // closed above the cone
+bool mD = settled and u  < -qD[inpH]                        // closed below it
+bool mS = settled and wS < -qS[inpH]                        // the long stop was touched
+bool mR = settled and wR >  qR[inpH]                        // the short stop was touched
+
+var int nF  = 0
+var int nMU = 0
+var int nMD = 0
+var int nMS = 0
+var int nMR = 0
+
+// ═══════════════════════════════════════════════════════════════════════════
+//  3 · THE LEDGER
+//
+//  Nine states. For each, every bar spent in it is scored H bars later by the
+//  return from the NEXT bar's open to that close, in the forecast's σ, clipped
+//  at ±6 so one bad print cannot own a state. Samples are counted as
+//  independent only when their signal bars are at least H apart.
+// ═══════════════════════════════════════════════════════════════════════════
+var array<float> lCnt  = array.new_float(9, 0.0)
+var array<float> lMean = array.new_float(9, 0.0)
+var array<float> lEff  = array.new_float(9, 0.0)
+var array<int>   lLast = array.new_int(9, -1000000000)
+var int   gN = 0
+var float gM = 0.0
+var float gQ = 0.0
+
+int   st = -1
+float yRaw = (lc - lo[inpH - 1]) / sH[inpH]
+float y    = na(yRaw) ? na : math.max(-6.0, math.min(6.0, yRaw))
+int   regPrev = reg[inpH]
+int   stPrev  = st[inpH]
+
+if settled
+    int j = regPrev
+    array.set(aU, j, array.get(aU, j) * math.exp(inpEta * ((mU ? 1.0 : 0.0) - aTail)))
+    array.set(aD, j, array.get(aD, j) * math.exp(inpEta * ((mD ? 1.0 : 0.0) - aTail)))
+    array.set(aS, j, array.get(aS, j) * math.exp(inpEta * ((mS ? 1.0 : 0.0) - pTch)))
+    array.set(aR, j, array.get(aR, j) * math.exp(inpEta * ((mR ? 1.0 : 0.0) - pTch)))
+    nF  += 1
+    nMU += mU ? 1 : 0
+    nMD += mD ? 1 : 0
+    nMS += mS ? 1 : 0
+    nMR += mR ? 1 : 0
+    int sPrev = stPrev
+    if sPrev >= 0 and not na(y)
+        float c1 = array.get(lCnt, sPrev) + 1.0
+        array.set(lCnt, sPrev, c1)
+        array.set(lMean, sPrev, array.get(lMean, sPrev) + (y - array.get(lMean, sPrev)) / c1)
+        gN += 1
+        float dlt = y - gM
+        gM += dlt / gN
+        gQ += dlt * (y - gM)
+        if bar_index - inpH - array.get(lLast, sPrev) >= inpH
+            array.set(lEff, sPrev, array.get(lEff, sPrev) + 1.0)
+            array.set(lLast, sPrev, bar_index - inpH)
+
+if not na(sig)
+    qU := array.get(aU, reg)
+    qD := array.get(aD, reg)
+    qS := array.get(aS, reg)
+    qR := array.get(aR, reg)
+
+int trS = T > 0.5 ? 2 : T < -0.5 ? 0 : 1
+int cnS = mU ? 2 : mD ? 0 : 1
+if settled and not na(T)
+    st := 3 * trS + cnS
+
+// This state's record so far, against the chart's own mean, shrunk toward zero.
+float lEdge = na
+float lPost = na
+float lZ    = na
+float lN    = st >= 0 ? array.get(lCnt, st) : na
+float lNe   = st >= 0 ? array.get(lEff, st) : na
+float lMu   = st >= 0 ? array.get(lMean, st) : na
+if st >= 0 and lNe >= 5.0 and gN > 30 * inpH
+    float se2 = gQ / (gN - 1) / lNe
+    float shr = inpTau * inpTau / (inpTau * inpTau + se2)
+    lEdge := lMu - gM
+    lPost := shr * lEdge
+    lZ    := lEdge * math.sqrt(shr / se2)
+int  proven   = lZ >= 2.0 ? 1 : lZ <= -2.0 ? -1 : 0
+bool stEnter  = st >= 0 and st != st[1]
+bool provenUp = barstate.isconfirmed and stEnter and proven ==  1
+bool provenDn = barstate.isconfirmed and stEnter and proven == -1
+
+// ═══════════════════════════════════════════════════════════════════════════
+//  4 · LEVELS
+// ═══════════════════════════════════════════════════════════════════════════
+float upper = close * math.exp( qU * sH)
+float lower = close * math.exp(-qD * sH)
+float stopL = close * math.exp(-qS * sH)
+float stopS = close * math.exp( qR * sH)
+
+// ═══════════════════════════════════════════════════════════════════════════
+//  5 · THE EXPOSURE DIAL
+//
+//  The instrument's own average risk so far, over its risk now: one when the
+//  instrument is as wild as it usually is, less when it is wilder. The trend
+//  throttle runs from the floor in a full downtrend to 1 in a full uptrend.
+// ═══════════════════════════════════════════════════════════════════════════
+var float sumSig = 0.0
+var int   nSig   = 0
+if not na(sig)
+    sumSig += sig
+    nSig   += 1
+float sigStar = nSig > 0 ? sumSig / nSig : na
+float dialR   = na(sig) ? na : math.min(inpCap, sigStar / sig)
+float dialT   = inpMode == "Risk only" ? 1.0 : na(T) ? na : inpFloor + (1.0 - inpFloor) * (0.5 + 0.5 * f_tanh(T))
+float E       = na(T) ? na : dialR * dialT
+
+// ═══════════════════════════════════════════════════════════════════════════
+//  6 · THE PROOF
+//
+//  The dial read at the close of bar t−2 is the position held over bar t: one
+//  full bar to act on it. Costs are charged on every change. Buy and hold is
+//  scored over the same bars.
+// ═══════════════════════════════════════════════════════════════════════════
+float ret = close / close[1] - 1.0
+float e2  = E[2]
+float e3  = E[3]
+float pF  = na(e2) ? na : e2 * ret - inpCost / 10000.0 * math.abs(e2 - nz(e3, 0.0))
+float pH  = na(e2) ? na : ret
+
+var int   nP   = 0
+var int   tP   = na
+var float sF   = 0.0
+var float sF2  = 0.0
+var float sHd  = 0.0
+var float sHd2 = 0.0
+var float eqF  = 1.0
+var float eqH  = 1.0
+var float pkF  = 1.0
+var float pkH  = 1.0
+var float ddF  = 0.0
+var float ddH  = 0.0
+if not na(pF) and not na(pH)
+    if na(tP)
+        tP := time
+    nP   += 1
+    sF   += pF
+    sF2  += pF * pF
+    sHd  += pH
+    sHd2 += pH * pH
+    eqF  *= 1.0 + pF
+    eqH  *= 1.0 + pH
+    pkF  := math.max(pkF, eqF)
+    pkH  := math.max(pkH, eqH)
+    ddF  := math.min(ddF, eqF / pkF - 1.0)
+    ddH  := math.min(ddH, eqH / pkH - 1.0)
+
+float yrs   = na(tP) ? na : (time - tP) / 31557600000.0
+float bpy   = yrs > 0.0 ? nP / yrs : na                     // bars per year, measured on this chart
+float sdF   = nP > 1 ? math.sqrt(math.max(sF2 / nP - math.pow(sF / nP, 2), 0.0)) : na
+float sdHd  = nP > 1 ? math.sqrt(math.max(sHd2 / nP - math.pow(sHd / nP, 2), 0.0)) : na
+float shF   = sdF  > 0.0 ? sF  / nP / sdF  * math.sqrt(bpy) : na
+float shH   = sdHd > 0.0 ? sHd / nP / sdHd * math.sqrt(bpy) : na
+float cagF  = yrs > 0.0 and eqF > 0.0 ? math.pow(eqF, 1.0 / yrs) - 1.0 : na
+float cagH  = yrs > 0.0 and eqH > 0.0 ? math.pow(eqH, 1.0 / yrs) - 1.0 : na
+
+// ═══════════════════════════════════════════════════════════════════════════
+//  7 · THE PANE
+// ═══════════════════════════════════════════════════════════════════════════
+bool vSur = inpPane == "Surprise"
+bool vExp = inpPane == "Exposure"
+bool vPrf = inpPane == "Proof"
+
+color cTr  = trS == 2 ? C_UP : trS == 0 ? C_DN : C_NEUT
+color cCol = mU or mD ? color.new(cTr, 0) : color.new(cTr, 55)
+plot(vSur ? u : na,               "Surprise (σ)",           cCol, 1, plot.style_columns)
+plot(vSur ? qU[inpH] : na,        "Calibrated upper band",  color.new(C_CONE, 20), 1)
+plot(vSur ? -qD[inpH] : na,       "Calibrated lower band",  color.new(C_CONE, 20), 1)
+plot(vSur ? 0.0 : na,             "Zero",                   color.new(C_NEUT, 60), 1)
+
+plot(vExp ? E : na,               "Exposure",               color.new(C_CONE, 0), 2, plot.style_stepline)
+plot(vExp ? dialR : na,           "Risk dial alone",        color.new(C_NEUT, 40), 1, plot.style_stepline)
+plot(vExp ? 1.0 : na,             "Full position",          color.new(C_NEUT, 70), 1)
+
+plot(vPrf and nP > 0 ? 100.0 * math.log(eqF) : na, "Following the dial (log %)", color.new(C_CONE, 0), 2)
+plot(vPrf and nP > 0 ? 100.0 * math.log(eqH) : na, "Buy and hold (log %)",       color.new(C_NEUT, 20), 1)
+
+// ── on the price chart ────────────────────────────────────────────────────
+plot(inpLand ? upper[inpH] : na,  "Landing band · upper",   color.new(C_CONE, 45), 1, force_overlay = true)
+plot(inpLand ? lower[inpH] : na,  "Landing band · lower",   color.new(C_CONE, 45), 1, force_overlay = true)
+plot(inpTrail ? stopL : na,       "Long stop history",              color.new(C_DN, 55), 1, plot.style_stepline, force_overlay = true)
+plot(inpTrail ? stopS : na,       "Short stop history",             color.new(C_UP, 55), 1, plot.style_stepline, force_overlay = true)
+plotshape(inpMark and provenUp,   "Entered a proven state · positive", shape.triangleup,   location.belowbar, C_UP, size = size.tiny, force_overlay = true)
+plotshape(inpMark and provenDn,   "Entered a proven state · negative", shape.triangledown, location.abovebar, C_DN, size = size.tiny, force_overlay = true)
+
+// ── the forward cone ──────────────────────────────────────────────────────
+var polyline plCone = na
+var line     lnL    = na
+var line     lnS    = na
+var array<label> lbs = array.new<label>()
+
+f_tag(float py, string txt, color c) =>
+    label.new(bar_index + inpH + 1, py, txt, xloc = xloc.bar_index, color = color.new(c, 100), style = label.style_label_left,
+         textcolor = c, size = size.small, force_overlay = true)
+
+if barstate.islast
+    polyline.delete(plCone)
+    line.delete(lnL)
+    line.delete(lnS)
+    while array.size(lbs) > 0
+        label.delete(array.pop(lbs))
+    if inpCone and not na(sig) and not na(qU)
+        array<chart.point> pts = array.new<chart.point>()
+        for i = 0 to inpH
+            array.push(pts, chart.point.from_index(bar_index + i, close * math.exp(qU * sig * math.sqrt(i))))
+        for i = inpH to 0
+            array.push(pts, chart.point.from_index(bar_index + i, close * math.exp(-qD * sig * math.sqrt(i))))
+        plCone := polyline.new(pts, curved = false, closed = true, xloc = xloc.bar_index, line_color = color.new(C_CONE, 30),
+             fill_color = color.new(C_CONE, 88), line_width = 1, force_overlay = true)
+        array.push(lbs, f_tag(upper, str.tostring(inpCover / 2.0 + 50.0, "#") + "% below " + f_px(upper), C_CONE))
+        array.push(lbs, f_tag(lower, str.tostring(inpCover / 2.0 + 50.0, "#") + "% above " + f_px(lower), C_CONE))
+        lnL := line.new(bar_index, stopL, bar_index + inpH, stopL, color = color.new(C_DN, 20), style = line.style_dashed, force_overlay = true)
+        lnS := line.new(bar_index, stopS, bar_index + inpH, stopS, color = color.new(C_UP, 20), style = line.style_dashed, force_overlay = true)
+        array.push(lbs, f_tag(stopL, "long stop " + f_px(stopL), C_DN))
+        array.push(lbs, f_tag(stopS, "short stop " + f_px(stopS), C_UP))
+
+// ═══════════════════════════════════════════════════════════════════════════
+//  8 · THE TABLE
+// ═══════════════════════════════════════════════════════════════════════════
+f_stName(int s) =>
+    string a = s < 3 ? "trend down" : s < 6 ? "trend flat" : "trend up"
+    string b = s % 3 == 0 ? "broke below the cone" : s % 3 == 2 ? "broke above the cone" : "inside the cone"
+    a + " · " + b
+
+f_row(table t, int rw, string k, string val, color c, string tip) =>
+    table.cell(t, 0, rw, k,   text_color = C_NEUT, text_size = size.small, text_halign = text.align_left, tooltip = tip)
+    table.cell(t, 1, rw, val, text_color = c,      text_size = size.small, text_halign = text.align_left, tooltip = tip)
+
+var table tb = na
+if inpTbl and barstate.islast
+    if na(tb)
+        tb := table.new(inpPos == "Top right" ? position.top_right : inpPos == "Bottom right" ? position.bottom_right :
+             inpPos == "Top left" ? position.top_left : position.bottom_left, 2, 9, bgcolor = C_PANEL,
+             frame_color = color.new(C_NEUT, 70), frame_width = 1, border_color = color.new(C_NEUT, 88), border_width = 1,
+             force_overlay = true)
+    string hTxt = str.tostring(inpH) + " bars"
+    if na(sig)
+        f_row(tb, 0, "KASAUTI", "warming · needs " + str.tostring(WARM + inpH) + " bars, has " + str.tostring(bar_index + 1), C_GOLD,
+             "The risk forecast needs a year of bars before its first reading.")
+    else
+        string regTxt = not inpReg ? "one regime" : bar_index < WARM + RN ? "regime learning" : reg == 0 ? "calm" : reg == 2 ? "stressed" : "normal"
+        f_row(tb, 0, "RISK", "±" + f_pct(sH, "#.0") + " over " + hTxt + " (1σ) · " + f_pct(sig * math.sqrt(bpy), "#") + " a year · " + regTxt,
+             reg == 2 ? C_GOLD : C_TEXT, "The forecast size of one standard move over the horizon, the same risk annualised from this chart's own bar count, and where it stands among its last 500 bars.")
+        f_row(tb, 1, "CONE " + str.tostring(inpCover, "#") + "%", f_px(lower) + "  to  " + f_px(upper) + "   (" + f_pct(lower / close - 1.0, "+#.0;-#.0") + " / " + f_pct(upper / close - 1.0, "+#.0;-#.0") + ")", C_CONE,
+             "Where the close should be " + hTxt + " from now, with the stated probability. The two sides are learned separately, so the cone need not be symmetric.")
+        float dL = 1.0 - stopL / close
+        float dS = stopS / close - 1.0
+        f_row(tb, 2, "LONG STOP", f_px(stopL) + " (−" + f_pct(dL, "#.0") + ") · size " + f_pct(inpRisk / 100.0 / dL, "#") + " of equity", C_DN,
+             "Touched within " + hTxt + " on " + str.tostring(inpStop, "#") + "% of occasions. SIZE is the position that loses " + str.tostring(inpRisk) + "% of equity if it is.")
+        f_row(tb, 3, "SHORT STOP", f_px(stopS) + " (+" + f_pct(dS, "#.0") + ") · size " + f_pct(inpRisk / 100.0 / dS, "#") + " of equity", C_UP,
+             "The mirror: touched within " + hTxt + " on " + str.tostring(inpStop, "#") + "% of occasions.")
+        f_row(tb, 4, "EXPOSURE", f_num(E, "0.00") + "×  =  risk " + f_num(dialR, "0.00") + (inpMode == "Risk only" ? "" : " × trend " + f_num(dialT, "0.00")), C_TEXT,
+             "How much of a full position to hold now. RISK: this instrument's average risk over its risk now, capped. TREND: the throttle, from the floor in a full downtrend to 1 in a full uptrend.")
+        string ledTxt = st < 0 ? "—" : f_stName(st) + "\n" + (na(lZ) ? "seen " + f_num(lNe, "#") + " times · too few to judge" :
+             "seen " + f_num(lNe, "#") + " times · next " + hTxt + " " + f_num(lMu, "+0.00;-0.00") + "σ against " + f_num(gM, "+0.00;-0.00") + "σ usual · " +
+             (proven == 1 ? "PROVEN positive" : proven == -1 ? "PROVEN negative" : "unproven") + " (z " + f_num(lZ, "+0.0;-0.0") + ", believed edge " + f_num(lPost, "+0.00;-0.00") + "σ)")
+        f_row(tb, 5, "STATE", ledTxt, proven == 1 ? C_UP : proven == -1 ? C_DN : C_TEXT,
+             "The state this bar is in, and what THIS CHART's history says followed it: the next " + hTxt + ", in σ, against the chart's own usual. UNPROVEN means the difference is not distinguishable from chance - which is the normal reading.")
+        float cov = nF > 0 ? 1.0 - (nMU + nMD) / nF : na
+        f_row(tb, 6, "CALIBRATION", "cone held " + f_pct(cov, "#.0") + " (target " + str.tostring(inpCover, "#") + ") · stops touched " + f_pct(nF > 0 ? nMS / nF : na, "#.0") + " / " + f_pct(nF > 0 ? nMR / nF : na, "#.0") +
+             " (target " + str.tostring(inpStop, "#") + ") · " + str.tostring(nF) + " forecasts", math.abs(cov - inpCover / 100.0) > 0.03 ? C_GOLD : C_TEXT,
+             "The record of every forecast this chart has settled. Gold when the cone is more than 3 points from its target - usually a short history.")
+        f_row(tb, 7, "PROOF · dial", "Sharpe " + f_num(shF, "0.00") + " · worst drawdown " + f_pct(ddF, "#") + " · " + f_pct(cagF, "#.0") + " a year", C_CONE,
+             "Following the exposure dial on this chart, one bar late, net of costs, since the first reading.")
+        f_row(tb, 8, "PROOF · hold", "Sharpe " + f_num(shH, "0.00") + " · worst drawdown " + f_pct(ddH, "#") + " · " + f_pct(cagH, "#.0") + " a year", C_NEUT,
+             "Buy and hold over the same bars.")
+
+// ═══════════════════════════════════════════════════════════════════════════
+//  ALERTS
+// ═══════════════════════════════════════════════════════════════════════════
+alertcondition(mU and barstate.isconfirmed, title = "Kasauti · closed above the cone",
+     message = "The close landed above the cone drawn H bars ago - a move the forecast gave about one chance in ten at the default coverage. A surprise, not a signal.")
+alertcondition(mD and barstate.isconfirmed, title = "Kasauti · closed below the cone",
+     message = "The close landed below the cone drawn H bars ago - a move the forecast gave about one chance in ten at the default coverage. A surprise, not a signal.")
+alertcondition(reg == 2 and reg[1] != 2 and barstate.isconfirmed, title = "Kasauti · risk regime stressed",
+     message = "Forecast risk has entered the top third of its last 500 bars. The cone and stops are wider and the exposure dial lower.")
+alertcondition(provenUp, title = "Kasauti · entered a proven state (positive)",
+     message = "The chart entered a state its own history has proven positive: the next H bars beat the chart's usual by more than two posterior σ.")
+alertcondition(provenDn, title = "Kasauti · entered a proven state (negative)",
+     message = "The chart entered a state its own history has proven negative: the next H bars trailed the chart's usual by more than two posterior σ.")
