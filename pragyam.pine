@@ -3,12 +3,36 @@
 
 //@version=6
 // ═══════════════════════════════════════════════════════════════════════════
-//  KASAUTI · कसौटी  ·  CALIBRATED RISK, EXPOSURE AND SELF-AUDIT              v2.3
+//  PRAGYAM  ·  CALIBRATED RISK, EXPOSURE AND SELF-AUDIT                      v2.4
 //  "How far can it go, how much should I hold - and has that been true here?"
 //
-//  Kasauti is the touchstone: the black stone a goldsmith rubs metal on to see
-//  what it is. This script forecasts only what the data says can be forecast,
+//  Pragyam, from prajñā - discernment: telling what can be known from what
+//  cannot. This script forecasts only what the data says can be forecast,
 //  states every forecast as a probability, and then tests itself on the chart.
+//  (Developed as Kasauti through v2.3; the engine is unchanged.)
+//
+//  v2.4 · THE PALETTE, BY MEANING. No engine number changed.
+//    GREEN / RED   direction, and nothing else. BRIGHT for the short horizon -
+//                  the surprise columns and the stretch ladder. DEEP for the
+//                  long one - the trend tape. Same meaning, different speed,
+//                  so the tape reads as the backdrop the columns move against.
+//    GREY          no direction: a flat trend, a move the trend does not back,
+//                  a tape still warming.
+//    GOLD          risk, and only risk: both risk tapes run from faint to
+//                  solid gold. Calm is the absence of gold, not another colour.
+//    BLUE          the cone: its learned bands in the pane, the forward cone,
+//                  the landing band and the midline on the price chart.
+//    COLUMNS       coloured only when the surprise and the trend AGREE - green
+//                  up in an uptrend, red down in a downtrend. A move against
+//                  the trend, or with no trend behind it, is grey. Solid when
+//                  the close left the cone. So a green column never points
+//                  down, and colour means "this move has the trend behind it".
+//                  Descriptive: no direction was measured in either.
+//    MIDLINE       one pixel in the cone's blue, clearer than the landing
+//                  band's edges and quieter than the profile's VWAP.
+//    STOP LABELS   sit on the stops themselves - the short stop's above its
+//                  line over the cone, the long stop's below - out of the
+//                  profile's tag column.
 //
 //  ONE SCRIPT. Everything - the pane, the tapes, the cone and stops, the
 //  volume profile and the table - is this one indicator. The only data it
@@ -18,7 +42,7 @@
 //  session histogram with POC and value area, VWAP, Initial Balance, prior-
 //  session levels and naked POCs. Display only - nothing in the risk engine,
 //  the cone, the stops, the dial or the ledger reads it. It sits to the right
-//  of the forward cone, and the cone's and stops' tags share its tag column.
+//  of the forward cone.
 //  No engine number changed from v2.0.
 //
 //  v2.2 · THE MIDLINE, AND ITS RECORD (section 6b). The average of the landing
@@ -63,9 +87,7 @@
 //                  developing trails are off by default, and Initial Balance is
 //                  drawn on intraday charts only - on a daily chart its twelve
 //                  bars outlast the session.
-//    COLUMNS       hue is which way price was surprised - green up, red down -
-//                  solid when the close left the cone. Trend has its own tape;
-//                  it no longer colours the columns.
+//    COLUMNS       (recoloured again in v2.4 - see above.)
 //    TABLE         eight short rows, off by default. Each row's detail is in
 //                  its tooltip.
 //    TESTED (research/observations.txt, 151 instruments):
@@ -123,7 +145,7 @@
 //        of the time (median −11%), in every era. A cone drawn into a spike
 //        is at its widest.
 //
-//  GOLD, everywhere here, means risk - never up or down.
+//  GOLD, everywhere here, means risk - never up or down. Blue is the cone.
 //
 //  ═══ HOW IT WORKS ═════════════════════════════════════════════════════════
 //    RISK      per-bar variance from the bar's whole range and its gap
@@ -146,7 +168,7 @@
 //              σ, against this chart's own mean, shrunk toward "no edge". A
 //              state is called PROVEN only past two posterior σ.
 //
-//  ═══ MEASURED (research/results.txt · the Python port is research/kasauti.py)
+//  ═══ MEASURED (research/results.txt · the Python port is research/pragyam.py)
 //    CALIBRATION   cone 80%: realised 80.0%; within 3 points of target in 99%
 //                  of instrument-eras (a fixed normal band: 61%). Stops 20%:
 //                  realised 20.0%, within 3 points in 99%. A 2 × ATR(14) stop
@@ -174,7 +196,7 @@
 //  bars. The volume profile's developing session is the one disclosed
 //  exception, as in Pragati.
 // ═══════════════════════════════════════════════════════════════════════════
-indicator("Kasauti · Calibrated Risk, Exposure and Self-Audit", shorttitle = "Kasauti", overlay = false,
+indicator("Pragyam · Calibrated Risk, Exposure and Self-Audit", shorttitle = "Pragyam", overlay = false,
      precision = 2, max_lines_count = 500, max_labels_count = 100, max_boxes_count = 500, max_polylines_count = 5)
 
 // ───────────────────────────────────────────────────────────────────────────
@@ -220,6 +242,8 @@ float bgLum    = color.r(chart.bg_color) * 0.299 + color.g(chart.bg_color) * 0.5
 bool  darkMode = inpTheme == "Dark" or (inpTheme == "Auto" and bgLum < 128)
 color C_UP    = darkMode ? #3FB980 : #08724A
 color C_DN    = darkMode ? #E4776A : #A8443A
+color C_UPD   = darkMode ? #2A8660 : #5C9E86               // the same direction on the long horizon: deep, for the trend tape
+color C_DND   = darkMode ? #B4554B : #BC7A72
 color C_NEUT  = darkMode ? #8A97A0 : #69757E
 color C_CONE  = darkMode ? #5B8FD6 : #2C5C99
 color C_GOLD  = darkMode ? #D9B44A : #8A6A0E               // risk - never a direction
@@ -611,20 +635,20 @@ float shM = sdM > 0.0 ? sM / nP / sdM * math.sqrt(bpy) : na
 //  ------------------------------------------------------------------------------
 //  A PRICE-CHART overlay: session volume profile (histogram + POC/VAH/VAL value
 //  area), plus session VWAP, Initial Balance, naked POCs, HVN/LVN nodes,
-//  prior-session levels and developing-level trails. Kasauti is a pane script,
+//  prior-session levels and developing-level trails. Pragyam is a pane script,
 //  so every element is drawn with force_overlay = true.
 //
 //  DISPLAY-ONLY AND FULLY DETACHED. It touches NOTHING - not the risk forecast,
 //  the cone, the stops, the dial or the ledger. Everything is namespaced
 //  vp*/C_* so it cannot collide with the engine's own state. Removing this
-//  whole block leaves Kasauti intact.
+//  whole block leaves Pragyam intact.
 //
-//  CARRIED IN WHOLE from Pragati, line for line, with three changes only:
+//  CARRIED IN WHOLE from Pragati, line for line, with these changes only:
 //    · the profile sits to the RIGHT of the forward cone;
-//    · the stops' and the cone's tags are seated in its tag column, first,
-//      under its collision control;
 //    · the gates read this script's switches, and green / red are this
-//      script's C_UP / C_DN.
+//      script's C_UP / C_DN;
+//    · developing trails default off, and Initial Balance is intraday only.
+//  The tag column is the profile's alone: the stops label themselves.
 //
 //  Sorted-key bins, O(1) POC, value-area walk outward from the POC, optional
 //  intrabar distribution and inferred buy/sell delta. Session anchor = D intraday,
@@ -1113,13 +1137,6 @@ f_vpLevels() =>
         box.delete(bx)
     array.clear(vpLvBoxes)
     array.clear(tagRows)
-    // Kasauti's own levels are seated first - the stops, then the cone's edges -
-    // then the profile's, under the same collision control.
-    bool coneTags = inpCone and coneOk
-    array.push(vpLvTags, f_vpTag(label(na), stopL,  "long stop",  C_DN,   coneTags))
-    array.push(vpLvTags, f_vpTag(label(na), stopS,  "short stop", C_UP,   coneTags))
-    array.push(vpLvTags, f_vpTag(label(na), upper,  str.tostring(inpCover / 2.0 + 50.0, "#") + "% below", C_CONE, coneTags))
-    array.push(vpLvTags, f_vpTag(label(na), lower,  str.tostring(inpCover / 2.0 + 50.0, "#") + "% above", C_CONE, coneTags))
     array.push(vpLvTags, f_vpTag(label(na), poc,    "POC",  C_POC,    vpPocOn))
     array.push(vpLvTags, f_vpTag(label(na), vah,    "VAH",  C_VA,     vpVaOn))
     array.push(vpLvTags, f_vpTag(label(na), vaLow,  "VAL",  C_VA,     vpVaOn))
@@ -1167,10 +1184,13 @@ if barstate.islast
 bool vSur = inpPane == "Surprise and tapes"
 bool vPrf = inpPane == "Proof"
 
-// Hue is which way price was surprised; solid when the close left the cone.
-// The surprise is the one value the status line carries.
-color cHue = u >= 0.0 ? C_UP : C_DN
-color cCol = not settled ? color.new(C_NEUT, 80) : mU or mD ? color.new(cHue, 0) : color.new(cHue, 60)
+// Colour means the surprise has the trend behind it: green up in an uptrend,
+// red down in a downtrend. Against the trend, or with no trend, it is grey.
+// Solid when the close left the cone. The surprise is the one value the status
+// line carries.
+bool  cWith = (u >= 0.0 and trRaw == 2) or (u < 0.0 and trRaw == 0)
+color cHue  = cWith ? (u >= 0.0 ? C_UP : C_DN) : C_NEUT
+color cCol  = not settled ? color.new(C_NEUT, 86) : mU or mD ? color.new(cHue, 0) : color.new(cHue, cWith ? 55 : 68)
 plot(vSur ? math.max(-4.0, math.min(4.0, u)) : na, "Surprise (σ)", cCol, 1, plot.style_columns)
 plot(vSur ? bU : na,              "Learned upper band",     color.new(C_CONE, 45), 1, display = display.pane + display.data_window)
 plot(vSur ? -bD : na,             "Learned lower band",     color.new(C_CONE, 45), 1, display = display.pane + display.data_window)
@@ -1188,9 +1208,11 @@ const float MOM_Y  = 5.6
 const float TAPE_H = 0.28
 bool tapesOn = vSur and inpTapes
 
-// TREND · hue is the side; faint while flat, a step at ±0.5σ, solid by 1.5σ.
+// TREND · hue is the side, in the DEEP tone of the long horizon; faint while
+// flat, a step at ±0.5σ, solid by 1.5σ.
 float tAbs  = math.abs(T)
-color tHue  = T >= 0.0 ? C_UP : C_DN
+color tHue  = T >= 0.0 ? C_UPD : C_DND                      // deep: the long horizon
+color tInk  = T >= 0.0 ? C_UP : C_DN                        // the same side, bright, for text
 color tapeT = na(T) ? color.new(C_NEUT, 82) : tAbs < 0.5 ? color.from_gradient(tAbs, 0.0, 0.5, color.new(tHue, 90), color.new(tHue, 62)) :
      color.from_gradient(tAbs, 0.5, 1.5, color.new(tHue, 40), color.new(tHue, 0))
 
@@ -1200,14 +1222,15 @@ color lHue  = ladX >= 0.0 ? C_UP : C_DN
 color tapeL = not ladOk ? color.new(C_NEUT, 82) : ladN >= 3 ? color.new(lHue, 0) : ladN >= 1 ? color.new(lHue, 40) :
      color.from_gradient(math.abs(ladX), 0.0, 1.0, color.new(lHue, 92), color.new(lHue, 66))
 
-// RISK · blue calm, grey normal, gold stressed; deeper toward either end.
-color tapeR = not regOk ? color.new(C_NEUT, 82) : regRaw == 0 ? color.from_gradient(prk, 0.0, 100.0 / 3.0, color.new(C_CONE, 15), color.new(C_CONE, 60)) :
-     regRaw == 2 ? color.from_gradient(prk, 200.0 / 3.0, 100.0, color.new(C_GOLD, 45), color.new(C_GOLD, 0)) : color.new(C_NEUT, 70)
+// RISK · gold only: next to nothing while calm, a step at normal, a step at
+// stressed, solid toward the top of its range.
+color tapeR = not regOk ? color.new(C_NEUT, 82) : regRaw == 2 ? color.from_gradient(prk, 200.0 / 3.0, 100.0, color.new(C_GOLD, 40), color.new(C_GOLD, 0)) :
+     regRaw == 1 ? color.from_gradient(prk, 100.0 / 3.0, 200.0 / 3.0, color.new(C_GOLD, 80), color.new(C_GOLD, 62)) : color.from_gradient(prk, 0.0, 100.0 / 3.0, color.new(C_GOLD, 95), color.new(C_GOLD, 86))
 
-// RISK MOMENTUM · gold rising, blue falling, faint steady.
+// RISK MOMENTUM · gold while risk is rising; grey while it is falling; faint steady.
 float rmAbs = math.abs(rMom)
 color tapeM = na(rMom) ? color.new(C_NEUT, 82) : rmS == 2 ? color.from_gradient(rmAbs, 0.10, 0.40, color.new(C_GOLD, 40), color.new(C_GOLD, 0)) :
-     rmS == 0 ? color.from_gradient(rmAbs, 0.10, 0.40, color.new(C_CONE, 45), color.new(C_CONE, 10)) : color.new(C_NEUT, 86)
+     rmS == 0 ? color.from_gradient(rmAbs, 0.10, 0.40, color.new(C_NEUT, 72), color.new(C_NEUT, 48)) : color.new(C_NEUT, 90)
 
 plot(tapesOn ?  TAPE_Y + TAPE_H : na, "Trend tape",          tapeT, 1, plot.style_columns, histbase =  TAPE_Y - TAPE_H, display = display.pane)
 plot(tapesOn ?  MOM_Y  + TAPE_H : na, "Stretch ladder tape", tapeL, 1, plot.style_columns, histbase =  MOM_Y  - TAPE_H, display = display.pane)
@@ -1227,27 +1250,32 @@ string ladShort = not ladOk ? "…" : ladUp == 0 and ladDn == 0 ? "in" : (ladUp 
 string rmArrow  = na(rMom) ? "" : rmS == 2 ? " ↑" : rmS == 0 ? " ↓" : ""
 
 // ── on the price chart ────────────────────────────────────────────────────
-// Three lines follow price. The MIDLINE is the prominent one; the landing
-// band's two edges are drawn faint behind it. None of them reaches the status
-// line or the price scale.
+// Three lines follow price, all in the cone's blue and all one pixel. The
+// MIDLINE is the clear one; the landing band's two edges are faint behind it.
+// The profile's VWAP is rose and solid, so the two never read as one line.
+// None of them reaches the status line or the price scale.
 plot(inpLand ? upper[inpH] : na,  "Landing band · upper",   color.new(C_CONE, 82), 1, force_overlay = true, display = display.pane + display.data_window)
 plot(inpLand ? lower[inpH] : na,  "Landing band · lower",   color.new(C_CONE, 82), 1, force_overlay = true, display = display.pane + display.data_window)
 plot(inpTrail ? stopL : na,       "Long stop history",      color.new(C_DN, 70), 1, plot.style_stepline, force_overlay = true, display = display.pane + display.data_window)
 plot(inpTrail ? stopS : na,       "Short stop history",     color.new(C_UP, 70), 1, plot.style_stepline, force_overlay = true, display = display.pane + display.data_window)
-plot(inpMid ? midL : na,          "Midline",                color.new(C_CONE, 0), 2, force_overlay = true, display = display.pane + display.data_window)
+plot(inpMid ? midL : na,          "Midline",                color.new(C_CONE, 35), 1, force_overlay = true, display = display.pane + display.data_window)
 plotshape(inpMid and inpMidMk and midUp and barstate.isconfirmed, "Closed above the midline", shape.circle, location.belowbar, color.new(C_UP, 30), size = size.tiny, force_overlay = true, display = display.pane)
 plotshape(inpMid and inpMidMk and midDn and barstate.isconfirmed, "Closed below the midline", shape.circle, location.abovebar, color.new(C_DN, 30), size = size.tiny, force_overlay = true, display = display.pane)
 plotshape(inpMark and provenUp,   "Entered a proven state · positive", shape.triangleup,   location.belowbar, C_UP, size = size.tiny, force_overlay = true, display = display.pane)
 plotshape(inpMark and provenDn,   "Entered a proven state · negative", shape.triangledown, location.abovebar, C_DN, size = size.tiny, force_overlay = true, display = display.pane)
 
 // ── the forward cone, and the tapes' names at the pane's right edge ───────
-// The cone's and the stops' tags sit in the profile's tag column (section 7),
-// so one collision control seats every tag on the price chart.
+// The stops label themselves: the short stop's name sits above its line over
+// the cone, the long stop's below - where each one is, and clear of the
+// profile's tag column.
 var polyline plCone = na
 var line     lnL    = na
 var line     lnS    = na
 var array<label> lbs = array.new<label>()
 
+f_stopTag(float py, string txt, color c, bool above) =>
+    label.new(bar_index + int(math.round(inpH / 2.0)), py, txt, xloc = xloc.bar_index, color = color.new(c, 100),
+         style = above ? label.style_label_down : label.style_label_up, textcolor = c, size = size.tiny, force_overlay = true)
 f_tapeTag(float py, string txt, color c) =>
     label.new(bar_index + 2, py, txt, xloc = xloc.bar_index, color = color.new(c, 100), style = label.style_label_left,
          textcolor = c, size = size.tiny)
@@ -1268,8 +1296,10 @@ if barstate.islast
              fill_color = color.new(C_CONE, 88), line_width = 1, force_overlay = true)
         lnL := line.new(bar_index, stopL, bar_index + inpH, stopL, color = color.new(C_DN, 20), style = line.style_dashed, force_overlay = true)
         lnS := line.new(bar_index, stopS, bar_index + inpH, stopS, color = color.new(C_UP, 20), style = line.style_dashed, force_overlay = true)
+        array.push(lbs, f_stopTag(stopS, "short stop " + f_px(stopS), C_UP, true))
+        array.push(lbs, f_stopTag(stopL, "long stop " + f_px(stopL), C_DN, false))
     if tapesOn
-        array.push(lbs, f_tapeTag((TAPE_Y + MOM_Y) / 2.0, "TREND " + trWord + " · LADDER " + ladShort, na(T) ? C_NEUT : tHue))
+        array.push(lbs, f_tapeTag((TAPE_Y + MOM_Y) / 2.0, "TREND " + trWord + " · LADDER " + ladShort, na(T) ? C_NEUT : tInk))
         array.push(lbs, f_tapeTag(-(TAPE_Y + MOM_Y) / 2.0, "RISK " + regTxt + rmArrow, regRaw == 2 or rmS == 2 ? C_GOLD : C_NEUT))
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -1292,7 +1322,7 @@ if inpTbl and barstate.islast
              frame_color = color.new(C_NEUT, 75), frame_width = 1, border_width = 0, force_overlay = true)
     string hTxt = str.tostring(inpH) + " bars"
     if na(sig)
-        f_cell(tb, 0, "KASAUTI", "warming " + str.tostring(bar_index + 1) + "/" + str.tostring(WARM + inpH), C_GOLD,
+        f_cell(tb, 0, "PRAGYAM", "warming " + str.tostring(bar_index + 1) + "/" + str.tostring(WARM + inpH), C_GOLD,
              "The risk forecast needs a year of bars before its first reading.")
     else
         float dL  = 1.0 - stopL / close
@@ -1308,7 +1338,7 @@ if inpTbl and barstate.islast
              "The share of a full position to carry. Dial " + f_num(dial, "0.00") + " = risk " + f_num(dialR, "0.00") + (inpMode == "Risk only" ? "" : " × trend " + f_num(dialT, "0.00")) + ", followed in steps. A daily and weekly tool: on hourly bars it lost to buy and hold.")
         f_cell(tb, 4, "RISK", "±" + f_pct(sH, "#.0") + " · " + regTxt + rmArrow, regRaw == 2 or rmS == 2 ? C_GOLD : C_TEXT,
              "One standard move over " + hTxt + " (" + f_pct(sig * math.sqrt(bpy), "#") + " a year), where risk stands in its last 500 bars, and ↑ rising or ↓ falling by more than 10% over " + hTxt + ". A rise usually fades.")
-        f_cell(tb, 5, "TREND", trWord + " · " + ladShort, na(T) ? C_NEUT : tHue,
+        f_cell(tb, 5, "TREND", trWord + " · " + ladShort, na(T) ? C_NEUT : tInk,
              "Trend " + trTxt + ". Ladder: " + ladTxt + " (" + str.tostring(h0) + ", " + str.tostring(inpH) + ", " + str.tostring(h2) + ", " + str.tostring(h3) + " bars). " +
              (st < 0 ? "" : "State: " + f_stName(st) + " - " + (na(lZ) ? "too few on this chart to judge." : "seen " + f_num(lNe, "#") + " times, next " + hTxt + " " + f_num(lMu, "+0.00;-0.00") + "σ against " + f_num(gM, "+0.00;-0.00") + "σ usual: " + (proven == 1 ? "PROVEN positive." : proven == -1 ? "PROVEN negative." : "unproven."))))
         f_cell(tb, 6, "RECORD", f_pct(cov, "#") + " · " + f_pct(nF > 0 ? nMS / nF : na, "#") + "/" + f_pct(nF > 0 ? nMR / nF : na, "#"), math.abs(cov - inpCover / 100.0) > 0.03 ? C_GOLD : C_TEXT,
@@ -1320,25 +1350,25 @@ if inpTbl and barstate.islast
 // ═══════════════════════════════════════════════════════════════════════════
 //  ALERTS
 // ═══════════════════════════════════════════════════════════════════════════
-alertcondition(mU and barstate.isconfirmed, title = "Kasauti · closed above the cone",
+alertcondition(mU and barstate.isconfirmed, title = "Pragyam · closed above the cone",
      message = "The close landed above the cone drawn H bars ago - a move the forecast gave about one chance in ten at the default coverage. A surprise, not a signal.")
-alertcondition(mD and barstate.isconfirmed, title = "Kasauti · closed below the cone",
+alertcondition(mD and barstate.isconfirmed, title = "Pragyam · closed below the cone",
      message = "The close landed below the cone drawn H bars ago - a move the forecast gave about one chance in ten at the default coverage. A surprise, not a signal.")
-alertcondition(ladOk and ladUp >= 3 and not (ladUp[1] >= 3) and barstate.isconfirmed, title = "Kasauti · ladder break above",
+alertcondition(ladOk and ladUp >= 3 and not (ladUp[1] >= 3) and barstate.isconfirmed, title = "Pragyam · ladder break above",
      message = "Three or four horizons of the stretch ladder have closed above their own cones - about 4% of bars. No measured direction.")
-alertcondition(ladOk and ladDn >= 3 and not (ladDn[1] >= 3) and barstate.isconfirmed, title = "Kasauti · ladder break below",
+alertcondition(ladOk and ladDn >= 3 and not (ladDn[1] >= 3) and barstate.isconfirmed, title = "Pragyam · ladder break below",
      message = "Three or four horizons of the stretch ladder have closed below their own cones - about 4% of bars. Measured: a long stop here is touched about a quarter of the time, not a fifth.")
-alertcondition(regRaw == 2 and regRaw[1] != 2 and barstate.isconfirmed, title = "Kasauti · risk tape stressed",
+alertcondition(regRaw == 2 and regRaw[1] != 2 and barstate.isconfirmed, title = "Pragyam · risk tape stressed",
      message = "Forecast risk has entered the top third of its last 500 bars. The cone and stops are wider and the exposure dial lower.")
-alertcondition(rmS == 2 and rmS[1] != 2 and barstate.isconfirmed, title = "Kasauti · risk rising",
+alertcondition(rmS == 2 and rmS[1] != 2 and barstate.isconfirmed, title = "Pragyam · risk rising",
      message = "Forecast risk is more than 10% above where it stood H bars ago. Measured: after such a rise risk was lower again H bars later about three times in four.")
-alertcondition(midUp and barstate.isconfirmed, title = "Kasauti · closed above the midline",
+alertcondition(midUp and barstate.isconfirmed, title = "Pragyam · closed above the midline",
      message = "The close crossed above the midline of the landing band. A description of where price stands against H bars ago - measured, it is not a signal.")
-alertcondition(midDn and barstate.isconfirmed, title = "Kasauti · closed below the midline",
+alertcondition(midDn and barstate.isconfirmed, title = "Pragyam · closed below the midline",
      message = "The close crossed below the midline of the landing band. A description of where price stands against H bars ago - measured, it is not a signal.")
-alertcondition(E != E[1] and not na(E[1]) and barstate.isconfirmed, title = "Kasauti · exposure changed",
+alertcondition(E != E[1] and not na(E[1]) and barstate.isconfirmed, title = "Pragyam · exposure changed",
      message = "The exposure dial has moved a full step from the position held. The table's EXPOSURE row carries the new position.")
-alertcondition(provenUp, title = "Kasauti · entered a proven state (positive)",
+alertcondition(provenUp, title = "Pragyam · entered a proven state (positive)",
      message = "The chart entered a state its own history has proven positive: the next H bars beat the chart's usual by more than two posterior σ.")
-alertcondition(provenDn, title = "Kasauti · entered a proven state (negative)",
+alertcondition(provenDn, title = "Pragyam · entered a proven state (negative)",
      message = "The chart entered a state its own history has proven negative: the next H bars trailed the chart's usual by more than two posterior σ.")

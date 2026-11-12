@@ -32,7 +32,7 @@ HAR range .3/.4/.3 x k     0.401  0.322  0.315  0.296  0.330  0.284   0.541
                           cover     up     dn  stopL  stopS
 kind                                                       
 fixed normal              0.823  0.097  0.080  0.174  0.185
-kasauti (regime + trend)  0.799  0.101  0.100  0.200  0.201
+pragyam (regime + trend)  0.799  0.101  0.100  0.200  0.201
 one width                 0.800  0.100  0.100  0.200  0.200
 regime only               0.800  0.101  0.098  0.199  0.200
 
@@ -40,7 +40,7 @@ worst-case: share of instrument-eras whose realised cone coverage is within 3 po
                              ok    okS
 kind                                  
 fixed normal              0.607  0.569
-kasauti (regime + trend)  0.989  0.998
+pragyam (regime + trend)  0.989  0.998
 one width                 0.993  1.000
 regime only               0.941  0.991
 
@@ -54,7 +54,7 @@ fixed normal             bond    0.831  0.818  0.841
                          index   0.838  0.819  0.831
                          nse     0.831  0.809  0.811
                          us      0.844  0.813  0.812
-kasauti (regime + trend) bond    0.808  0.789  0.806
+pragyam (regime + trend) bond    0.808  0.789  0.806
                          cmdty   0.803  0.795  0.798
                          crypto    NaN  0.805  0.803
                          fx      0.811  0.795  0.806
@@ -86,7 +86,7 @@ fixed normal             bond    0.138  0.156  0.156
                          index   0.179  0.191  0.177
                          nse     0.184  0.182  0.172
                          us      0.168  0.173  0.177
-kasauti (regime + trend) bond    0.190  0.200  0.210
+pragyam (regime + trend) bond    0.190  0.200  0.210
                          cmdty   0.197  0.200  0.201
                          crypto    NaN  0.207  0.198
                          fx      0.192  0.208  0.198
@@ -112,7 +112,7 @@ spread across instruments (std of realised coverage):
                           cover  stopL
 kind                                  
 fixed normal              0.028  0.025
-kasauti (regime + trend)  0.011  0.009
+pragyam (regime + trend)  0.011  0.009
 one width                 0.009  0.006
 regime only               0.017  0.011
 
@@ -121,9 +121,9 @@ regime only               0.017  0.011
 reg                        calm normal stressed   calm normal stressed
 kind                                                                  
 fixed normal              0.800  0.829    0.852  0.185  0.170    0.162
-kasauti (regime + trend)  0.793  0.800    0.809  0.203  0.199    0.195
-kasauti, eta .01          0.791  0.802    0.816  0.204  0.199    0.191
-kasauti, eta .05          0.796  0.799    0.804  0.202  0.200    0.197
+pragyam (regime + trend)  0.793  0.800    0.809  0.203  0.199    0.195
+pragyam, eta .01          0.791  0.802    0.816  0.204  0.199    0.191
+pragyam, eta .05          0.796  0.799    0.804  0.202  0.200    0.197
 one width                 0.762  0.808    0.843  0.235  0.194    0.159
 regime only               0.797  0.802    0.810  0.202  0.198    0.195
 
@@ -131,9 +131,9 @@ instrument-eras within 3 points of target, and mean cone width (log)
                              ok    okS  cover  stopL      w
 kind                                                       
 fixed normal              0.607  0.569  0.823  0.174  0.140
-kasauti (regime + trend)  0.989  0.998  0.799  0.200  0.137
-kasauti, eta .01          0.948  0.995  0.800  0.199  0.134
-kasauti, eta .05          0.998  0.998  0.799  0.201  0.151
+pragyam (regime + trend)  0.989  0.998  0.799  0.200  0.137
+pragyam, eta .01          0.948  0.995  0.800  0.199  0.134
+pragyam, eta .05          0.998  0.998  0.799  0.201  0.151
 one width                 0.993  1.000  0.800  0.200  0.137
 regime only               0.941  0.991  0.800  0.199  0.134
 

@@ -1,6 +1,6 @@
 """The midline of the landing band as a trend divider - and whether calm risk and flips sharpen it.  python3 study_mid.py > midline.txt"""
 from lib import *
-from kasauti import run
+from pragyam import run
 import warnings, sys; warnings.filterwarnings("ignore")
 pd.set_option("display.width", 250)
 H = 10

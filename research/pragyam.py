@@ -1,4 +1,4 @@
-"""Reference implementation of kasauti.pine, bar for bar. Every number in the README is produced from this file."""
+"""Reference implementation of pragyam.pine, bar for bar. Every number in the README is produced from this file."""
 import numpy as np, pandas as pd
 from statistics import NormalDist
 WARM, RN = 252, 500

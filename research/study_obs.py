@@ -2,7 +2,7 @@
   1. When the long stop is further from the close than the short stop, the trend is bearish - and the reverse.
   2. Does the session VWAP, mixed with that and with the midline, change anything?"""
 from lib import *
-from kasauti import run
+from pragyam import run
 import warnings; warnings.filterwarnings("ignore")
 pd.set_option("display.width", 250)
 H = 10

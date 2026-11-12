@@ -2,13 +2,13 @@
 
 | File | What it is |
 |---|---|
-| `kasauti.pine` | **Kasauti** — one self-contained TradingView indicator (Pine v6): calibrated risk, exposure, tapes, self-audit and volume profile. |
+| `pragyam.pine` | **Pragyam** — one self-contained TradingView indicator (Pine v6): calibrated risk, exposure, tapes, self-audit and volume profile. |
 | `pragati.pine` | **Pragati** — the original multi-timeframe conviction oscillator. Unchanged; it was the direction of thought and the benchmark. |
-| `research/` | The data fetch, the Python reference for Kasauti, and the study behind every number below. |
+| `research/` | The data fetch, the Python reference for Pragyam, and the study behind every number below. |
 
-## Kasauti · कसौटी
+## Pragyam
 
-*Kasauti* is the touchstone: the stone a goldsmith rubs metal on to see what it is.
+*Pragyam*, from *prajñā*, discernment: telling what can be known from what cannot. (Developed as Kasauti through v2.3.)
 It is **one script**. The pane, the tapes, the cone and stops, the volume profile and the table are all the same indicator.
 The only data it requests is the chart symbol's own lower timeframe, for the profile.
 
@@ -18,9 +18,9 @@ It answers three questions for the chart it is on, and then tests its own answer
 2. **Where am I wrong?** A stop level that is touched within 10 bars 20% of the time, and the position size that goes with it.
 3. **How much should I hold?** An exposure dial between 0 and 1.
 
-![Kasauti on Nifty 50](docs/preview_nsei.png)
+![Pragyam on Nifty 50](docs/preview_nsei.png)
 
-*Rendered from the reference implementation (`research/kasauti.py`), not from TradingView.*
+*Rendered from the reference implementation (`research/pragyam.py`), not from TradingView.*
 
 ### Why it does not call direction
 
@@ -32,7 +32,7 @@ On 151 instruments (US and NSE stocks, indices, commodities, FX, bonds, crypto),
 - No simple long/flat rule beat a risk-scaled buy and hold on Sharpe.
 
 Risk is different. The next 10 bars' variance is forecast out of sample with a log R² of 0.71.
-So Kasauti forecasts risk, states it as probabilities, and turns it into size, stop and exposure.
+So Pragyam forecasts risk, states it as probabilities, and turns it into size, stop and exposure.
 
 ### The tapes
 
@@ -52,7 +52,7 @@ The ladder uses horizons on the chart's own bars instead of other timeframes. A 
 
 All figures are from `research/results.txt`, net of 5 bp costs (10 bp crypto), acting one bar late.
 
-| Claim | Kasauti | Comparison |
+| Claim | Pragyam | Comparison |
 |---|---|---|
 | Cone holds 80% of the time | 79.9% realised; within 3 points in 99% of instrument-eras | fixed normal band: 61% of instrument-eras |
 | Cone holds in calm / normal / stressed markets | 79% / 80% / 81% | fixed normal band: 80% / 83% / 85% |
@@ -124,16 +124,26 @@ VWAP is the one place something showed up, and it points the other way from a tr
 - **Calibration is a long-run frequency.** Inside one shock the cone can miss several bars running.
 - **The stocks are today's large caps.** That flatters buy and hold and the dial alike. Indices, commodities, FX and bonds carry no such bias.
 
+### The palette, by meaning (v2.4)
+
+| Colour | Means | Where |
+|---|---|---|
+| Green / red, bright | direction on the short horizon | surprise columns (only when the trend agrees), stretch ladder |
+| Green / red, deep | direction on the long horizon | trend tape |
+| Grey | no direction: flat trend, a move the trend does not back, falling risk, warming | columns, tapes |
+| Gold | risk, and only risk | both risk tapes, faint to solid |
+| Blue | the cone | learned bands in the pane; forward cone, landing band and midline on the chart |
+
 ### How to read it
 
 | Where | What | Read it as |
 |---|---|---|
 | Price chart | Forward cone | where the close should be H bars from now |
 | Price chart | Dashed lines across the cone | long and short stops at the stated touch probability |
-| Price chart | Midline (the prominent line) | the average of the landing band; where price stands against H bars ago. A description, not a signal |
+| Price chart | Midline (one pixel, cone blue) | the average of the landing band; where price stands against H bars ago. A description, not a signal |
 | Price chart | Landing band (faint) | the cone drawn H bars ago; a close outside it is a surprise |
 | Price chart | Volume profile | Pragati's, carried in whole: session histogram, POC, value area, VWAP, Initial Balance, prior-session levels, naked POCs. Display only; it sits to the right of the cone |
-| Pane | Columns against two lines | the realised move ÷ the forecast made H bars ago; green up, red down, solid when the close left the cone |
+| Pane | Columns against two lines | the realised move ÷ the forecast made H bars ago. Coloured when the trend backs the move (green up in an uptrend, red down in a downtrend), grey otherwise; solid when the close left the cone |
 | Pane | Four tapes | trend and stretch ladder above; risk and risk momentum below |
 | Pane · Proof view | Two lines | following the dial against buy and hold on this chart |
 | Table (off by default) | Eight short rows | cone, stops and size, the position to hold, risk, trend, this chart's record, Sharpe against buy and hold. Detail is in each row's tooltip |
@@ -143,7 +153,7 @@ Gold always means risk, never up or down.
 
 ### Status
 
-- **v2.3** closes the presentation (status line, line weights, column colours, compact table) and tests two more observations; **v2.2** added the midline and its record; **v2.1** added the volume profile. No engine number changed from v2.0. The preview image does not show the profile.
+- **v2.4** renames the script to Pragyam and sets the palette by meaning; **v2.3** closed the presentation (status line, line weights, column colours, compact table) and tests two more observations; **v2.2** added the midline and its record; **v2.1** added the volume profile. No engine number changed from v2.0. The preview image does not show the profile.
 - A later experiment ("Maryada": touch probabilities on profile levels, unified tapes, Pragati's palette) was set aside; it remains in the git history at commit `7c5340a`.
 - The Pine script has **not been compiled in TradingView**. No Pine compiler is available here; it was checked by hand against the reference implementation. Expect to fix a syntax detail or two on first load.
 - The Python reference and the Pine script were written to the same arithmetic but have not been compared bar for bar.
