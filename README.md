@@ -124,36 +124,62 @@ VWAP is the one place something showed up, and it points the other way from a tr
 - **Calibration is a long-run frequency.** Inside one shock the cone can miss several bars running.
 - **The stocks are today's large caps.** That flatters buy and hold and the dial alike. Indices, commodities, FX and bonds carry no such bias.
 
-### The palette, by meaning (v2.4)
+### The interface, as audited (v2.5)
+
+Four review passes (hierarchy against what was measured, the colour system, layout and mobile, wording) and one finished surface.
+
+**Weight follows evidence**, loudest first:
+
+1. The forward cone (2 px) and the two stops (solid): calibrated.
+2. A surprise column that left the landing band: always solid.
+3. Trend and risk, the inner tapes: the cone and exposure read them.
+4. Columns inside the band; the stretch ladder and risk momentum, thinner and never solid: context.
+5. The midline, then the landing band's edges: description.
+6. The volume profile: display only, one grey family, narrow, its lines stopping at the last bar.
+7. Ledger marks: rare and faint.
+
+**The palette, by meaning:**
 
 | Colour | Means | Where |
 |---|---|---|
-| Green / red, bright | direction on the short horizon | surprise columns (only when the trend agrees), stretch ladder |
-| Green / red, deep | direction on the long horizon | trend tape |
-| Grey | no direction: flat trend, a move the trend does not back, falling risk, warming | columns, tapes |
-| Gold | risk, and only risk | both risk tapes, faint to solid |
-| Blue | the cone | learned bands in the pane; forward cone, landing band and midline on the chart |
+| Green / red | direction on the short horizon | columns (only when the trend backs the move), stretch ladder, text |
+| Teal / crimson | direction on the long horizon | trend tape |
+| Grey | no direction, no reading | flat trend, an unbacked move, falling risk, warming |
+| Gold | risk, and only risk | both risk tapes; calm is the absence of gold |
+| Blue | the cone family, and only it | landing band, forward cone, midline |
+| Greys by lightness | the volume profile | POC strongest, value area mid, tails faint; VWAP stays rose |
+
+What the colour pass found and fixed:
+
+- The trend tape's "deep" green and red could not be told from fainter bright ones on the tape beside it, so trend now has its own hues.
+- Red and green were nearly equal in lightness; they were re-chosen so they hold under red-green colour blindness.
+- The profile's value-area blue was the cone's blue, and its amber POC sat on top of the risk gold. The profile is now grey.
+- One transparency ladder everywhere: 0 solid, 40 committed, 65 quiet, 80 faint, 90 warming.
+
+**Layout:** the stops stay on screen (two invisible points anchor the price scale) and are named at the cone's far corner; the profile is 14 bars wide so the right edge fits a phone; the band and columns are clipped at ±3.5 so nothing stretches the pane.
+
+**Words:** one name each (exposure, landing band, surprise for the number, miss for a close outside the band). Settings run Display, Forecast, Exposure, Advanced, Volume profile.
 
 ### How to read it
 
 | Where | What | Read it as |
 |---|---|---|
 | Price chart | Forward cone | where the close should be H bars from now |
-| Price chart | Dashed lines across the cone | long and short stops at the stated touch probability |
-| Price chart | Midline (one pixel, cone blue) | the average of the landing band; where price stands against H bars ago. A description, not a signal |
+| Price chart | Dashed lines across the cone | long and short stops at the stated touch probability, each named at the cone's far corner |
+| Price chart | Midline (one pixel, cone blue) | the middle of the landing band; where price stands against H bars ago. A description, not a signal |
 | Price chart | Landing band (faint) | the cone drawn H bars ago; a close outside it is a surprise |
 | Price chart | Volume profile | Pragati's, carried in whole: session histogram, POC, value area, VWAP, Initial Balance, prior-session levels, naked POCs. Display only; it sits to the right of the cone |
-| Pane | Columns against two lines | the realised move ÷ the forecast made H bars ago. Coloured when the trend backs the move (green up in an uptrend, red down in a downtrend), grey otherwise; solid when the close left the cone |
-| Pane | Four tapes | trend and stretch ladder above; risk and risk momentum below |
-| Pane · Proof view | Two lines | following the dial against buy and hold on this chart |
-| Table (off by default) | Eight short rows | cone, stops and size, the position to hold, risk, trend, this chart's record, Sharpe against buy and hold. Detail is in each row's tooltip |
+| Pane | Columns against the landing band | the surprise: the realised move ÷ the forecast made H bars ago. Solid when the close left the band (a miss); green or red when the trend backs the move, neutral when it does not |
+| Pane | Four tapes | trend (teal / crimson) with the thin stretch ladder above it; risk (gold) with thin risk momentum below it |
+| Pane · Proof view | Two lines | following exposure against buy and hold on this chart |
+| Table (off by default) | Eight short rows | cone, long stop and size, short stop and size, exposure, this chart's record, risk, trend, Sharpe against buy and hold |
 | Status line | One value | the surprise |
 
 Gold always means risk, never up or down.
 
 ### Status
 
-- **v2.4** renames the script to Pragyam and sets the palette by meaning; **v2.3** closed the presentation (status line, line weights, column colours, compact table) and tests two more observations; **v2.2** added the midline and its record; **v2.1** added the volume profile. No engine number changed from v2.0. The preview image does not show the profile.
+- **v2.5** is the UI audit above; **v2.4** renamed the script to Pragyam and first set the palette by meaning; **v2.3** closed the presentation (status line, line weights, column colours, compact table) and tests two more observations; **v2.2** added the midline and its record; **v2.1** added the volume profile. No engine number changed from v2.0. The preview image does not show the profile.
 - A later experiment ("Maryada": touch probabilities on profile levels, unified tapes, Pragati's palette) was set aside; it remains in the git history at commit `7c5340a`.
 - The Pine script has **not been compiled in TradingView**. No Pine compiler is available here; it was checked by hand against the reference implementation. Expect to fix a syntax detail or two on first load.
 - The Python reference and the Pine script were written to the same arithmetic but have not been compared bar for bar.

@@ -11,72 +11,50 @@
 //  states every forecast as a probability, and then tests itself on the chart.
 //  (Developed as Kasauti through v2.3; the engine is unchanged.)
 //
-//  v2.4 · THE PALETTE, BY MEANING. No engine number changed.
-//    GREEN / RED   direction, and nothing else. BRIGHT for the short horizon -
-//                  the surprise columns and the stretch ladder. DEEP for the
-//                  long one - the trend tape. Same meaning, different speed,
-//                  so the tape reads as the backdrop the columns move against.
-//    GREY          no direction: a flat trend, a move the trend does not back,
-//                  a tape still warming.
-//    GOLD          risk, and only risk: both risk tapes run from faint to
-//                  solid gold. Calm is the absence of gold, not another colour.
-//    BLUE          the cone: its learned bands in the pane, the forward cone,
-//                  the landing band and the midline on the price chart.
-//    COLUMNS       coloured only when the surprise and the trend AGREE - green
-//                  up in an uptrend, red down in a downtrend. A move against
-//                  the trend, or with no trend behind it, is grey. Solid when
-//                  the close left the cone. So a green column never points
-//                  down, and colour means "this move has the trend behind it".
-//                  Descriptive: no direction was measured in either.
-//    MIDLINE       one pixel in the cone's blue, clearer than the landing
-//                  band's edges and quieter than the profile's VWAP.
-//    STOP LABELS   sit on the stops themselves - the short stop's above its
-//                  line over the cone, the long stop's below - out of the
-//                  profile's tag column.
+//  v2.5 · THE UI AUDIT. Four review passes - hierarchy against what was
+//  measured, the colour system, layout and mobile, wording - and one finished
+//  surface. No engine number changed.
 //
-//  ONE SCRIPT. Everything - the pane, the tapes, the cone and stops, the
-//  volume profile and the table - is this one indicator. The only data it
-//  requests is the chart symbol's own lower timeframe, for the profile.
+//  WEIGHT FOLLOWS EVIDENCE, loudest first:
+//    1  the forward cone (2 px) and the two stops (solid) - calibrated
+//    2  a surprise column that left the landing band - always solid
+//    3  TREND and RISK, the inner tapes - the cone and exposure read them
+//    4  columns inside the band; the STRETCH LADDER and RISK MOMENTUM, thinner
+//       and never solid - context
+//    5  the midline, then the landing band's edges - description
+//    6  the volume profile - display only, one grey family, narrow, its lines
+//       stopping at the last bar
+//    7  ledger marks - rare and faint
 //
-//  v2.1 · THE VOLUME PROFILE, carried in whole from Pragati (section 7): the
-//  session histogram with POC and value area, VWAP, Initial Balance, prior-
-//  session levels and naked POCs. Display only - nothing in the risk engine,
-//  the cone, the stops, the dial or the ledger reads it. It sits to the right
-//  of the forward cone.
-//  No engine number changed from v2.0.
+//  THE PALETTE, BY MEANING
+//    GREEN / RED     direction on the SHORT horizon: columns (only when the
+//                    trend backs the move), the stretch ladder, text.
+//    TEAL / CRIMSON  direction on the LONG horizon: the trend tape. A different
+//                    hue, because a darker green could not be told from a
+//                    fainter one on the tape beside it.
+//    GREY            no direction, no reading: a flat trend, a move the trend
+//                    does not back, falling risk, anything still warming.
+//    GOLD            risk, and only risk. Calm is the absence of gold.
+//    BLUE            the cone family, and only it: landing band, forward cone,
+//                    midline.
+//    THE PROFILE     greys by lightness - POC the strongest, value area mid,
+//                    tails faint. It was blue and amber; blue is the cone's and
+//                    amber sat on top of gold. VWAP stays rose.
+//  Greens and reds were re-chosen to differ in lightness as well as hue, so
+//  they hold under red-green colour blindness; gold was moved away from both.
+//  One transparency ladder everywhere: 0 solid · 40 committed · 65 quiet ·
+//  80 faint · 90 warming.
 //
-//  v2.2 · THE MIDLINE, AND ITS RECORD (section 6b). The average of the landing
-//  band's two edges, drawn on the price chart. The observation it came from:
-//  while price is below it price tends to go lower until it gets back above,
-//  and the strongest runs start when risk is calm and the trend or the
-//  histogram flips. MEASURED on 151 instruments, 2001-2026 (research/
-//  midline.txt), it did not hold as a forward signal:
-//    · the next bar's return per unit of risk was the same above the midline
-//      and below it (2.80 against 2.88, σ × 100), in every era, in every risk
-//      regime and on either side of the trend tape;
-//    · after a close across it, the next 10 bars were no different from any
-//      other 10 bars - including crosses made in calm risk, and crosses that
-//      came with a trend flip;
-//    · held as a rule - long above, flat below - it made a Sharpe of 0.24
-//      against 0.48 for buy and hold; long / short lost money; on hourly bars
-//      every version lost.
-//  WHY IT LOOKS TRUE ON A CHART. A run below the midline lasts a long time
-//  only if price kept falling. Those long runs - one in eleven lasts 20 bars
-//  or more, and they average 7 to 10% - are what the eye finds. The other ten
-//  are over in a few bars (the median run is 4), and only 37% of all runs end
-//  in profit. The midline is the surprise histogram's zero line, drawn on
-//  price: it says where price stands against 10 bars ago. It is a description.
-//  So it is drawn as a LINE, with this chart's own record of it in the table,
-//  and its crossings are optional marks - not a signal.
-//
-//  WHY IT IS NOT A DIRECTION ORACLE. Measured first (research/, 151 instruments
-//  in seven classes, daily bars 2001-2026, three eras): no price or volume
-//  state tried - trend, stretch, dips, volume, overnight against session,
-//  efficiency - led the next 10 bars in a way that held in all three eras.
-//  What IS forecastable is RISK: the next 10 bars' variance is predicted out
-//  of sample with a log R² of 0.71. So this script forecasts risk and turns it
-//  into the three numbers a position needs: how far, how much, where it is
-//  wrong.
+//  COLUMNS  opacity is the MEASURED event - solid when the close left the
+//           landing band. Hue is description - coloured when the trend backs
+//           the move, neutral when it does not; a miss the trend does not back
+//           is bright neutral, never the grey that means nothing.
+//  STOPS    always on screen: two invisible points anchor the price scale.
+//           Each is named at the cone's far corner.
+//  WORDS    one name each: exposure, landing band, surprise (the number), miss
+//           (a close outside the band). Settings run Display, Forecast,
+//           Exposure, Advanced, Volume profile.
+//  (v2.4 renamed the script from Kasauti and first set the palette by meaning.)
 //
 //  v2.3 · PRESENTATION CLOSED, TWO MORE OBSERVATIONS TESTED. No engine number
 //  changed.
@@ -148,6 +126,7 @@
 //        is at its widest.
 //
 //  GOLD, everywhere here, means risk - never up or down. Blue is the cone.
+//  Teal and crimson are the trend; green and red the short horizon.
 //
 //  ═══ HOW IT WORKS ═════════════════════════════════════════════════════════
 //    RISK      per-bar variance from the bar's whole range and its gap
@@ -243,24 +222,38 @@ float  inpTau   = input.float(0.10, "Believable edge (σ)", minval = 0.02, maxva
 // ───────────────────────────────────────────────────────────────────────────
 float bgLum    = color.r(chart.bg_color) * 0.299 + color.g(chart.bg_color) * 0.587 + color.b(chart.bg_color) * 0.114
 bool  darkMode = inpTheme == "Dark" or (inpTheme == "Auto" and bgLum < 128)
-color C_UP    = darkMode ? #3FB980 : #08724A
-color C_DN    = darkMode ? #E4776A : #A8443A
-color C_UPD   = darkMode ? #2A8660 : #5C9E86               // the same direction on the long horizon: deep, for the trend tape
-color C_DND   = darkMode ? #B4554B : #BC7A72
-color C_NEUT  = darkMode ? #8A97A0 : #69757E
-color C_CONE  = darkMode ? #5B8FD6 : #2C5C99
-color C_GOLD  = darkMode ? #D9B44A : #8A6A0E               // risk - never a direction
+color C_UP    = darkMode ? #4FCB9B : #188561               // up, short horizon: columns, stretch ladder, text
+color C_DN    = darkMode ? #E5533C : #8D2614               // down, short horizon
+color C_UPD   = darkMode ? #1A9498 : #0B676A               // up, LONG horizon: teal - a different hue, not a darker green
+color C_DND   = darkMode ? #B85068 : #8D0F44               // down, long horizon: crimson
+color C_NEUT  = darkMode ? #8A97A0 : #5F6B74               // no direction, no reading
+color C_CONE  = darkMode ? #5B8FD6 : #2C5C99               // the cone family, and nothing else
+color C_GOLD  = darkMode ? #F0C54E : #8E7211               // risk - never a direction
 color C_TEXT  = darkMode ? #C9D1D6 : #2B3338
 color C_PANEL = darkMode ? color.new(#0D1215, 8) : color.new(#FFFFFF, 6)
 
-// profile palette — PVOI's, as in Pragati
-color C_POC    = darkMode ? #FFB020 : #B26A00      // point of control — warm anchor
-color C_VA     = darkMode ? #5B8FD6 : #2C5C99      // value-area boundaries + band, cool
+// The profile is context, so it is one grey family told apart by lightness -
+// the same under every kind of colour vision. Only VWAP and the node marks
+// keep a hue. Blue stays the cone's and gold stays risk's.
+color C_POC    = darkMode ? #E8EDF0 : #1C2328      // point of control: the strongest grey
+color C_VA     = darkMode ? #A7B2BA : #4E5961      // value area: mid grey
 color C_VWAP   = darkMode ? #F06BA8 : #A32468      // volume-weighted average, rose
-color C_NODE   = darkMode ? #6E7C88 : #8A949B      // monochrome out-of-value tails · neutral grey
+color C_NODE   = darkMode ? #6E7C88 : #8A949B      // out-of-value tails
 color C_HVN    = darkMode ? #8F7BD8 : #5E4B9E      // High-Volume Node · dense violet
 color C_LVN    = darkMode ? #C6BBEA : #8F7DBB      // Low-Volume Node  · pale  violet
 color C_VIOLET = darkMode ? #A87ABF : #6A3F84      // Initial Balance
+
+// ONE TRANSPARENCY LADDER, so the same strength means the same thing anywhere:
+//     0  solid      the event: outside the landing band, top of a range
+//    40  committed  a trend past ±0.5σ, risk stressed, 3+ ladder rungs
+//    65  quiet      inside the band with the trend; top of a quiet range
+//    80  faint      inside the band without it; calm
+//    90  warming    no reading yet - always grey
+const int A_SOLID = 0
+const int A_FIRM  = 40
+const int A_QUIET = 65
+const int A_FAINT = 80
+const int A_WARM  = 90
 
 // ───────────────────────────────────────────────────────────────────────────
 //  HELPERS
@@ -1157,9 +1150,9 @@ f_vpLevels() =>
     // cut session lines short on 24-hour 1-minute charts (1,440 bars a session).
     int xSess = math.max(math.max(not na(vpSessStart) ? vpSessStart : 0, bar_index - VP_XBACK), 0)
     if vpPocOn and not na(poc)
-        array.push(vpLvLines, line.new(xSess, poc, bar_index, poc, color = color.new(C_POC, 20), width = 1, force_overlay = true))
+        array.push(vpLvLines, line.new(xSess, poc, bar_index, poc, color = color.new(C_POC, 35), width = 1, force_overlay = true))
     if vpVaOn and not na(vah) and not na(vaLow)
-        array.push(vpLvBoxes, box.new(xSess, vah, bar_index, vaLow, border_color = na, bgcolor = color.new(C_VA, 95), force_overlay = true))
+        array.push(vpLvBoxes, box.new(xSess, vah, bar_index, vaLow, border_color = na, bgcolor = color.new(C_VA, 90), force_overlay = true))
         array.push(vpLvLines, line.new(xSess, vah,   bar_index, vah,   color = color.new(C_VA, 50), width = 1, force_overlay = true))
         array.push(vpLvLines, line.new(xSess, vaLow, bar_index, vaLow, color = color.new(C_VA, 50), width = 1, force_overlay = true))
     if vpIbOn and not na(vpIbh)
@@ -1210,14 +1203,14 @@ const float OUT_H  = 0.22
 //            in the brightest neutral, never in the grey that means "nothing".
 bool  cWith = (u >= 0.0 and trRaw == 2) or (u < 0.0 and trRaw == 0)
 color cHue  = cWith ? (u >= 0.0 ? C_UP : C_DN) : C_NEUT
-color cCol  = not settled ? color.new(C_NEUT, 86) : mU or mD ? color.new(cWith ? cHue : C_TEXT, 0) : color.new(cHue, cWith ? 62 : 76)
+color cCol  = not settled ? color.new(C_NEUT, A_WARM) : mU or mD ? color.new(cWith ? cHue : C_TEXT, A_SOLID) : color.new(cHue, cWith ? A_QUIET : A_FAINT)
 plot(vSur ? math.max(-CLIP, math.min(CLIP, u)) : na,       "Surprise · columns (σ, clipped)", cCol, 1, plot.style_columns, display = display.pane, precision = 2)
 plot(u,                                                    "Surprise (σ)",                    cCol, 1, display = display.status_line + display.data_window, precision = 2)
-plot(vSur and not na(bU) ? math.min(bU, CLIP)   : na,      "Landing band · upper (σ)",        color.new(C_CONE, 20), 1, display = display.pane + display.data_window, precision = 2)
-plot(vSur and not na(bD) ? math.max(-bD, -CLIP) : na,      "Landing band · lower (σ)",        color.new(C_CONE, 20), 1, display = display.pane + display.data_window, precision = 2)
-hline(0.0, "Zero", color.new(C_NEUT, 70), hline.style_dotted)
+plot(vSur and not na(bU) ? math.min(bU, CLIP)   : na,      "Landing band · upper (σ)",        color.new(C_CONE, 30), 1, display = display.pane + display.data_window, precision = 2)
+plot(vSur and not na(bD) ? math.max(-bD, -CLIP) : na,      "Landing band · lower (σ)",        color.new(C_CONE, 30), 1, display = display.pane + display.data_window, precision = 2)
+hline(0.0, "Zero", color.new(C_NEUT, 55), hline.style_dotted)
 
-plot(vPrf and nP > 0 ? 100.0 * math.log(eqF) : na, "Proof · exposure (log %)",     color.new(C_CONE, 0),  2, display = display.pane + display.data_window, precision = 1)
+plot(vPrf and nP > 0 ? 100.0 * math.log(eqF) : na, "Proof · exposure (log %)",     color.new(C_TEXT, 0),  2, display = display.pane + display.data_window, precision = 1)
 plot(vPrf and nP > 0 ? 100.0 * math.log(eqH) : na, "Proof · buy and hold (log %)", color.new(C_NEUT, 20), 1, display = display.pane + display.data_window, precision = 1)
 
 // ── the tapes ─────────────────────────────────────────────────────────────
@@ -1226,30 +1219,30 @@ plot(vPrf and nP > 0 ? 100.0 * math.log(eqH) : na, "Proof · buy and hold (log %
 // yet is neutral grey.
 bool tapesOn = vSur and inpTapes
 
-// TREND · hue is the side, in the DEEP tone of the long horizon; faint while
-// flat, a step at ±0.5σ, solid by 1.5σ.
+// TREND · teal up, crimson down - the long horizon's own hues, so it never
+// reads as a faded ladder. Faint while flat, a step at ±0.5σ, solid by 1.5σ.
 float tAbs  = math.abs(T)
-color tHue  = T >= 0.0 ? C_UPD : C_DND                      // deep: the long horizon
-color tInk  = T >= 0.0 ? C_UP : C_DN                        // the same side, bright, for text
-color tapeT = na(T) ? color.new(C_NEUT, 82) : tAbs < 0.5 ? color.from_gradient(tAbs, 0.0, 0.5, color.new(tHue, 90), color.new(tHue, 62)) :
-     color.from_gradient(tAbs, 0.5, 1.5, color.new(tHue, 40), color.new(tHue, 0))
+color tHue  = T >= 0.0 ? C_UPD : C_DND
+color tInk  = trRaw == 2 ? C_UP : trRaw == 0 ? C_DN : C_NEUT      // for text: a flat trend is grey
+color tapeT = na(T) ? color.new(C_NEUT, A_WARM) : tAbs < 0.5 ? color.from_gradient(tAbs, 0.0, 0.5, color.new(tHue, A_WARM), color.new(tHue, A_QUIET)) :
+     color.from_gradient(tAbs, 0.5, 1.5, color.new(tHue, A_FIRM), color.new(tHue, A_SOLID))
 
-// STRETCH LADDER (outer) · hue is the side it leans; strength is how many rungs
-// are outside their own band on that side. Capped: it carries no direction.
+// STRETCH LADDER (outer) · green / red by the side it leans; strength is how
+// many rungs are outside their own band. Never solid: it carries no direction.
 color lHue  = ladX >= 0.0 ? C_UP : C_DN
-color tapeL = not ladOk ? color.new(C_NEUT, 82) : ladN >= 3 ? color.new(lHue, 35) : ladN >= 1 ? color.new(lHue, 65) :
-     color.from_gradient(math.abs(ladX), 0.0, 1.0, color.new(lHue, 94), color.new(lHue, 82))
+color tapeL = not ladOk ? color.new(C_NEUT, A_WARM) : ladN >= 3 ? color.new(lHue, A_FIRM) : ladN >= 1 ? color.new(lHue, A_QUIET) :
+     color.from_gradient(math.abs(ladX), 0.0, 1.0, color.new(lHue, A_WARM), color.new(lHue, A_FAINT))
 
-// RISK · gold only: next to nothing while calm, a step at normal, a step at
-// stressed, solid toward the top of its range.
-color tapeR = not regOk ? color.new(C_NEUT, 82) : regRaw == 2 ? color.from_gradient(prk, 200.0 / 3.0, 100.0, color.new(C_GOLD, 40), color.new(C_GOLD, 0)) :
-     regRaw == 1 ? color.from_gradient(prk, 100.0 / 3.0, 200.0 / 3.0, color.new(C_GOLD, 80), color.new(C_GOLD, 62)) : color.from_gradient(prk, 0.0, 100.0 / 3.0, color.new(C_GOLD, 95), color.new(C_GOLD, 86))
+// RISK · gold only. Calm is nearly nothing; a clear step at normal; another at
+// stressed, running to solid at the top of its range.
+color tapeR = not regOk ? color.new(C_NEUT, A_WARM) : regRaw == 2 ? color.from_gradient(prk, 200.0 / 3.0, 100.0, color.new(C_GOLD, A_FIRM), color.new(C_GOLD, A_SOLID)) :
+     regRaw == 1 ? color.from_gradient(prk, 100.0 / 3.0, 200.0 / 3.0, color.new(C_GOLD, A_QUIET), color.new(C_GOLD, 55)) : color.from_gradient(prk, 0.0, 100.0 / 3.0, color.new(C_GOLD, A_WARM), color.new(C_GOLD, A_FAINT))
 
-// RISK MOMENTUM (outer) · gold while risk is rising, capped below the risk
-// tape's own gold; grey while it is falling; faint steady.
+// RISK MOMENTUM (outer) · gold while risk is rising, never stronger than the
+// risk tape's first stressed step; grey while it is falling; faint steady.
 float rmAbs = math.abs(rMom)
-color tapeM = na(rMom) ? color.new(C_NEUT, 82) : rmS == 2 ? color.from_gradient(rmAbs, 0.10, 0.40, color.new(C_GOLD, 60), color.new(C_GOLD, 30)) :
-     rmS == 0 ? color.from_gradient(rmAbs, 0.10, 0.40, color.new(C_NEUT, 78), color.new(C_NEUT, 60)) : color.new(C_NEUT, 92)
+color tapeM = na(rMom) ? color.new(C_NEUT, A_WARM) : rmS == 2 ? color.from_gradient(rmAbs, 0.10, 0.40, color.new(C_GOLD, A_QUIET), color.new(C_GOLD, A_FIRM)) :
+     rmS == 0 ? color.from_gradient(rmAbs, 0.10, 0.40, color.new(C_NEUT, A_QUIET), color.new(C_NEUT, 50)) : color.new(C_NEUT, A_FAINT)
 
 plot(tapesOn ?  TAPE_Y + TAPE_H : na, "Tape · trend",          tapeT, 1, plot.style_columns, histbase =  TAPE_Y - TAPE_H, display = display.pane)
 plot(tapesOn ?  OUT_Y  + OUT_H  : na, "Tape · stretch ladder", tapeL, 1, plot.style_columns, histbase =  OUT_Y  - OUT_H,  display = display.pane)
@@ -1270,11 +1263,11 @@ string rmWord   = na(rMom) ? "warming" : rmS == 2 ? "rising" : rmS == 0 ? "falli
 // Three lines follow price, all in the cone's blue and all one pixel: the
 // midline, quiet; the landing band's two edges, quieter. None reaches the
 // status line or the price scale.
-plot(inpLand ? upper[inpH] : na,  "Landing band · upper",   color.new(C_CONE, 78), 1, force_overlay = true, display = display.pane + display.data_window)
-plot(inpLand ? lower[inpH] : na,  "Landing band · lower",   color.new(C_CONE, 78), 1, force_overlay = true, display = display.pane + display.data_window)
-plot(inpTrail ? stopL : na,       "Stop history · long",    color.new(C_DN, 70), 1, plot.style_stepline, force_overlay = true, display = display.pane + display.data_window)
-plot(inpTrail ? stopS : na,       "Stop history · short",   color.new(C_UP, 70), 1, plot.style_stepline, force_overlay = true, display = display.pane + display.data_window)
-plot(inpMid ? midL : na,          "Midline",                color.new(C_CONE, 55), 1, force_overlay = true, display = display.pane + display.data_window)
+plot(inpLand ? upper[inpH] : na,  "Landing band · upper",   color.new(C_CONE, 70), 1, force_overlay = true, display = display.pane + display.data_window)
+plot(inpLand ? lower[inpH] : na,  "Landing band · lower",   color.new(C_CONE, 70), 1, force_overlay = true, display = display.pane + display.data_window)
+plot(inpTrail ? stopL : na,       "Stop history · long",    color.new(C_DN, 50), 1, plot.style_stepline, force_overlay = true, display = display.pane + display.data_window)
+plot(inpTrail ? stopS : na,       "Stop history · short",   color.new(C_UP, 50), 1, plot.style_stepline, force_overlay = true, display = display.pane + display.data_window)
+plot(inpMid ? midL : na,          "Midline",                color.new(C_CONE, 45), 1, force_overlay = true, display = display.pane + display.data_window)
 plotshape(inpMid and inpMidMk and midUp and barstate.isconfirmed, "Midline · close above", shape.circle, location.belowbar, color.new(C_UP, 45), size = size.tiny, force_overlay = true, display = display.pane)
 plotshape(inpMid and inpMidMk and midDn and barstate.isconfirmed, "Midline · close below", shape.circle, location.abovebar, color.new(C_DN, 45), size = size.tiny, force_overlay = true, display = display.pane)
 plotshape(inpMark and provenUp,   "Proven state · positive", shape.triangleup,   location.belowbar, color.new(C_UP, 45), size = size.tiny, force_overlay = true, display = display.pane)
@@ -1316,13 +1309,13 @@ if barstate.islast
         for i = inpH to 0
             array.push(pts, chart.point.from_index(bar_index + i, close * math.exp(-qD * sig * math.sqrt(i))))
         plCone := polyline.new(pts, curved = false, closed = true, xloc = xloc.bar_index, line_color = color.new(C_CONE, 0),
-             fill_color = color.new(C_CONE, 84), line_width = 2, force_overlay = true)
+             fill_color = color.new(C_CONE, 86), line_width = 2, force_overlay = true)
         lnL := line.new(bar_index, stopL, bar_index + inpH, stopL, color = color.new(C_DN, 0), width = 2, style = line.style_dashed, force_overlay = true)
         lnS := line.new(bar_index, stopS, bar_index + inpH, stopS, color = color.new(C_UP, 0), width = 2, style = line.style_dashed, force_overlay = true)
         array.push(lbs, f_stopTag(topY, "SHORT STOP " + f_px(stopS), C_UP, true))
         array.push(lbs, f_stopTag(botY, "LONG STOP " + f_px(stopL), C_DN, false))
     if tapesOn
-        array.push(lbs, f_tapeTag( (TAPE_Y + OUT_Y) / 2.0, "LADDER " + ladShort + "\nTREND " + trWord, na(T) ? C_NEUT : tInk))
+        array.push(lbs, f_tapeTag( (TAPE_Y + OUT_Y) / 2.0, "LADDER " + ladShort + "\nTREND " + trWord, tInk))
         array.push(lbs, f_tapeTag(-(TAPE_Y + OUT_Y) / 2.0, "RISK " + regTxt + "\nMOMENTUM " + rmWord, regRaw == 2 or rmS == 2 ? C_GOLD : C_NEUT))
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -1366,7 +1359,7 @@ if inpTbl and barstate.islast
              "This chart's own record over " + str.tostring(nF) + " forecasts: how often the cone held (target " + str.tostring(inpCover, "#") + "%; last 250: " + f_pct(covRecent, "#") + ") and how often the long / short stop was touched (target " + str.tostring(inpStop, "#") + "%). Gold when the cone is more than 3 points off.")
         f_cell(tb, 5, "RISK", "±" + f_pct(sH, "#.0") + " · " + regTxt + (rmS == 1 or na(rMom) ? "" : " · " + rmWord), regRaw == 2 or rmS == 2 ? C_GOLD : C_TEXT,
              "One standard move over " + hTxt + " (" + f_pct(sig * math.sqrt(bpy), "#") + " a year); where risk stands in its last 500 bars; and whether it rose or fell more than 10% over " + hTxt + ". A rise usually fades.")
-        f_cell(tb, 6, "TREND", trWord + " · ladder " + ladShort, na(T) ? C_NEUT : tInk,
+        f_cell(tb, 6, "TREND", trWord + " · ladder " + ladShort, tInk,
              "Trend " + trTxt + ". Ladder: " + ladTxt + " (" + str.tostring(h0) + ", " + str.tostring(inpH) + ", " + str.tostring(h2) + ", " + str.tostring(h3) + " bars). " +
              (st < 0 ? "" : "State: " + f_stName(st) + " - " + (na(lZ) ? "too few on this chart to judge." : "seen " + f_num(lNe, "#") + " times, next " + hTxt + " " + f_num(lMu, "+0.00;-0.00") + "σ against " + f_num(gM, "+0.00;-0.00") + "σ usual: " + (proven == 1 ? "proven positive." : proven == -1 ? "proven negative." : "unproven."))))
         f_cell(tb, 7, "SHARPE", f_num(shF, "0.00") + " · B&H " + f_num(shH, "0.00"), C_TEXT,
