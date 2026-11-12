@@ -63,6 +63,32 @@ All figures are from `research/results.txt`, net of 5 bp costs (10 bp crypto), a
 | Exposure dial, daily (default) | Sharpe 0.55, mean worst drawdown −44% | buy and hold: 0.53, −62% |
 | Exposure dial, weekly | Sharpe 0.49, mean worst drawdown −44% | buy and hold: 0.51, −57% |
 
+### The midline observation (v2.2)
+
+The observation tested: the average of the landing band's two edges divides trend. While price is below it, price tends to go lower until it gets back above, and the strongest runs start when risk is calm and the trend or the histogram flips.
+
+The midline is close to where price stood 10 bars ago, so "above the midline" is close to "the surprise histogram is positive" (they agree on 91% of bars).
+
+Measured on 151 instruments, daily bars 2001–2026 (`research/midline.txt`), it did not hold as a forward signal:
+
+| Test | Result |
+|---|---|
+| Next bar's return per unit of risk, above against below the midline | 2.80 against 2.88 (σ × 100): the same, in every era, risk regime and trend state |
+| Next 10 bars after a close across it | no different from any other 10 bars, on either side |
+| Crosses made in calm risk | no different from normal or stressed |
+| Crosses that came with a trend flip | no different |
+| Rule: long above, flat below | Sharpe 0.24 against 0.48 for buy and hold |
+| Rule: long above, short below | Sharpe −0.17 |
+| Rule on hourly bars | every version lost after costs |
+
+Why it looks true on a chart: a run below the midline lasts a long time only if price kept falling.
+One run in eleven lasts 20 bars or more, and those average 7–10%. They are what the eye finds.
+The other ten are over within a few bars (the median run is 4 bars), and only 37% of all runs end in profit.
+
+A slower version behaves like the trend tape already in the script: long while the close is above the close 252 bars ago made a Sharpe of 0.41 against 0.49 for buy and hold, with a shallower drawdown.
+
+So the midline is drawn as a line, with the chart's own record of it in the table (runs, share won, share lasting 20+ bars, and the long/flat rule against buy and hold). Its crossings are optional marks, not a signal.
+
 ### What it does not do
 
 - **It does not call direction.** After 2013 the dial does not beat buy and hold on Sharpe. It is risk control: about the same return per unit of risk, with a drawdown roughly a quarter shallower.
@@ -88,7 +114,7 @@ Gold always means risk, never up or down.
 
 ### Status
 
-- **v2.1** adds the volume profile to v2.0. No engine number changed. The preview image above predates it and does not show the profile.
+- **v2.2** adds the midline and its record; **v2.1** added the volume profile. No engine number changed from v2.0. The preview image above predates it and does not show the profile.
 - A later experiment ("Maryada": touch probabilities on profile levels, unified tapes, Pragati's palette) was set aside; it remains in the git history at commit `7c5340a`.
 - The Pine script has **not been compiled in TradingView**. No Pine compiler is available here; it was checked by hand against the reference implementation. Expect to fix a syntax detail or two on first load.
 - The Python reference and the Pine script were written to the same arithmetic but have not been compared bar for bar.
@@ -101,5 +127,6 @@ python3 fetch.py                                   # ~150 symbols, daily, from Y
 python3 fetch.py 1h                                # the same symbols, hourly, into data1h/
 python3 study.py > results.txt                     # every figure above (about 40 minutes)
 python3 direction_null.py > direction_null.txt     # the search that came back empty
+python3 study_mid.py > midline.txt                 # the midline observation
 python3 preview.py                                 # docs/preview_*.png
 ```

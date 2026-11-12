@@ -3,7 +3,7 @@
 
 //@version=6
 // ═══════════════════════════════════════════════════════════════════════════
-//  KASAUTI · कसौटी  ·  CALIBRATED RISK, EXPOSURE AND SELF-AUDIT              v2.1
+//  KASAUTI · कसौटी  ·  CALIBRATED RISK, EXPOSURE AND SELF-AUDIT              v2.2
 //  "How far can it go, how much should I hold - and has that been true here?"
 //
 //  Kasauti is the touchstone: the black stone a goldsmith rubs metal on to see
@@ -20,6 +20,30 @@
 //  the cone, the stops, the dial or the ledger reads it. It sits to the right
 //  of the forward cone, and the cone's and stops' tags share its tag column.
 //  No engine number changed from v2.0.
+//
+//  v2.2 · THE MIDLINE, AND ITS RECORD (section 6b). The average of the landing
+//  band's two edges, drawn on the price chart. The observation it came from:
+//  while price is below it price tends to go lower until it gets back above,
+//  and the strongest runs start when risk is calm and the trend or the
+//  histogram flips. MEASURED on 151 instruments, 2001-2026 (research/
+//  midline.txt), it did not hold as a forward signal:
+//    · the next bar's return per unit of risk was the same above the midline
+//      and below it (2.80 against 2.88, σ × 100), in every era, in every risk
+//      regime and on either side of the trend tape;
+//    · after a close across it, the next 10 bars were no different from any
+//      other 10 bars - including crosses made in calm risk, and crosses that
+//      came with a trend flip;
+//    · held as a rule - long above, flat below - it made a Sharpe of 0.24
+//      against 0.48 for buy and hold; long / short lost money; on hourly bars
+//      every version lost.
+//  WHY IT LOOKS TRUE ON A CHART. A run below the midline lasts a long time
+//  only if price kept falling. Those long runs - one in eleven lasts 20 bars
+//  or more, and they average 7 to 10% - are what the eye finds. The other ten
+//  are over in a few bars (the median run is 4), and only 37% of all runs end
+//  in profit. The midline is the surprise histogram's zero line, drawn on
+//  price: it says where price stands against 10 bars ago. It is a description.
+//  So it is drawn as a LINE, with this chart's own record of it in the table,
+//  and its crossings are optional marks - not a signal.
 //
 //  WHY IT IS NOT A DIRECTION ORACLE. Measured first (research/, 151 instruments
 //  in seven classes, daily bars 2001-2026, three eras): no price or volume
@@ -157,6 +181,8 @@ bool   inpTapes = input.bool(true, "Tapes", group = G_D, tooltip = "TREND and th
 bool   inpCone  = input.bool(true, "Forward cone", group = G_D, tooltip = "The cone drawn from the last bar to H bars ahead, with the stops across it.")
 bool   inpLand  = input.bool(true, "Landing band", group = G_D, tooltip = "The cone that was drawn H bars ago, plotted at each bar. A close outside it is a surprise.")
 bool   inpTrail = input.bool(false, "Stop history", group = G_D, tooltip = "Draws where the long and short stops stood on every past bar. Off by default: the current stops are always drawn across the forward cone and listed in the table.")
+bool   inpMid   = input.bool(true, "Midline", group = G_D, tooltip = "The average of the landing band's two edges, on the price chart - close to where price stood H bars ago. Above it the surprise histogram is positive, below it negative.\n\nA DESCRIPTION, NOT A SIGNAL. Measured on 151 instruments: the next bar's return was the same above the midline and below it; held as a long / flat rule it made a Sharpe of 0.24 against 0.48 for buy and hold. What the eye finds on a chart is the one run in eleven that lasted 20 bars or more.\n\nThe table's MIDLINE row keeps THIS chart's record of it, so the observation can be checked here.")
+bool   inpMidMk = input.bool(false, "    Mark closes across the midline", group = G_D, tooltip = "A small dot on the bar that closed across the midline. Off by default: on daily bars it happens about every seven bars, and 37% of the runs that follow end in profit.")
 bool   inpTbl   = input.bool(true, "Table", group = G_D)
 string inpPos   = input.string("Bottom left", "    Position", options = ["Bottom left", "Top left", "Bottom right", "Top right"], group = G_D, tooltip = "On the price chart. Bottom left is the corner the volume profile and its tag column do not claim.")
 string inpTheme = input.string("Auto", "Palette", options = ["Auto", "Light", "Dark"], group = G_D)
@@ -509,6 +535,50 @@ float shF   = sdF  > 0.0 ? sF  / nP / sdF  * math.sqrt(bpy) : na
 float shH   = sdHd > 0.0 ? sHd / nP / sdHd * math.sqrt(bpy) : na
 float cagF  = yrs > 0.0 and eqF > 0.0 ? math.pow(eqF, 1.0 / yrs) - 1.0 : na
 float cagH  = yrs > 0.0 and eqH > 0.0 ? math.pow(eqH, 1.0 / yrs) - 1.0 : na
+
+// ═══════════════════════════════════════════════════════════════════════════
+//  6b · THE MIDLINE AND ITS RECORD                         (display and audit)
+//
+//  The average of the landing band's edges. Nothing reads it. Two records are
+//  kept so the observation can be tested on this chart:
+//    RUNS   every stretch from one close across the midline to the next, and
+//           what price did over it in the run's own direction;
+//    RULE   long above, flat below - scored exactly as the dial is: the side
+//           at the close of bar t−2 is the position over bar t, net of cost.
+// ═══════════════════════════════════════════════════════════════════════════
+float midL    = (upper[inpH] + lower[inpH]) / 2.0
+int   midSide = na(midL) ? 0 : close > midL ? 1 : -1
+bool  midUp   = midSide == 1 and midSide[1] == -1
+bool  midDn   = midSide == -1 and midSide[1] == 1
+
+var int   mRuns = 0
+var int   mWon  = 0
+var int   mLong = 0
+var float mGain = 0.0
+var float mPx   = na
+var int   mBar  = na
+var int   mDir  = 0
+if midUp or midDn
+    if mDir != 0 and not na(mPx)
+        float gRun = mDir * math.log(close / mPx)
+        mRuns += 1
+        mWon  += gRun > 0.0 ? 1 : 0
+        mLong += bar_index - mBar >= 20 ? 1 : 0
+        mGain += gRun
+    mPx  := close
+    mBar := bar_index
+    mDir := midUp ? 1 : -1
+
+float m2 = midSide[2] == 1 ? 1.0 : 0.0
+float m3 = midSide[3] == 1 ? 1.0 : 0.0
+float pM = na(e2) ? na : m2 * ret - inpCost / 10000.0 * math.abs(m2 - m3)
+var float sM  = 0.0
+var float sM2 = 0.0
+if not na(pM) and not na(pH)
+    sM  += pM
+    sM2 += pM * pM
+float sdM = nP > 1 ? math.sqrt(math.max(sM2 / nP - math.pow(sM / nP, 2), 0.0)) : na
+float shM = sdM > 0.0 ? sM / nP / sdM * math.sqrt(bpy) : na
 
 // ══════════════════════════════════════════════════════════════════════════════
 //  7 · VOLUME PROFILE · MARKET-STRUCTURE OVERLAY       (Pragati's, from PVOI v2.1)
@@ -1128,6 +1198,9 @@ plot(inpLand ? upper[inpH] : na,  "Landing band · upper",   color.new(C_CONE, 4
 plot(inpLand ? lower[inpH] : na,  "Landing band · lower",   color.new(C_CONE, 45), 1, force_overlay = true)
 plot(inpTrail ? stopL : na,       "Long stop history",      color.new(C_DN, 55), 1, plot.style_stepline, force_overlay = true)
 plot(inpTrail ? stopS : na,       "Short stop history",     color.new(C_UP, 55), 1, plot.style_stepline, force_overlay = true)
+plot(inpMid ? midL : na,          "Midline of the landing band", color.new(C_NEUT, 30), 1, force_overlay = true)
+plotshape(inpMid and inpMidMk and midUp and barstate.isconfirmed, "Closed above the midline", shape.circle, location.belowbar, color.new(C_UP, 30), size = size.tiny, force_overlay = true)
+plotshape(inpMid and inpMidMk and midDn and barstate.isconfirmed, "Closed below the midline", shape.circle, location.abovebar, color.new(C_DN, 30), size = size.tiny, force_overlay = true)
 plotshape(inpMark and provenUp,   "Entered a proven state · positive", shape.triangleup,   location.belowbar, C_UP, size = size.tiny, force_overlay = true)
 plotshape(inpMark and provenDn,   "Entered a proven state · negative", shape.triangledown, location.abovebar, C_DN, size = size.tiny, force_overlay = true)
 
@@ -1179,7 +1252,7 @@ var table tb = na
 if inpTbl and barstate.islast
     if na(tb)
         tb := table.new(inpPos == "Top right" ? position.top_right : inpPos == "Bottom right" ? position.bottom_right :
-             inpPos == "Top left" ? position.top_left : position.bottom_left, 2, 10, bgcolor = C_PANEL,
+             inpPos == "Top left" ? position.top_left : position.bottom_left, 2, 11, bgcolor = C_PANEL,
              frame_color = color.new(C_NEUT, 70), frame_width = 1, border_color = color.new(C_NEUT, 88), border_width = 1,
              force_overlay = true)
     string hTxt = str.tostring(inpH) + " bars"
@@ -1214,6 +1287,10 @@ if inpTbl and barstate.islast
              "Following the exposure dial on this chart, one bar late, net of costs, since the first reading.")
         f_row(tb, 9, "PROOF · hold", "Sharpe " + f_num(shH, "0.00") + " · worst drawdown " + f_pct(ddH, "#") + " · " + f_pct(cagH, "#.0") + " a year", C_NEUT,
              "Buy and hold over the same bars.")
+        if inpMid
+            f_row(tb, 10, "MIDLINE", (midSide == 1 ? "above" : midSide == -1 ? "below" : "—") + (na(mBar) ? "" : " for " + str.tostring(bar_index - mBar + 1) + " bars") + " · " + str.tostring(mRuns) + " runs, " +
+                 f_pct(mRuns > 0 ? mWon / mRuns : na, "#") + " won, " + f_pct(mRuns > 0 ? mLong / mRuns : na, "#") + " lasted 20+ · long/flat Sharpe " + f_num(shM, "0.00") + " (hold " + f_num(shH, "0.00") + ")", C_TEXT,
+                 "Where price stands against the midline of the landing band, and THIS CHART's record of it. RUNS: every stretch between two closes across the midline - how many ended in profit in their own direction, and how many lasted 20 bars or more. RULE: long above, flat below, one bar late, net of costs, against buy and hold. Measured on 151 instruments: 37% of runs won, one in eleven lasted 20+ bars and carried the gain, and the rule made a Sharpe of 0.24 against 0.48 for buy and hold. A description, not a signal.")
 
 // ═══════════════════════════════════════════════════════════════════════════
 //  ALERTS
@@ -1230,6 +1307,10 @@ alertcondition(regRaw == 2 and regRaw[1] != 2 and barstate.isconfirmed, title = 
      message = "Forecast risk has entered the top third of its last 500 bars. The cone and stops are wider and the exposure dial lower.")
 alertcondition(rmS == 2 and rmS[1] != 2 and barstate.isconfirmed, title = "Kasauti · risk rising",
      message = "Forecast risk is more than 10% above where it stood H bars ago. Measured: after such a rise risk was lower again H bars later about three times in four.")
+alertcondition(midUp and barstate.isconfirmed, title = "Kasauti · closed above the midline",
+     message = "The close crossed above the midline of the landing band. A description of where price stands against H bars ago - measured, it is not a signal.")
+alertcondition(midDn and barstate.isconfirmed, title = "Kasauti · closed below the midline",
+     message = "The close crossed below the midline of the landing band. A description of where price stands against H bars ago - measured, it is not a signal.")
 alertcondition(E != E[1] and not na(E[1]) and barstate.isconfirmed, title = "Kasauti · exposure changed",
      message = "The exposure dial has moved a full step from the position held. The table's EXPOSURE row carries the new position.")
 alertcondition(provenUp, title = "Kasauti · entered a proven state (positive)",
