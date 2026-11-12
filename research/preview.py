@@ -18,13 +18,14 @@ for sym, title in (("_NSEI", "Nifty 50 · daily"), ("AAPL", "Apple · daily")):
     for i in range(n):
         o, h, l, c = d2.open.iloc[i], d2.high.iloc[i], d2.low.iloc[i], d2.close.iloc[i]; col = UP if c >= o else DN
         a.plot([i, i], [l, h], color=col, lw=0.8); a.plot([i, i], [min(o, c), max(o, c)], color=col, lw=3)
-    a.plot(x, R.upper.shift(H).iloc[-n:], color=CONE, lw=1, alpha=.6, label="landing band · the cone drawn 10 bars ago"); a.plot(x, R.lower.shift(H).iloc[-n:], color=CONE, lw=1, alpha=.6)
+    a.plot(x, R.upper.shift(H).iloc[-n:], color=CONE, lw=1, alpha=.2, label="landing band · the cone drawn 10 bars ago"); a.plot(x, R.lower.shift(H).iloc[-n:], color=CONE, lw=1, alpha=.2)
+    a.plot(x, ((R.upper.shift(H) + R.lower.shift(H)) / 2).iloc[-n:], color=CONE, lw=2, label="midline")
     c, sg, qu, qd = d2.close.iloc[-1], R2.sig.iloc[-1], R2.qU.iloc[-1], R2.qD.iloc[-1]; j = np.arange(H + 1)
     a.fill_between(n - 1 + j, c * np.exp(-qd * sg * np.sqrt(j)), c * np.exp(qu * sg * np.sqrt(j)), color=CONE, alpha=.18, label="forward cone · 80%")
     a.plot([n - 1, n - 1 + H], [R2.stopL.iloc[-1]] * 2, color=DN, ls="--", lw=1, label="long stop · touched 20% of the time"); a.plot([n - 1, n - 1 + H], [R2.stopS.iloc[-1]] * 2, color=UP, ls="--", lw=1, label="short stop")
     a.legend(loc="upper left", fontsize=8, facecolor=BG, edgecolor="#222a30", labelcolor=FG); a.set_title(f"Kasauti · {title}   (rendered from research/kasauti.py, not from TradingView)", color=FG, fontsize=11, loc="left")
-    a = ax[1]; tr = np.where(R2["T"] > .5, UP, np.where(R2["T"] < -.5, DN, NE)); out = ((R2.mU == 1) | (R2.mD == 1)).values; uu = R2.u.clip(-4, 4)
-    a.bar(x[~out], uu[~out], color=tr[~out], alpha=.45); a.bar(x[out], uu[out], color=tr[out])
+    a = ax[1]; tr = np.where(R2.u >= 0, UP, DN); out = ((R2.mU == 1) | (R2.mD == 1)).values; uu = R2.u.clip(-4, 4)
+    a.bar(x[~out], uu[~out], color=tr[~out], alpha=.4); a.bar(x[out], uu[out], color=tr[out])
     a.plot(x, R.qU.shift(H).iloc[-n:], color=CONE, lw=1); a.plot(x, -R.qD.shift(H).iloc[-n:], color=CONE, lw=1)
     TY, MY, TH = 4.9, 5.6, 0.28
     for i in range(n):

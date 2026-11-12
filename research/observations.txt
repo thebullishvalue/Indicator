@@ -1,0 +1,145 @@
+
+═══ DAILY BARS, 2001-2026 · weekly VWAP ═══  (ex crypto unless stated; returns are per unit of forecast risk, sigma x100; all bars: next bar 2.84, next 10 bars 7.57)
+
+1. STOP ASYMMETRY. Which stop is further from the close, by the trend tape's state (share of bars in each trend state)
+far   long stop further  short stop further
+tr                                         
+down              0.388               0.612
+flat              0.392               0.608
+up                0.391               0.609
+mean trend (sigma) by which stop is further: {'long stop further': 0.22, 'short stop further': 0.5}  correlation of asymmetry with trend: -0.224
+what followed: next bar / next 10 bars
+                      z1   f10    bars
+far                                   
+long stop further   2.56  7.40  315642
+short stop further  3.02  7.68  491605
+next 10 bars, by era
+era                 03-12  13-19  20-26
+far                                    
+long stop further    7.90   8.87   5.16
+short stop further   8.74   7.60   6.42
+next 10 bars, within each trend state (does the asymmetry add anything to the trend tape?)
+far   long stop further  short stop further
+tr                                         
+down               7.80                8.50
+flat               6.42                6.38
+up                 8.18                8.62
+
+2. VWAP, AND THE THREE TOGETHER. Next bar's return
+{'above vwap': 1.32, 'below vwap': 4.48}
+vwap x midline
+mid         above mid  below mid
+vw                              
+above vwap       1.60       0.84
+below vwap       4.98       4.18
+mid         above mid  below mid
+vw                              
+above vwap      0.327      0.191
+below vwap      0.180      0.301
+vwap x midline x stop asymmetry: next bar
+far                   long stop further  short stop further
+vw         mid                                             
+above vwap above mid               1.02                2.15
+           below mid              -0.14                1.29
+below vwap above mid               5.54                4.52
+           below mid               4.43                4.08
+vwap x midline x stop asymmetry: next 10 bars
+far                   long stop further  short stop further
+vw         mid                                             
+above vwap above mid               6.86                7.56
+           below mid               6.24                6.27
+below vwap above mid               7.57                8.39
+           below mid               9.00                8.32
+all three agreeing, next 10 bars by era
+era          03-12  13-19  20-26     share
+all3                                      
+all bearish   9.10  12.80   4.67  0.088450
+all bullish  10.19   3.56   8.12  0.168098
+mixed         7.91   8.55   5.60  0.743452
+all three agreeing, next 10 bars by risk regime
+reg           calm  normal  stressed
+all3                                
+all bearish  10.77   11.41      5.22
+all bullish   9.19    7.33      5.05
+mixed         8.59    8.12      5.27
+
+3. AS RULES. long while the condition holds, one bar late, net of costs; mean across 151 instruments (crypto included)
+                                            inmkt     turn     sh     dd  sh_03  sh_13  sh_20  sh>hold  dd<hold
+v                                                                                                              
+hold                                        1.000    0.000  0.530 -0.611  0.522  0.579  0.521    0.000    0.000
+stop asymmetry (short stop further = long)  0.661   18.211  0.367 -0.551  0.403  0.309  0.334    0.106    0.656
+stop asymmetry, REVERSED                    0.463   18.211  0.249 -0.508  0.223  0.339  0.281    0.053    0.801
+above vwap                                  0.577   92.548 -0.005 -0.673 -0.027 -0.102  0.010    0.020    0.397
+below vwap (the reverse)                    0.547   92.548  0.114 -0.601  0.177  0.070  0.068    0.007    0.583
+above vwap, NO COSTS                        0.577   92.548  0.320 -0.530  0.272  0.326  0.342    0.132    0.742
+below vwap, NO COSTS                        0.547   92.548  0.431 -0.502  0.465  0.492  0.396    0.291    0.874
+above midline                               0.565   34.834  0.255 -0.523  0.220  0.158  0.336    0.073    0.762
+above vwap AND midline                      0.408   61.784 -0.046 -0.589 -0.081 -0.193  0.039    0.026    0.570
+all three bullish                           0.271   36.461 -0.066 -0.473 -0.083 -0.226 -0.028    0.026    0.815
+all three, long/short                       0.349   58.381 -0.249 -0.693 -0.268 -0.434 -0.196    0.000    0.311
+vwap AND midline, long/short                0.675  123.060 -0.454 -1.194 -0.483 -0.670 -0.368    0.000    0.040
+all three bullish, entered in CALM risk     0.190   15.883 -0.047 -0.274 -0.046 -0.134 -0.079    0.020    0.947
+
+═══ HOURLY BARS, about two years · daily VWAP ═══  (ex crypto unless stated; returns are per unit of forecast risk, sigma x100; all bars: next bar 0.70, next 10 bars 1.68)
+
+1. STOP ASYMMETRY. Which stop is further from the close, by the trend tape's state (share of bars in each trend state)
+far   long stop further  short stop further
+tr                                         
+down              0.476               0.524
+flat              0.478               0.522
+up                0.499               0.501
+mean trend (sigma) by which stop is further: {'long stop further': -0.01, 'short stop further': 0.2}  correlation of asymmetry with trend: -0.162
+what followed: next bar / next 10 bars
+                      z1   f10    bars
+far                                   
+long stop further   0.95  2.78  416636
+short stop further  0.47  0.65  444491
+next 10 bars, within each trend state (does the asymmetry add anything to the trend tape?)
+far   long stop further  short stop further
+tr                                         
+down               3.18                1.52
+flat               3.46                1.26
+up                 1.56               -0.95
+
+2. VWAP, AND THE THREE TOGETHER. Next bar's return
+{'above vwap': -0.15, 'below vwap': 1.58}
+vwap x midline
+mid         above mid  below mid
+vw                              
+above vwap      -0.02      -0.44
+below vwap       1.05       1.81
+mid         above mid  below mid
+vw                              
+above vwap      0.352      0.156
+below vwap      0.148      0.344
+vwap x midline x stop asymmetry: next bar
+far                   long stop further  short stop further
+vw         mid                                             
+above vwap above mid               0.44               -0.65
+           below mid              -0.35               -0.50
+below vwap above mid               1.35                0.67
+           below mid               2.07                1.63
+vwap x midline x stop asymmetry: next 10 bars
+far                   long stop further  short stop further
+vw         mid                                             
+above vwap above mid               2.60                0.43
+           below mid               3.32                1.23
+below vwap above mid               3.41               -1.22
+           below mid               2.41                1.15
+
+3. AS RULES. long while the condition holds, one bar late, net of costs; mean across 151 instruments (crypto included)
+                                            inmkt     turn     sh     dd  sh>hold  dd<hold
+v                                                                                         
+hold                                        1.000    0.000  0.380 -0.328    0.000    0.000
+stop asymmetry (short stop further = long)  0.584  148.111 -0.580 -0.387    0.053    0.331
+stop asymmetry, REVERSED                    0.543  148.111 -0.261 -0.333    0.166    0.589
+above vwap                                  0.567  479.781 -1.808 -0.556    0.013    0.086
+below vwap (the reverse)                    0.559  479.781 -1.766 -0.557    0.013    0.073
+above vwap, NO COSTS                        0.567  479.781  0.264 -0.272    0.397    0.795
+below vwap, NO COSTS                        0.559  479.781  0.276 -0.265    0.450    0.801
+above midline                               0.563  236.895 -0.914 -0.427    0.033    0.305
+above vwap AND midline                      0.423  345.227 -1.669 -0.474    0.020    0.225
+all three bullish                           0.253  189.837 -1.566 -0.341    0.040    0.457
+all three, long/short                       0.366  360.779 -2.283 -0.528    0.020    0.139
+vwap AND midline, long/short                0.715  690.750 -2.597 -0.707    0.026    0.040
+all three bullish, entered in CALM risk     0.170   65.625 -1.062 -0.165    0.086    0.861
