@@ -227,16 +227,15 @@ color C_DN    = darkMode ? #E5533C : #8D2614               // down, short horizo
 color C_UPD   = darkMode ? #1A9498 : #0B676A               // up, LONG horizon: teal - a different hue, not a darker green
 color C_DND   = darkMode ? #B85068 : #8D0F44               // down, long horizon: crimson
 color C_NEUT  = darkMode ? #8A97A0 : #5F6B74               // no direction, no reading
-color C_CONE  = darkMode ? #5B8FD6 : #2C5C99               // the cone family, and nothing else
+color C_CONE  = darkMode ? #B4BEC6 : #414B53               // the cone family: a quiet neutral, so the profile keeps the chart's colour
 color C_GOLD  = darkMode ? #F0C54E : #8E7211               // risk - never a direction
 color C_TEXT  = darkMode ? #C9D1D6 : #2B3338
 color C_PANEL = darkMode ? color.new(#0D1215, 8) : color.new(#FFFFFF, 6)
 
-// The profile is context, so it is one grey family told apart by lightness -
-// the same under every kind of colour vision. Only VWAP and the node marks
-// keep a hue. Blue stays the cone's and gold stays risk's.
-color C_POC    = darkMode ? #E8EDF0 : #1C2328      // point of control: the strongest grey
-color C_VA     = darkMode ? #A7B2BA : #4E5961      // value area: mid grey
+// The profile is the focal element of the price chart and keeps Pragati's own
+// colours. Blue means value area and nothing else; amber is the POC.
+color C_POC    = darkMode ? #FFB020 : #B26A00      // point of control — warm anchor
+color C_VA     = darkMode ? #5B8FD6 : #2C5C99      // value-area boundaries + band, cool
 color C_VWAP   = darkMode ? #F06BA8 : #A32468      // volume-weighted average, rose
 color C_NODE   = darkMode ? #6E7C88 : #8A949B      // out-of-value tails
 color C_HVN    = darkMode ? #8F7BD8 : #5E4B9E      // High-Volume Node · dense violet
@@ -639,14 +638,14 @@ float shM = sdM > 0.0 ? sM / nP / sdM * math.sqrt(bpy) : na
 //  vp*/C_* so it cannot collide with the engine's own state. Removing this
 //  whole block leaves Pragyam intact.
 //
-//  CARRIED IN from Pragati - the build, the value-area walk, the ledger of
-//  naked POCs and the render are its own, line for line. What changed is its
-//  WEIGHT and its defaults, because here it is context beside a measured cone:
-//    · it sits to the RIGHT of the forward cone, 14 bars wide, and its level
-//      lines stop at the last bar instead of running through the cone;
-//    · rows, POC and value area are drawn fainter than the cone and stops;
-//    · trails, node marks and prior-session levels default off, naked POCs
-//      keep three, Initial Balance is intraday only;
+//  CARRIED IN from Pragati, and it looks as it did there: its own colours, its
+//  own weights, its level lines running to the tag column, node marks and
+//  prior-session levels on. It is the focal element of the price chart. What
+//  differs from Pragati, and only this:
+//    · it sits to the RIGHT of the forward cone, 24 bars wide, which puts its
+//      tag column where Pragati's was;
+//    · developing trails default off; Initial Balance is intraday only;
+//    · the newest naked POC is not drawn twice when it is the prior POC;
 //    · tags need more room between them before two are seated;
 //    · the gates read this script's switches; green / red are C_UP / C_DN.
 //  The tag column is the profile's alone: the stops label themselves.
@@ -668,14 +667,14 @@ bool   inpVpHistg     = input.bool(true,  "    Histogram", group=G_VP, display=d
 string inpVpStyle     = input.string("Monochrome", "        Style", options=["Monochrome", "Delta split"], group=G_VP, tooltip="MONOCHROME (default): one box per row, amber POC row inside blue value-area rows, grey out-of-value tails. Hue marks identity only, never direction.\n\nDELTA SPLIT: each row divides into green (inferred buy) and red (inferred sell) volume; the POC row is an amber outline. The buy/sell split is inferred, not measured order flow, and is computed only for this style.", display=display.none)
 bool   vpMono         = inpVpStyle == "Monochrome"
 bool   inpVpDelta     = not vpMono     // the buy/sell split is computed only when drawn
-int    inpVpWidth     = input.int(14,     "        Width (bars)", minval=8, maxval=150, group=G_VP, display=display.none)
-bool   inpVpNodes     = input.bool(false,  "        HVN / LVN marks", group=G_VP, display=display.none)
+int    inpVpWidth     = input.int(24,     "        Width (bars)", minval=8, maxval=150, group=G_VP, display=display.none)
+bool   inpVpNodes     = input.bool(true,   "        HVN / LVN marks", group=G_VP, display=display.none)
 bool   inpVpVa        = input.bool(true,  "    Value area (VAH / VAL)", group=G_VP, display=display.none)
 bool   inpVpPoc       = input.bool(true,  "    POC", group=G_VP, display=display.none)
 bool   inpVpTrail     = input.bool(false, "    Developing level trails", group=G_VP, tooltip="Off by default: three more lines following price, and the session's POC and value area are already drawn as levels.", display=display.none)
-bool   inpVpPrev      = input.bool(false,  "    Prior session levels", group=G_VP, tooltip="Last session's pPOC, pVAH and pVAL — three dotted lines, drawn only across the session in front of you. These are the reference the market is currently accepting or rejecting, which is why they are not stacked back through history.", display=display.none)
+bool   inpVpPrev      = input.bool(true,   "    Prior session levels", group=G_VP, tooltip="Last session's pPOC, pVAH and pVAL — three dotted lines, drawn only across the session in front of you. These are the reference the market is currently accepting or rejecting, which is why they are not stacked back through history.", display=display.none)
 bool   inpVpNaked     = input.bool(true,  "    Naked POCs", group=G_VP, display=display.none)
-int    inpVpNakedMax  = input.int(3,      "        Max kept", minval=1, maxval=20, group=G_VP, tooltip="How many untouched POCs to keep. The oldest is dropped first.", display=display.none)
+int    inpVpNakedMax  = input.int(5,      "        Max kept", minval=1, maxval=20, group=G_VP, tooltip="How many untouched POCs to keep. The oldest is dropped first.", display=display.none)
 int    inpVpNakedAge  = input.int(250,    "        Max age (bars)", minval=50, maxval=1000, step=25, group=G_VP, tooltip="A naked POC older than this is dropped whether or not price ever traded through it, and no line starts further back than this. A point of control from four hundred bars ago describes a market that no longer exists.", display=display.none)
 bool   inpVpVwap      = input.bool(true,  "    Session VWAP", group=G_VP, display=display.none)
 bool   inpVpIb        = input.bool(true,  "    Initial balance (IBH / IBL)", group=G_VP, tooltip="Drawn on intraday charts only. On a daily chart the session is a week and the Initial Balance span outlasts it.", display=display.none)
@@ -997,7 +996,7 @@ f_vpTag(label lb, float y, string txt, color col, bool on) =>
 plot(vpTrailOn and vpVaOn  and not vpNewSess ? vah   : na, "Profile · VAH trail", color.new(C_VA, 75), 1, plot.style_linebr, force_overlay = true, display = display.pane + display.data_window)
 plot(vpTrailOn and vpVaOn  and not vpNewSess ? vaLow : na, "Profile · VAL trail", color.new(C_VA, 75), 1, plot.style_linebr, force_overlay = true, display = display.pane + display.data_window)
 plot(vpTrailOn and vpPocOn and not vpNewSess ? poc   : na, "Profile · POC trail", color.new(C_POC, 65), 1, plot.style_linebr, force_overlay = true, display = display.pane + display.data_window)
-plot(vpVwapOn ? vpVwap : na, "Profile · VWAP", color.new(C_VWAP, 35), 1, plot.style_linebr, force_overlay = true, display = display.pane + display.data_window)
+plot(vpVwapOn ? vpVwap : na, "Profile · VWAP", color.new(C_VWAP, 0), 1, plot.style_linebr, force_overlay = true, display = display.pane + display.data_window)
 
 // ── histogram (render aggregation into ≤110 rows) ─────────────────────────────
 var array<box> vpBoxes = array.new<box>()
@@ -1077,13 +1076,13 @@ f_vpRender() =>
                     bool  isPoc = array.get(rP, r)
                     maxRight := math.max(maxRight, vpLeft + wTot)
                     bool inVa = not na(vah) and not na(vaLow) and pc >= vaLow and pc <= vah
-                    int  fade = inVa ? 65 : 82                   // display only: quieter than the cone beside it
+                    int  fade = inVa ? 48 : 72
                     if vpMono
                         // MONOCHROME: one box per row, hue = identity never
                         // direction — amber POC row, blue value-area rows, grey
                         // out-of-value tails. POC row is a denser amber FILL.
                         color rowCol = isPoc ? C_POC : inVa ? C_VA : C_NODE
-                        int   rowFd  = isPoc ? 45 : fade
+                        int   rowFd  = isPoc ? 25 : fade
                         array.push(vpBoxes, box.new(vpLeft, yT, vpLeft + wTot, yB, xloc = xloc.bar_index, border_color = na, bgcolor = color.new(rowCol, rowFd), force_overlay = true))
                     else
                         // DELTA SPLIT: green inferred-buy / red inferred-sell, with
@@ -1150,19 +1149,19 @@ f_vpLevels() =>
     // cut session lines short on 24-hour 1-minute charts (1,440 bars a session).
     int xSess = math.max(math.max(not na(vpSessStart) ? vpSessStart : 0, bar_index - VP_XBACK), 0)
     if vpPocOn and not na(poc)
-        array.push(vpLvLines, line.new(xSess, poc, bar_index, poc, color = color.new(C_POC, 35), width = 1, force_overlay = true))
+        array.push(vpLvLines, line.new(xSess, poc, tagX, poc, color = color.new(C_POC, 0), width = 2, force_overlay = true))
     if vpVaOn and not na(vah) and not na(vaLow)
-        array.push(vpLvBoxes, box.new(xSess, vah, bar_index, vaLow, border_color = na, bgcolor = color.new(C_VA, 90), force_overlay = true))
-        array.push(vpLvLines, line.new(xSess, vah,   bar_index, vah,   color = color.new(C_VA, 50), width = 1, force_overlay = true))
-        array.push(vpLvLines, line.new(xSess, vaLow, bar_index, vaLow, color = color.new(C_VA, 50), width = 1, force_overlay = true))
+        array.push(vpLvBoxes, box.new(xSess, vah, bar_index, vaLow, border_color = na, bgcolor = color.new(C_VA, 93), force_overlay = true))
+        array.push(vpLvLines, line.new(xSess, vah,   tagX, vah,   color = color.new(C_VA, 20), width = 1, force_overlay = true))
+        array.push(vpLvLines, line.new(xSess, vaLow, tagX, vaLow, color = color.new(C_VA, 20), width = 1, force_overlay = true))
     if vpIbOn and not na(vpIbh)
-        array.push(vpLvLines, line.new(xSess, vpIbh, bar_index, vpIbh, color = color.new(C_VIOLET, 60), width = 1, style = line.style_dashed, force_overlay = true))
-        array.push(vpLvLines, line.new(xSess, vpIbl, bar_index, vpIbl, color = color.new(C_VIOLET, 60), width = 1, style = line.style_dashed, force_overlay = true))
+        array.push(vpLvLines, line.new(xSess, vpIbh, tagX, vpIbh, color = color.new(C_VIOLET, 20), width = 1, style = line.style_dashed, force_overlay = true))
+        array.push(vpLvLines, line.new(xSess, vpIbl, tagX, vpIbl, color = color.new(C_VIOLET, 20), width = 1, style = line.style_dashed, force_overlay = true))
     if vpPrevOn and not na(prevPoc)
         int xA = xSess                                            // across the session in front of you, as the tooltip says
-        array.push(vpLvLines, line.new(xA, prevPoc, bar_index, prevPoc, color = color.new(C_POC, 55), width = 1, style = line.style_dotted, force_overlay = true))
-        array.push(vpLvLines, line.new(xA, prevVah, bar_index, prevVah, color = color.new(C_VA, 55),  width = 1, style = line.style_dotted, force_overlay = true))
-        array.push(vpLvLines, line.new(xA, prevVal, bar_index, prevVal, color = color.new(C_VA, 55),  width = 1, style = line.style_dotted, force_overlay = true))
+        array.push(vpLvLines, line.new(xA, prevPoc, tagX, prevPoc, color = color.new(C_POC, 55), width = 1, style = line.style_dotted, force_overlay = true))
+        array.push(vpLvLines, line.new(xA, prevVah, tagX, prevVah, color = color.new(C_VA, 55),  width = 1, style = line.style_dotted, force_overlay = true))
+        array.push(vpLvLines, line.new(xA, prevVal, tagX, prevVal, color = color.new(C_VA, 55),  width = 1, style = line.style_dotted, force_overlay = true))
         array.push(vpLvTags, f_vpTag(label(na), prevPoc, "pPOC", C_POC, vpPrevOn))
         array.push(vpLvTags, f_vpTag(label(na), prevVah, "pVAH", C_VA,  vpPrevOn))
         array.push(vpLvTags, f_vpTag(label(na), prevVal, "pVAL", C_VA,  vpPrevOn))
@@ -1173,7 +1172,7 @@ f_vpLevels() =>
             float ny = array.get(vpNpY, i)
             int   x1 = math.max(xMinN, array.get(vpNpX, i))
             if not (vpPrevOn and ny == prevPoc)                       // the newest naked POC is the prior session's: not drawn twice
-                array.push(vpLvLines, line.new(x1, ny, bar_index, ny, color = color.new(C_POC, 55), width = 1, style = line.style_dotted, force_overlay = true))
+                array.push(vpLvLines, line.new(x1, ny, bar_index, ny, color = color.new(C_POC, 30), width = 1, style = line.style_dotted, force_overlay = true))
 if barstate.islast
     f_vpLevels()
 
@@ -1260,14 +1259,15 @@ string ladShort = not ladOk ? "warming" : ladUp == 0 and ladDn == 0 ? "inside" :
 string rmWord   = na(rMom) ? "warming" : rmS == 2 ? "rising" : rmS == 0 ? "falling" : "steady"
 
 // ── on the price chart ────────────────────────────────────────────────────
-// Three lines follow price, all in the cone's blue and all one pixel: the
-// midline, quiet; the landing band's two edges, quieter. None reaches the
-// status line or the price scale.
-plot(inpLand ? upper[inpH] : na,  "Landing band · upper",   color.new(C_CONE, 70), 1, force_overlay = true, display = display.pane + display.data_window)
-plot(inpLand ? lower[inpH] : na,  "Landing band · lower",   color.new(C_CONE, 70), 1, force_overlay = true, display = display.pane + display.data_window)
+// Three lines follow price, all in the cone's neutral and all one pixel: the
+// midline, quiet; the landing band's two edges, fainter still. VWAP is rose
+// and solid, so the midline never reads as it. None reaches the status line
+// or the price scale.
+plot(inpLand ? upper[inpH] : na,  "Landing band · upper",   color.new(C_CONE, 80), 1, force_overlay = true, display = display.pane + display.data_window)
+plot(inpLand ? lower[inpH] : na,  "Landing band · lower",   color.new(C_CONE, 80), 1, force_overlay = true, display = display.pane + display.data_window)
 plot(inpTrail ? stopL : na,       "Stop history · long",    color.new(C_DN, 50), 1, plot.style_stepline, force_overlay = true, display = display.pane + display.data_window)
 plot(inpTrail ? stopS : na,       "Stop history · short",   color.new(C_UP, 50), 1, plot.style_stepline, force_overlay = true, display = display.pane + display.data_window)
-plot(inpMid ? midL : na,          "Midline",                color.new(C_CONE, 45), 1, force_overlay = true, display = display.pane + display.data_window)
+plot(inpMid ? midL : na,          "Midline",                color.new(C_CONE, 50), 1, force_overlay = true, display = display.pane + display.data_window)
 plotshape(inpMid and inpMidMk and midUp and barstate.isconfirmed, "Midline · close above", shape.circle, location.belowbar, color.new(C_UP, 45), size = size.tiny, force_overlay = true, display = display.pane)
 plotshape(inpMid and inpMidMk and midDn and barstate.isconfirmed, "Midline · close below", shape.circle, location.abovebar, color.new(C_DN, 45), size = size.tiny, force_overlay = true, display = display.pane)
 plotshape(inpMark and provenUp,   "Proven state · positive", shape.triangleup,   location.belowbar, color.new(C_UP, 45), size = size.tiny, force_overlay = true, display = display.pane)
@@ -1281,9 +1281,10 @@ plot(inpCone and coneOk ? topY : na, "Scale anchor · top",    color.new(C_CONE,
 plot(inpCone and coneOk ? botY : na, "Scale anchor · bottom", color.new(C_CONE, 100), 1, show_last = 1, editable = false, force_overlay = true, display = display.pane)
 
 // ── the forward cone, the stops, and the tapes' names ─────────────────────
-// The loudest thing on the chart: the cone at two pixels and the stops solid.
-// Each stop is named on itself - the short stop above the cone's far corner,
-// the long stop below it - clear of the cone's outline and of the profile.
+// Present, not focal: the cone is a faint neutral outline, the stops thin
+// dashes that keep their side's colour, and each stop is named in small
+// neutral text at the cone's far corner - the short stop above, the long stop
+// below. Coloured text on the chart belongs to the profile's tags alone.
 var polyline plCone = na
 var line     lnL    = na
 var line     lnS    = na
@@ -1291,7 +1292,7 @@ var array<label> lbs = array.new<label>()
 
 f_stopTag(float py, string txt, color c, bool above) =>
     label.new(bar_index + inpH, py, txt, xloc = xloc.bar_index, color = color.new(c, 100),
-         style = above ? label.style_label_lower_right : label.style_label_upper_right, textcolor = c, size = size.small, force_overlay = true)
+         style = above ? label.style_label_lower_right : label.style_label_upper_right, textcolor = color.new(c, 25), size = size.tiny, force_overlay = true)
 f_tapeTag(float py, string txt, color c) =>
     label.new(bar_index + 1, py, txt, xloc = xloc.bar_index, color = color.new(c, 100), style = label.style_label_left,
          textcolor = c, size = size.tiny, textalign = text.align_left)
@@ -1308,12 +1309,12 @@ if barstate.islast
             array.push(pts, chart.point.from_index(bar_index + i, close * math.exp(qU * sig * math.sqrt(i))))
         for i = inpH to 0
             array.push(pts, chart.point.from_index(bar_index + i, close * math.exp(-qD * sig * math.sqrt(i))))
-        plCone := polyline.new(pts, curved = false, closed = true, xloc = xloc.bar_index, line_color = color.new(C_CONE, 0),
-             fill_color = color.new(C_CONE, 86), line_width = 2, force_overlay = true)
-        lnL := line.new(bar_index, stopL, bar_index + inpH, stopL, color = color.new(C_DN, 0), width = 2, style = line.style_dashed, force_overlay = true)
-        lnS := line.new(bar_index, stopS, bar_index + inpH, stopS, color = color.new(C_UP, 0), width = 2, style = line.style_dashed, force_overlay = true)
-        array.push(lbs, f_stopTag(topY, "SHORT STOP " + f_px(stopS), C_UP, true))
-        array.push(lbs, f_stopTag(botY, "LONG STOP " + f_px(stopL), C_DN, false))
+        plCone := polyline.new(pts, curved = false, closed = true, xloc = xloc.bar_index, line_color = color.new(C_CONE, 55),
+             fill_color = color.new(C_CONE, 93), line_width = 1, force_overlay = true)
+        lnL := line.new(bar_index, stopL, bar_index + inpH, stopL, color = color.new(C_DN, 40), width = 1, style = line.style_dashed, force_overlay = true)
+        lnS := line.new(bar_index, stopS, bar_index + inpH, stopS, color = color.new(C_UP, 40), width = 1, style = line.style_dashed, force_overlay = true)
+        array.push(lbs, f_stopTag(topY, "short stop " + f_px(stopS), C_CONE, true))
+        array.push(lbs, f_stopTag(botY, "long stop " + f_px(stopL), C_CONE, false))
     if tapesOn
         array.push(lbs, f_tapeTag( (TAPE_Y + OUT_Y) / 2.0, "LADDER " + ladShort + "\nTREND " + trWord, tInk))
         array.push(lbs, f_tapeTag(-(TAPE_Y + OUT_Y) / 2.0, "RISK " + regTxt + "\nMOMENTUM " + rmWord, regRaw == 2 or rmS == 2 ? C_GOLD : C_NEUT))
