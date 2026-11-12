@@ -89,6 +89,33 @@ A slower version behaves like the trend tape already in the script: long while t
 
 So the midline is drawn as a line, with the chart's own record of it in the table (runs, share won, share lasting 20+ bars, and the long/flat rule against buy and hold). Its crossings are optional marks, not a signal.
 
+### Two more observations (v2.3)
+
+Tested on the same 151 instruments (`research/observations.txt`), on daily bars with the weekly VWAP and on hourly bars with the daily VWAP.
+
+**"When the long stop is further from the close than the short stop, the trend is bearish, and the reverse."**
+
+| Test | Result |
+|---|---|
+| Share of bars with the long stop further, by trend state | 39% in downtrends, 39% in flat markets, 39% in uptrends |
+| Next 10 bars, long stop further against short stop further | 7.4 against 7.7 (σ × 100); the sign flips between eras |
+| Within each trend state | no consistent difference |
+| As a rule, either way round | Sharpe 0.37 and 0.25 against 0.53 for buy and hold |
+
+Which stop is further does not tell the trend and is followed by nothing.
+
+**"Does VWAP, mixed with the stops and the midline, change things?"**
+
+| Test | Result |
+|---|---|
+| Next bar's return, close above VWAP against below | daily: 1.3 against 4.5; hourly: −0.2 against 1.6 (σ × 100) |
+| The same, acted on one bar late, no costs | Sharpe 0.32 above, 0.43 below, against 0.53 for buy and hold |
+| With costs | both lose to buy and hold; on hourly bars both lose money |
+| VWAP and midline and stops all bullish, next 10 bars | 10.2, 3.6, 8.1 across the three eras against 7.9, 8.6, 5.6 when mixed: nothing consistent |
+| Any rule built from the three | every one lost to buy and hold |
+
+VWAP is the one place something showed up, and it points the other way from a trend reading: a close below the session VWAP was followed by the higher next-bar return. It is a one-bar reversal, it fades within a bar, and it does not survive costs. Mixing the three did not make a signal.
+
 ### What it does not do
 
 - **It does not call direction.** After 2013 the dial does not beat buy and hold on Sharpe. It is risk control: about the same return per unit of risk, with a drawdown roughly a quarter shallower.
@@ -103,18 +130,20 @@ So the midline is drawn as a line, with the chart's own record of it in the tabl
 |---|---|---|
 | Price chart | Forward cone | where the close should be H bars from now |
 | Price chart | Dashed lines across the cone | long and short stops at the stated touch probability |
-| Price chart | Landing band | the cone drawn H bars ago; a close outside it is a surprise |
+| Price chart | Midline (the prominent line) | the average of the landing band; where price stands against H bars ago. A description, not a signal |
+| Price chart | Landing band (faint) | the cone drawn H bars ago; a close outside it is a surprise |
 | Price chart | Volume profile | Pragati's, carried in whole: session histogram, POC, value area, VWAP, Initial Balance, prior-session levels, naked POCs. Display only; it sits to the right of the cone |
-| Pane | Columns against two lines | the realised move ÷ the forecast made H bars ago, against the learned bands; coloured by trend |
+| Pane | Columns against two lines | the realised move ÷ the forecast made H bars ago; green up, red down, solid when the close left the cone |
 | Pane | Four tapes | trend and stretch ladder above; risk and risk momentum below |
 | Pane · Proof view | Two lines | following the dial against buy and hold on this chart |
-| Table | Ten rows | risk, cone, stops and size, exposure, tapes, the state's record, calibration, proof |
+| Table (off by default) | Eight short rows | cone, stops and size, the position to hold, risk, trend, this chart's record, Sharpe against buy and hold. Detail is in each row's tooltip |
+| Status line | One value | the surprise |
 
 Gold always means risk, never up or down.
 
 ### Status
 
-- **v2.2** adds the midline and its record; **v2.1** added the volume profile. No engine number changed from v2.0. The preview image above predates it and does not show the profile.
+- **v2.3** closes the presentation (status line, line weights, column colours, compact table) and tests two more observations; **v2.2** added the midline and its record; **v2.1** added the volume profile. No engine number changed from v2.0. The preview image does not show the profile.
 - A later experiment ("Maryada": touch probabilities on profile levels, unified tapes, Pragati's palette) was set aside; it remains in the git history at commit `7c5340a`.
 - The Pine script has **not been compiled in TradingView**. No Pine compiler is available here; it was checked by hand against the reference implementation. Expect to fix a syntax detail or two on first load.
 - The Python reference and the Pine script were written to the same arithmetic but have not been compared bar for bar.
@@ -128,5 +157,6 @@ python3 fetch.py 1h                                # the same symbols, hourly, i
 python3 study.py > results.txt                     # every figure above (about 40 minutes)
 python3 direction_null.py > direction_null.txt     # the search that came back empty
 python3 study_mid.py > midline.txt                 # the midline observation
+python3 study_obs.py > observations.txt            # stop asymmetry and VWAP
 python3 preview.py                                 # docs/preview_*.png
 ```
