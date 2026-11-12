@@ -32,7 +32,7 @@ HAR range .3/.4/.3 x k     0.401  0.322  0.315  0.296  0.330  0.284   0.541
                           cover     up     dn  stopL  stopS
 kind                                                       
 fixed normal              0.823  0.097  0.080  0.174  0.185
-maryada (regime + trend)  0.799  0.101  0.100  0.200  0.201
+kasauti (regime + trend)  0.799  0.101  0.100  0.200  0.201
 one width                 0.800  0.100  0.100  0.200  0.200
 regime only               0.800  0.101  0.098  0.199  0.200
 
@@ -40,7 +40,7 @@ worst-case: share of instrument-eras whose realised cone coverage is within 3 po
                              ok    okS
 kind                                  
 fixed normal              0.607  0.569
-maryada (regime + trend)  0.989  0.998
+kasauti (regime + trend)  0.989  0.998
 one width                 0.993  1.000
 regime only               0.941  0.991
 
@@ -54,7 +54,7 @@ fixed normal             bond    0.831  0.818  0.841
                          index   0.838  0.819  0.831
                          nse     0.831  0.809  0.811
                          us      0.844  0.813  0.812
-maryada (regime + trend) bond    0.808  0.789  0.806
+kasauti (regime + trend) bond    0.808  0.789  0.806
                          cmdty   0.803  0.795  0.798
                          crypto    NaN  0.805  0.803
                          fx      0.811  0.795  0.806
@@ -86,7 +86,7 @@ fixed normal             bond    0.138  0.156  0.156
                          index   0.179  0.191  0.177
                          nse     0.184  0.182  0.172
                          us      0.168  0.173  0.177
-maryada (regime + trend) bond    0.190  0.200  0.210
+kasauti (regime + trend) bond    0.190  0.200  0.210
                          cmdty   0.197  0.200  0.201
                          crypto    NaN  0.207  0.198
                          fx      0.192  0.208  0.198
@@ -112,7 +112,7 @@ spread across instruments (std of realised coverage):
                           cover  stopL
 kind                                  
 fixed normal              0.028  0.025
-maryada (regime + trend)  0.011  0.009
+kasauti (regime + trend)  0.011  0.009
 one width                 0.009  0.006
 regime only               0.017  0.011
 
@@ -121,9 +121,9 @@ regime only               0.017  0.011
 reg                        calm normal stressed   calm normal stressed
 kind                                                                  
 fixed normal              0.800  0.829    0.852  0.185  0.170    0.162
-maryada (regime + trend)  0.793  0.800    0.809  0.203  0.199    0.195
-maryada, eta .01          0.791  0.802    0.816  0.204  0.199    0.191
-maryada, eta .05          0.796  0.799    0.804  0.202  0.200    0.197
+kasauti (regime + trend)  0.793  0.800    0.809  0.203  0.199    0.195
+kasauti, eta .01          0.791  0.802    0.816  0.204  0.199    0.191
+kasauti, eta .05          0.796  0.799    0.804  0.202  0.200    0.197
 one width                 0.762  0.808    0.843  0.235  0.194    0.159
 regime only               0.797  0.802    0.810  0.202  0.198    0.195
 
@@ -131,9 +131,9 @@ instrument-eras within 3 points of target, and mean cone width (log)
                              ok    okS  cover  stopL      w
 kind                                                       
 fixed normal              0.607  0.569  0.823  0.174  0.140
-maryada (regime + trend)  0.989  0.998  0.799  0.200  0.137
-maryada, eta .01          0.948  0.995  0.800  0.199  0.134
-maryada, eta .05          0.998  0.998  0.799  0.201  0.151
+kasauti (regime + trend)  0.989  0.998  0.799  0.200  0.137
+kasauti, eta .01          0.948  0.995  0.800  0.199  0.134
+kasauti, eta .05          0.998  0.998  0.799  0.201  0.151
 one width                 0.993  1.000  0.800  0.200  0.137
 regime only               0.941  0.991  0.800  0.199  0.134
 
@@ -498,73 +498,3 @@ step
 0.05   0.227  0.416 -0.255    -0.33    27.700   0.119   0.927
 0.10   0.264  0.416 -0.246    -0.33    19.268   0.166   0.947
 0.20   0.308  0.416 -0.238    -0.33    10.099   0.225   0.974
-
-12. THE TOUCH CURVE. Anchors learned at 75, 50, 25 and 10%; read here at probabilities in between and beyond. Realised touch rate, mean across instruments
-      above  below
-p                 
-0.05  0.059  0.061
-0.15  0.147  0.145
-0.35  0.345  0.343
-0.62  0.619  0.614
-0.85  0.844  0.830
-share of instrument-eras within 3 points of the stated probability
-          a      b
-p                 
-0.05  0.993  0.984
-0.15  0.993  0.986
-0.35  0.959  0.955
-0.62  0.962  0.959
-0.85  0.914  0.815
-
-13. DO VOLUME LEVELS ATTRACT PRICE? Weekly profile on daily bars. For each level: the touch curve's probability, how often it was touched within 10 bars,
-    and the same for its MIRROR - the same distance on the other side of price, where no level stands.
-                        n  stated  touched   lift  mirror_stated  mirror_touched  mirror_lift  t_lift  t_vs_mirror
-kind                                                                                                              
-POC (developing)   764529   0.742    0.744  0.002          0.755           0.760        0.006   5.789        1.182
-VAH (developing)   796738   0.741    0.750  0.009          0.701           0.704        0.004  17.161       11.522
-VAL (developing)   834134   0.687    0.685 -0.002          0.718           0.724        0.006   2.186       -0.448
-pPOC               838964   0.591    0.587 -0.004          0.582           0.587        0.005  -1.460       -2.401
-pVAH               843498   0.587    0.583 -0.004          0.561           0.566        0.004  -0.270       -0.985
-pVAL               851116   0.545    0.536 -0.009          0.549           0.552        0.002  -5.628       -3.473
-naked POC         3308286   0.231    0.225 -0.006          0.238           0.230       -0.007  -0.253       11.277
-
-lift (touched - stated) by era
-era               03-12  13-19  20-26
-kind                                 
-POC (developing)  0.001  0.003  0.003
-VAH (developing)  0.011  0.011  0.004
-VAL (developing) -0.007  0.001  0.002
-pPOC             -0.002 -0.002 -0.009
-pVAH              0.001 -0.002 -0.011
-pVAL             -0.011 -0.005 -0.010
-naked POC        -0.007 -0.003 -0.008
-
-lift by how likely the level was
-bk                50-75  75-100  25-50  10-25   0-10
-kind                                                
-POC (developing)  0.020  -0.018  0.052  0.073  0.068
-VAH (developing)  0.027  -0.011  0.062  0.087  0.070
-VAL (developing)  0.006  -0.028  0.038  0.063  0.063
-pPOC             -0.010  -0.019  0.005  0.033  0.041
-pVAH             -0.014  -0.021  0.013  0.038  0.047
-pVAL             -0.018  -0.020 -0.006  0.019  0.035
-naked POC        -0.029  -0.032 -0.018 -0.007  0.008
-
-mirror lift by how likely
-bk                50-75  75-100  25-50  10-25   0-10
-kind                                                
-POC (developing)  0.011   0.004 -0.005  0.011  0.054
-VAH (developing)  0.006   0.002 -0.001  0.026  0.058
-VAL (developing)  0.012   0.012 -0.018 -0.026  0.014
-pPOC              0.021   0.004 -0.011 -0.017  0.015
-pVAH              0.016   0.003 -0.009 -0.007  0.017
-pVAL              0.024   0.007 -0.013 -0.029  0.001
-naked POC         0.021   0.011 -0.015 -0.028 -0.006
-
-lift by class, prior-session and naked levels
-cls           us    nse  index  cmdty     fx   bond  crypto
-kind                                                       
-pPOC      -0.002 -0.000 -0.005 -0.008 -0.006 -0.017  -0.025
-pVAH      -0.000 -0.002 -0.002 -0.006 -0.007 -0.010  -0.034
-pVAL      -0.007 -0.008 -0.008 -0.012 -0.007 -0.022  -0.028
-naked POC -0.005 -0.006 -0.005 -0.009 -0.011 -0.009  -0.006

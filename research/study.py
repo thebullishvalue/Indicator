@@ -1,6 +1,6 @@
-"""Every number quoted in the README and in maryada.pine's header.  Run:  python3 fetch.py && python3 study.py > results.txt"""
+"""Every number quoted in the README and in kasauti.pine's header.  Run:  python3 fetch.py && python3 study.py > results.txt"""
 from lib import *
-from maryada import run, touch_prob, inv_touch, profile, AP, ND
+from kasauti import run
 import warnings; warnings.filterwarnings("ignore")
 pd.set_option("display.width", 250)
 D = load()
@@ -49,7 +49,7 @@ print("\nQLIKE by class (OOS)"); print(pd.DataFrame({k: te.groupby("cls").apply(
 # ---------- 1. calibration: conformal vs fixed Gaussian --------------------------------------------------------------
 rows = []
 for s, (cls, d) in D.items():
-    for nm, kw in (("maryada (regime + trend)", {}), ("regime only", dict(trendf=False)), ("one width", dict(regimes=False, trendf=False)), ("fixed normal", dict(conformal=False))):
+    for nm, kw in (("kasauti (regime + trend)", {}), ("regime only", dict(trendf=False)), ("one width", dict(regimes=False, trendf=False)), ("fixed normal", dict(conformal=False))):
         R = run(d, **kw); R = R[R.nF == 1]; R["era"] = era_of(R.index)
         for e, Q in R.groupby("era", observed=True):
             if len(Q) > 300: rows.append(dict(sym=s, cls=cls, kind=nm, era=e, cover=1 - Q.mU.mean() - Q.mD.mean(), up=Q.mU.mean(), dn=Q.mD.mean(), stopL=Q.mS.mean(), stopS=Q.mR.mean()))
@@ -65,7 +65,7 @@ print("\nspread across instruments (std of realised coverage):"); print(C.groupb
 rows = []; rows2 = []
 for s, (cls, d) in D.items():
     REG = run(d, trendf=False).reg                                                                   # the regime at forecast time, the same for every variant
-    for nm, kw in (("fixed normal", dict(conformal=False)), ("one width", dict(regimes=False, trendf=False)), ("regime only", dict(trendf=False)), ("maryada (regime + trend)", {}), ("maryada, eta .01", dict(eta=.01)), ("maryada, eta .05", dict(eta=.05))):
+    for nm, kw in (("fixed normal", dict(conformal=False)), ("one width", dict(regimes=False, trendf=False)), ("regime only", dict(trendf=False)), ("kasauti (regime + trend)", {}), ("kasauti, eta .01", dict(eta=.01)), ("kasauti, eta .05", dict(eta=.05))):
         R = run(d, **kw); Q = R[R.nF == 1].copy(); Q["rg"] = REG.shift(10).reindex(Q.index); Q["era"] = pd.cut(Q.index.year, [1999, 2012, 2019, 2030], labels=["03-12", "13-19", "20-26"])
         for rg, q in Q.groupby("rg"): rows.append(dict(sym=s, kind=nm, reg=["calm", "normal", "stressed"][int(rg)], cover=1 - q.mU.mean() - q.mD.mean(), stopL=q.mS.mean(), stopS=q.mR.mean()))
         for e, q in Q.groupby("era", observed=True):
@@ -263,47 +263,3 @@ for title, DD, ann in (("daily", D, 252), ("weekly", WK, 52), ("hourly", H1, 252
             if f and hd: rows.append(dict(step=b, sh=f["sh"], h_sh=hd["sh"], dd=f["dd"], h_dd=hd["dd"], turn=R.E.diff().abs().mean() * ann))
     A = pd.DataFrame(rows); g = A.groupby("step")
     print(title); print(pd.DataFrame(dict(sharpe=g.sh.mean(), hold=g.h_sh.mean(), dd=g.dd.mean(), hold_dd=g.h_dd.mean(), turnover=g.turn.mean(), sh_win=g.apply(lambda q: (q.sh > q.h_sh).mean()), dd_win=g.apply(lambda q: (q.dd > q.h_dd).mean()))).round(3).to_string())
-
-# ---------- 12, 13. the touch curve; do volume levels attract price
-H = 10
-rel = []; lev = []
-for s, (cls, d) in D.items():
-    R = run(d); lc = np.log(d.close.values); sH = R.sH.values; n = len(d)
-    fmax = (np.log(d.high.rolling(H).max().shift(-H).values) - lc) / sH; fmin = (lc - np.log(d.low.rolling(H).min().shift(-H).values)) / sH
-    ok = ~np.isnan(R.aUp3.values) & ~np.isnan(fmax) & (R.nF.values == 1); yr = d.index.year.values
-    era = np.where(yr <= 2012, "03-12", np.where(yr <= 2019, "13-19", "20-26"))
-    aU = [R[f"aUp{k}"].values for k in range(len(AP))]; aD = [R[f"aDn{k}"].values for k in range(len(AP))]
-    for p in (0.05, 0.15, 0.35, 0.62, 0.85):                                   # probabilities that are NOT anchors
-        xu = inv_touch(p, *aU); xd = inv_touch(p, *aD)
-        for e in ("03-12", "13-19", "20-26"):
-            m = ok & (era == e)
-            if m.sum() > 300: rel.append(dict(sym=s, p=p, era=e, above=(fmax[m] >= xu[m]).mean(), below=(fmin[m] >= xd[m]).mean()))
-    P, naked, _ = profile(d); c = d.close.values
-    def rec(kind, L, idx):
-        L = np.asarray(L, float); idx = np.asarray(idx); m = ok[idx] & ~np.isnan(L) & (L > 0)
-        L, idx = L[m], idx[m]; x = np.abs(np.log(L / c[idx])) / sH[idx]; up = L > c[idx]; m2 = x > 0.05; L, idx, x, up = L[m2], idx[m2], x[m2], up[m2]
-        if len(idx) == 0: return
-        a = [np.where(up, aU[k][idx], aD[k][idx]) for k in range(len(AP))]; b = [np.where(up, aD[k][idx], aU[k][idx]) for k in range(len(AP))]
-        pr = touch_prob(x, *a); hit = np.where(up, fmax[idx] >= x, fmin[idx] >= x)
-        prm = touch_prob(x, *b); hitm = np.where(up, fmin[idx] >= x, fmax[idx] >= x)        # the mirror: the same distance on the other side, where no level stands
-        lev.append(pd.DataFrame(dict(kind=kind, pr=pr, hit=hit, prm=prm, hitm=hitm, era=era[idx], cls=cls, sym=s, t=idx)))
-    ar = np.arange(n)
-    for j, nm in enumerate(("POC (developing)", "VAH (developing)", "VAL (developing)", "pPOC", "pVAH", "pVAL")): rec(nm, P[:, j], ar)
-    ni = [t for t in range(n) for _ in naked[t]]; nv = [y for t in range(n) for y in naked[t]]
-    if ni: rec("naked POC", nv, ni)
-Rl = pd.DataFrame(rel)
-print("12. THE TOUCH CURVE. Anchors learned at 75, 50, 25 and 10%; read here at probabilities in between and beyond. Realised touch rate, mean across instruments")
-print(Rl.groupby("p")[["above", "below"]].mean().round(3).to_string())
-print("share of instrument-eras within 3 points of the stated probability"); print(Rl.assign(a=(Rl.above - Rl.p).abs() < .03, b=(Rl.below - Rl.p).abs() < .03).groupby("p")[["a", "b"]].mean().round(3).to_string())
-L = pd.concat(lev); L["bk"] = pd.cut(L.pr, [0, .1, .25, .5, .75, 1.0], labels=["0-10", "10-25", "25-50", "50-75", "75-100"])
-def tdate(q, a, b):
-    g = (q[a].astype(float) - q[b]).groupby([q.sym, q.t // 10]).mean()             # one observation per instrument per 10-bar block
-    return g.mean() / (g.std() / np.sqrt(len(g)))
-print("\n13. DO VOLUME LEVELS ATTRACT PRICE? Weekly profile on daily bars. For each level: the touch curve's probability, how often it was touched within 10 bars,\n    and the same for its MIRROR - the same distance on the other side of price, where no level stands.")
-g = L.groupby("kind", sort=False)
-print(pd.DataFrame(dict(n=g.size(), stated=g.pr.mean(), touched=g.hit.mean(), lift=g.hit.mean() - g.pr.mean(), mirror_stated=g.prm.mean(), mirror_touched=g.hitm.mean(), mirror_lift=g.hitm.mean() - g.prm.mean(),
-                        t_lift=g.apply(lambda q: tdate(q, "hit", "pr")), t_vs_mirror=g.apply(lambda q: tdate(q.assign(dm=q.hitm.astype(float) - q.prm), "hit", "pr") if False else ((q.hit.astype(float) - q.pr) - (q.hitm.astype(float) - q.prm)).groupby([q.sym, q.t // 10]).mean().pipe(lambda z: z.mean() / (z.std() / np.sqrt(len(z))))))).round(3).to_string())
-print("\nlift (touched - stated) by era"); print((L.groupby(["kind", "era"], sort=False).hit.mean() - L.groupby(["kind", "era"], sort=False).pr.mean()).unstack().round(3).to_string())
-print("\nlift by how likely the level was"); print((L.groupby(["kind", "bk"], sort=False, observed=True).hit.mean() - L.groupby(["kind", "bk"], sort=False, observed=True).pr.mean()).unstack().round(3).to_string())
-print("\nmirror lift by how likely"); print((L.groupby(["kind", "bk"], sort=False, observed=True).hitm.mean() - L.groupby(["kind", "bk"], sort=False, observed=True).prm.mean()).unstack().round(3).to_string())
-print("\nlift by class, prior-session and naked levels"); Q = L[L.kind.isin(["pPOC", "pVAH", "pVAL", "naked POC"])]; print((Q.groupby(["kind", "cls"], sort=False).hit.mean() - Q.groupby(["kind", "cls"], sort=False).pr.mean()).unstack().round(3)[CLASSES].to_string())

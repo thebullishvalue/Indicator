@@ -1,11 +1,7 @@
-"""Reference implementation of maryada.pine. Every number in the README is produced from this file.
-
-The nine-state ledger (st, edge, post, zpost) is computed here for the study only: it found no direction and is not in the script."""
+"""Reference implementation of kasauti.pine, bar for bar. Every number in the README is produced from this file."""
 import numpy as np, pandas as pd
 from statistics import NormalDist
 WARM, RN = 252, 500
-AP = (0.75, 0.50, 0.25, 0.10)                                                                # the touch curve's anchors: nearest first
-ND = NormalDist()
 def ema(x, n): return pd.Series(x).ewm(span=n, adjust=False).mean().values           # ta.ema: alpha 2/(n+1), seeded with the first value
 def lag(x, j): return np.r_[np.full(j, np.nan), x[:-j]]
 def run(d, H=10, cover=0.80, pstop=0.20, eta=0.02, cap=1.0, floor=0.5, power=1.0, tau=0.10, cost=0.0005, conformal=True, regimes=True, trendf=True, ladf=False, band=0.10):
@@ -39,10 +35,6 @@ def run(d, H=10, cover=0.80, pstop=0.20, eta=0.02, cap=1.0, floor=0.5, power=1.0
     bU = [[lz] * 3 for _ in RG]; bD = [[lz] * 3 for _ in RG]; bS = [ls] * 3; bR = [ls] * 3            # by risk regime
     tU = [[0.0] * 3 for _ in RG]; tD = [[0.0] * 3 for _ in RG]; tS = [0.0] * 3; tR = [0.0] * 3        # by trend state
     dU = [[0.0] * 3 for _ in RG]; dD = [[0.0] * 3 for _ in RG]; dS = [0.0] * 3; dR = [0.0] * 3        # by ladder state
-    # the touch curve: for each anchor probability, how far (in sigma) price must be for a touch within H bars to be that likely
-    za = [np.log(ND.inv_cdf(1 - p / 2)) for p in AP]
-    bA = [[[z] * 3 for z in za] for _ in (0, 1)]; tA = [[[0.0] * 3 for _ in AP] for _ in (0, 1)]       # [side: 0 below, 1 above][anchor][state]
-    QA = np.full((2, len(AP), n), np.nan)
     trs = np.where(T > 0.5, 2, np.where(T < -0.5, 0, 1)) if trendf else np.ones(n, dtype=int); lads = np.ones(n, dtype=int)
     QU = np.full((NR, n), np.nan); QD = np.full((NR, n), np.nan); qS = np.full(n, np.nan); qR = np.full(n, np.nan)
     MU = np.zeros((NR, n)); MD = np.zeros((NR, n)); OK = np.zeros((NR, n)); X = np.full((NR, n), np.nan)
@@ -67,11 +59,6 @@ def run(d, H=10, cover=0.80, pstop=0.20, eta=0.02, cap=1.0, floor=0.5, power=1.0
                 bS[jr] += es; bR[jr] += er
                 if trendf: tS[jt] += es; tR[jt] += er
                 if ladf: dS[jl] += es; dR[jl] += er
-            for k, p in enumerate(AP):                                                     # settle each anchor on the same path
-                if conformal:
-                    e0 = eta * ((wS[t] < -QA[0][k][t - H]) - p); e1 = eta * ((wR[t] > QA[1][k][t - H]) - p)
-                    bA[0][k][jr] += e0; bA[1][k][jr] += e1
-                    if trendf: tA[0][k][jt] += e0; tA[1][k][jt] += e1
             s = st[t - H]
             if s >= 0 and not np.isnan(y[t]):
                 cnt[s] += 1; mean[s] += (y[t] - mean[s]) / cnt[s]; gn += 1
@@ -82,7 +69,6 @@ def run(d, H=10, cover=0.80, pstop=0.20, eta=0.02, cap=1.0, floor=0.5, power=1.0
             jr, jt, jl = reg[t], trs[t], lads[t]
             for i in range(NR): QU[i][t], QD[i][t] = np.exp(bU[i][jr] + tU[i][jt] + dU[i][jl]), np.exp(bD[i][jr] + tD[i][jt] + dD[i][jl])
             qS[t], qR[t] = np.exp(bS[jr] + tS[jt] + dS[jl]), np.exp(bR[jr] + tR[jt] + dR[jl])
-            for k in range(len(AP)): QA[0][k][t] = np.exp(bA[0][k][jr] + tA[0][k][jt]); QA[1][k][t] = np.exp(bA[1][k][jr] + tA[1][k][jt])
         if OK[1][t] and not np.isnan(T[t]):
             st[t] = 3 * (2 if T[t] > 0.5 else 0 if T[t] < -0.5 else 1) + (2 if MU[1][t] else 0 if MD[1][t] else 1)
             s = st[t]
@@ -105,60 +91,5 @@ def run(d, H=10, cover=0.80, pstop=0.20, eta=0.02, cap=1.0, floor=0.5, power=1.0
                stopL=c * np.exp(-qS * sH), stopS=c * np.exp(qR * sH),
                ladX=np.where(allok, X.mean(axis=0), np.nan), ladUp=np.where(allok, MU.sum(axis=0), np.nan), ladDn=np.where(allok, MD.sum(axis=0), np.nan),
                ladMom=np.where(allok, X[0] - X[NR - 1], np.nan))
-    for k in range(len(AP)): out[f"aDn{k}"] = QA[0][k]; out[f"aUp{k}"] = QA[1][k]
-    out["sH"] = sH
     for i in range(NR): out[f"u{i}"] = U[i]; out[f"ok{i}"] = OK[i]; out[f"mU{i}"] = MU[i]; out[f"mD{i}"] = MD[i]; out[f"qU{i}"] = QU[i]; out[f"qD{i}"] = QD[i]
     return pd.DataFrame(out, index=d.index)
-
-def _order(a):
-    a = [np.asarray(x, float) for x in a]
-    for k in range(1, len(a)): a[k] = np.maximum(a[k], a[k - 1] * 1.0001)             # keep the anchors ordered
-    return a
-ZA = [ND.inv_cdf(1 - p / 2) for p in AP]
-def touch_prob(x, *a):
-    """Probability that a level x sigma away (x >= 0) is touched within H bars, from the learned anchors (distances at 75, 50, 25, 10%).
-    Piecewise linear in z = Phi^-1(1 - p/2) through the origin and the anchors, the last slope carried outward. Vectorised."""
-    from scipy.special import ndtr
-    a = _order(a); x = np.asarray(x, float); z = ZA[0] * x / a[0]
-    for k in range(1, len(a)):
-        z = np.where(x > a[k - 1], ZA[k - 1] + (ZA[k] - ZA[k - 1]) * (x - a[k - 1]) / (a[k] - a[k - 1]), z)
-    return 2 * (1 - ndtr(z))
-def inv_touch(p, *a):
-    """Distance (sigma) at which the touch curve reads probability p."""
-    a = _order(a); z = ND.inv_cdf(1 - p / 2); x = a[0] * z / ZA[0]
-    for k in range(1, len(a)):
-        if z > ZA[k - 1]: x = a[k - 1] + (a[k] - a[k - 1]) * (z - ZA[k - 1]) / (ZA[k] - ZA[k - 1])
-    return x
-
-def profile(d):
-    """Pragati's volume profile on its fallback path (bar range spread uniformly), weekly sessions on daily bars.
-    Returns per bar: developing POC/VAH/VAL, prior-session POC/VAH/VAL, and the naked-POC ledger as it stood at the close."""
-    h, l, c, v = d.high.values, d.low.values, d.close.values, d.volume.values.astype(float); n = len(c)
-    tr = np.maximum(h - l, np.maximum(np.abs(h - np.r_[np.nan, c[:-1]]), np.abs(l - np.r_[np.nan, c[:-1]]))); tr[0] = h[0] - l[0]
-    atr = pd.Series(tr).ewm(alpha=1 / 20, adjust=False).mean().values
-    usable = np.cumsum(np.nan_to_num(v) > 0) / np.arange(1, n + 1) >= 0.5
-    wk = d.index.to_period("W").asi8; new = np.r_[True, wk[1:] != wk[:-1]]
-    out = np.full((n, 6), np.nan); naked = [None] * n; led = []; ledx = []
-    bins = {}; binw = np.nan; poc = vah = val = np.nan; pp = pv = pl = np.nan; pk = None; pvol = 0.0; tot = 0.0
-    for t in range(n):
-        led2 = [(y, x) for y, x in zip(led, ledx) if not (h[t] >= y >= l[t])]; led = [y for y, x in led2]; ledx = [x for y, x in led2]
-        if new[t]:
-            pp, pv, pl = poc, vah, val
-            if not np.isnan(pp) and not any(abs(y - pp) <= atr[t] * 0.1 for y in led):
-                led.append(pp); ledx.append(t); led, ledx = led[-5:], ledx[-5:]
-            bins = {}; tot = 0.0; pk = None; pvol = 0.0; binw = max(atr[t] / 4.0, 1e-12)
-        while ledx and t - ledx[0] > 250: led.pop(0); ledx.pop(0)
-        bv = 1.0 if not usable[t] else max(np.nan_to_num(v[t]), 0.0)
-        kl = int(np.floor(l[t] / binw)); kh = int(np.floor(h[t] / binw)); nb = max(1, min(kh - kl + 1, 200)); per = bv / nb
-        for k in range(kl, kl + nb):
-            x = bins.get(k, 0.0) + per; bins[k] = x; tot += per
-            if x > pvol: pvol = x; pk = k
-        if pk is not None:
-            ks = sorted(bins); vs = [bins[k] for k in ks]; pi = ks.index(pk); lo = hi = pi; acc = vs[pi]; tgt = tot * 0.70
-            while acc < tgt and (lo > 0 or hi < len(ks) - 1):
-                vd = vs[lo - 1] if lo > 0 else -1.0; vu = vs[hi + 1] if hi < len(ks) - 1 else -1.0
-                if vu >= vd: hi += 1; acc += vu
-                else: lo -= 1; acc += vd
-            poc, vah, val = (pk + 0.5) * binw, (ks[hi] + 1.0) * binw, ks[lo] * binw
-        out[t] = (poc, vah, val, pp, pv, pl); naked[t] = list(led)
-    return out, naked, (dict(bins), binw)
