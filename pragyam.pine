@@ -178,7 +178,7 @@
 //  exception, as in Pragati.
 // ═══════════════════════════════════════════════════════════════════════════
 indicator("Pragyam · Calibrated Risk, Exposure and Self-Audit", shorttitle = "Pragyam", overlay = false,
-     max_lines_count = 500, max_labels_count = 100, max_boxes_count = 500, max_polylines_count = 5)
+     max_lines_count = 500, max_labels_count = 100, max_boxes_count = 500)
 
 // ───────────────────────────────────────────────────────────────────────────
 //  INPUTS
@@ -638,15 +638,16 @@ float shM = sdM > 0.0 ? sM / nP / sdM * math.sqrt(bpy) : na
 //  vp*/C_* so it cannot collide with the engine's own state. Removing this
 //  whole block leaves Pragyam intact.
 //
-//  CARRIED IN from Pragati, and it looks as it did there: its own colours, its
-//  own weights, its level lines running to the tag column, node marks and
-//  prior-session levels on. It is the focal element of the price chart. What
-//  differs from Pragati, and only this:
-//    · it sits to the RIGHT of the forward cone, 24 bars wide, which puts its
-//      tag column where Pragati's was;
+//  CARRIED IN from Pragati, and it looks and sits as it did there: its own
+//  colours and weights, right beside the last bar, its level lines running to
+//  the tag column, node marks and prior-session levels on. It is the focal
+//  element of the price chart. What differs from Pragati, and only this:
+//    · 24 bars wide rather than 30, so the whole right edge fits a phone;
+//    · the forward cone is drawn THROUGH it - as lines, which render beneath
+//      the profile's rows, so nothing of the profile is hidden;
 //    · developing trails default off; Initial Balance is intraday only;
 //    · the newest naked POC is not drawn twice when it is the prior POC;
-//    · tags need more room between them before two are seated;
+//    · VWAP has a thin lead to its tag;
 //    · the gates read this script's switches; green / red are C_UP / C_DN.
 //  The tag column is the profile's alone: the stops label themselves.
 //
@@ -961,17 +962,17 @@ if vpChartOn
 float vpVwap = vpSessVv > 0 ? vpSessPv / vpSessVv : na
 
 // ── right-edge tag column + collision control ─────────────────────────────────
-int VP_GUTTER = 2
+int VP_GUTTER = 1
 int VP_XBACK  = 5000          // furthest-back x any profile drawing may take
-int VP_OFFSET = 0             // the +3 below already clears the node marks
-int VP_CONE   = inpCone ? inpH : 0                          // the forward cone's bars: the profile sits to its right
-int vpLeft    = bar_index + VP_CONE + 3 + VP_OFFSET
+int VP_OFFSET = 1             // one bar of air between the last candle and the node marks
+int VP_CONE   = inpCone ? math.min(inpH, 10) : 0             // where the stops are named, and where tags start when the histogram is off
+int vpLeft    = bar_index + 3 + VP_OFFSET                   // beside the last bar, as in Pragati: the cone is drawn through it
 int vpRight   = vpLeft + inpVpWidth
 var int tagX  = 0
 var array<float> tagRows = array.new<float>()
 
 f_rowFree(float y) =>
-    float minGap = vpATR * 0.80                              // a tag is about this tall on a small chart
+    float minGap = vpATR * 0.60                              // about one tag's height on a small chart
     bool  free   = true
     if array.size(tagRows) > 0
         for yy in tagRows
@@ -1154,6 +1155,8 @@ f_vpLevels() =>
         array.push(vpLvBoxes, box.new(xSess, vah, bar_index, vaLow, border_color = na, bgcolor = color.new(C_VA, 93), force_overlay = true))
         array.push(vpLvLines, line.new(xSess, vah,   tagX, vah,   color = color.new(C_VA, 20), width = 1, force_overlay = true))
         array.push(vpLvLines, line.new(xSess, vaLow, tagX, vaLow, color = color.new(C_VA, 20), width = 1, force_overlay = true))
+    if vpVwapOn and not na(vpVwap)                               // VWAP is a plot and ends at the last bar: a thin lead to its tag
+        array.push(vpLvLines, line.new(bar_index, vpVwap, tagX, vpVwap, color = color.new(C_VWAP, 45), width = 1, force_overlay = true))
     if vpIbOn and not na(vpIbh)
         array.push(vpLvLines, line.new(xSess, vpIbh, tagX, vpIbh, color = color.new(C_VIOLET, 20), width = 1, style = line.style_dashed, force_overlay = true))
         array.push(vpLvLines, line.new(xSess, vpIbl, tagX, vpIbl, color = color.new(C_VIOLET, 20), width = 1, style = line.style_dashed, force_overlay = true))
@@ -1281,38 +1284,39 @@ plot(inpCone and coneOk ? topY : na, "Scale anchor · top",    color.new(C_CONE,
 plot(inpCone and coneOk ? botY : na, "Scale anchor · bottom", color.new(C_CONE, 100), 1, show_last = 1, editable = false, force_overlay = true, display = display.pane)
 
 // ── the forward cone, the stops, and the tapes' names ─────────────────────
-// Present, not focal: the cone is a faint neutral outline, the stops thin
-// dashes that keep their side's colour, and each stop is named in small
-// neutral text at the cone's far corner - the short stop above, the long stop
+// Present, not focal. The cone is an open outline - no fill, no closing edge
+// - made of lines, because lines render beneath boxes: the profile's rows sit
+// on top of it. The stops are thin dashes that keep their side's colour, and
+// each is named in small neutral text - the short stop above, the long stop
 // below. Coloured text on the chart belongs to the profile's tags alone.
-var polyline plCone = na
+var array<line> coneLns = array.new<line>()
 var line     lnL    = na
 var line     lnS    = na
 var array<label> lbs = array.new<label>()
 
 f_stopTag(float py, string txt, color c, bool above) =>
-    label.new(bar_index + inpH, py, txt, xloc = xloc.bar_index, color = color.new(c, 100),
+    label.new(bar_index + VP_CONE, py, txt, xloc = xloc.bar_index, color = color.new(c, 100),
          style = above ? label.style_label_lower_right : label.style_label_upper_right, textcolor = color.new(c, 25), size = size.tiny, force_overlay = true)
 f_tapeTag(float py, string txt, color c) =>
     label.new(bar_index + 1, py, txt, xloc = xloc.bar_index, color = color.new(c, 100), style = label.style_label_left,
          textcolor = c, size = size.tiny, textalign = text.align_left)
 
 if barstate.islast
-    polyline.delete(plCone)
+    while array.size(coneLns) > 0
+        line.delete(array.pop(coneLns))
     line.delete(lnL)
     line.delete(lnS)
     while array.size(lbs) > 0
         label.delete(array.pop(lbs))
     if inpCone and coneOk
-        array<chart.point> pts = array.new<chart.point>()
-        for i = 0 to inpH
-            array.push(pts, chart.point.from_index(bar_index + i, close * math.exp(qU * sig * math.sqrt(i))))
-        for i = inpH to 0
-            array.push(pts, chart.point.from_index(bar_index + i, close * math.exp(-qD * sig * math.sqrt(i))))
-        plCone := polyline.new(pts, curved = false, closed = true, xloc = xloc.bar_index, line_color = color.new(C_CONE, 55),
-             fill_color = color.new(C_CONE, 93), line_width = 1, force_overlay = true)
-        lnL := line.new(bar_index, stopL, bar_index + inpH, stopL, color = color.new(C_DN, 40), width = 1, style = line.style_dashed, force_overlay = true)
-        lnS := line.new(bar_index, stopS, bar_index + inpH, stopS, color = color.new(C_UP, 40), width = 1, style = line.style_dashed, force_overlay = true)
+        color cnC = color.new(C_CONE, 55)
+        for i = 1 to inpH
+            float w0 = sig * math.sqrt(i - 1)
+            float w1 = sig * math.sqrt(i)
+            array.push(coneLns, line.new(bar_index + i - 1, close * math.exp( qU * w0), bar_index + i, close * math.exp( qU * w1), color = cnC, width = 1, force_overlay = true))
+            array.push(coneLns, line.new(bar_index + i - 1, close * math.exp(-qD * w0), bar_index + i, close * math.exp(-qD * w1), color = cnC, width = 1, force_overlay = true))
+        lnL := line.new(bar_index, stopL, bar_index + inpH, stopL, color = color.new(C_DN, 50), width = 1, style = line.style_dashed, force_overlay = true)
+        lnS := line.new(bar_index, stopS, bar_index + inpH, stopS, color = color.new(C_UP, 50), width = 1, style = line.style_dashed, force_overlay = true)
         array.push(lbs, f_stopTag(topY, "short stop " + f_px(stopS), C_CONE, true))
         array.push(lbs, f_stopTag(botY, "long stop " + f_px(stopL), C_CONE, false))
     if tapesOn
