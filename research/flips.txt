@@ -1,0 +1,258 @@
+
+═══ DAILY BARS, 2001-2026 · weekly VWAP ═══
+A. FOLLOW-THROUGH. Next 10 bars in the flip's direction, beyond drift, sigma x100 (ex crypto). t clustered by date, Newey-West over 10 bars.
+                                      events  per_inst_yr   all     t  long  short  03-12  13-19  20-26
+v                                                                                                      
+flip                                  113474        33.38 -0.41 -0.78 -0.63  -0.19  -0.36  -0.62  -0.26
+flip + mid                             87991        25.89 -0.42 -0.64 -0.75  -0.17  -0.27  -0.66  -0.37
+flip + vwap                            89710        26.39 -0.29 -0.45 -0.85   0.27  -0.37  -0.22  -0.26
+flip + mid + vwap                      71107        20.92 -0.14 -0.18 -0.69   0.30  -0.04  -0.27  -0.12
+flip + outer                           73763        21.70  0.23  0.30 -0.64   1.19   1.72  -0.62  -0.79
+flip + outer + mid                     60372        17.76  0.43  0.50 -0.53   1.26   2.09  -0.40  -0.83
+flip + outer + vwap                    62743        18.46  0.41  0.49 -0.63   1.53   1.58  -0.07  -0.61
+flip + outer + mid + vwap              51927        15.28  0.73  0.80 -0.29   1.61   2.15   0.15  -0.49
+flip + both                            44762        13.17  0.41  0.36 -0.32   1.84   3.20  -1.16  -1.55
+flip + both + mid                      33988        10.00  0.52  0.47 -0.36   1.88   3.64  -1.33  -1.45
+flip + both + vwap                     37710        11.09  0.71  0.60 -0.34   2.79   3.10  -0.49  -1.13
+flip + both + mid + vwap               29057         8.55  1.06  0.91 -0.08   2.85   3.86  -0.54  -0.80
+flip + outer + calm                    30499         8.97  0.93  0.98  1.11   0.72   1.41   1.22  -0.17
+flip + outer + calm + mid              24314         7.15  0.72  0.69  0.52   0.89   1.46  -0.02   0.37
+flip + outer + calm + vwap             25999         7.65  1.33  1.27  1.42   1.22   1.02   2.34   0.66
+flip + outer + calm + mid + vwap       21024         6.19  1.29  1.15  1.07   1.49   1.35   1.26   1.24
+flip + outer + stressed                23273         6.85 -0.03 -0.03 -3.42   3.13   2.14  -1.97  -0.61
+flip + outer + stressed + mid          19599         5.77  0.70  0.52 -2.45   3.17   2.49  -0.53  -0.12
+flip + outer + stressed + vwap         19714         5.80  0.07  0.06 -3.75   3.68   2.08  -1.31  -0.80
+flip + outer + stressed + mid + vwap   16765         4.93  0.88  0.63 -2.56   3.64   2.50   0.15  -0.19
+flip + both + calm                     18576         5.47  1.20  0.74  1.30   0.92   2.19   2.71  -2.24
+flip + both + calm + mid               13507         3.97  0.88  0.56  0.51   1.70   2.15   1.17  -1.46
+flip + both + calm + vwap              15667         4.61  1.47  0.86  1.38   1.73   1.68   3.83  -1.70
+flip + both + calm + mid + vwap        11618         3.42  1.41  0.84  0.84   2.67   2.07   2.57  -1.03
+flip + both + stressed                 13927         4.10 -0.02 -0.01 -3.78   4.37   4.85  -2.73  -2.83
+flip + both + stressed + mid           10968         3.23  0.48  0.27 -2.95   3.76   4.92  -1.44  -2.47
+flip + both + stressed + vwap          11683         3.44  0.46  0.25 -4.08   5.86   5.20  -1.76  -2.58
+flip + both + stressed + mid + vwap     9325         2.74  1.19  0.64 -2.90   5.24   5.34  -0.03  -2.04
+
+   crypto:
+                                      events    all     t
+v                                                        
+flip                                    3560   0.98  0.51
+flip + mid                              2623   2.65  1.01
+flip + vwap                             2717   3.21  1.19
+flip + mid + vwap                       2062   4.67  1.52
+flip + outer                            2285   4.68  1.45
+flip + outer + mid                      1776   6.53  1.84
+flip + outer + vwap                     1955   5.32  1.50
+flip + outer + mid + vwap               1546   7.17  1.88
+flip + both                             1367   5.14  0.88
+flip + both + mid                        944   6.59  1.09
+flip + both + vwap                      1152   6.30  1.02
+flip + both + mid + vwap                 815   8.36  1.28
+flip + outer + calm                     1169   5.48  1.17
+flip + outer + calm + mid                932  10.17  1.90
+flip + outer + calm + vwap              1010   5.81  1.14
+flip + outer + calm + mid + vwap         814  10.35  1.77
+flip + outer + stressed                  513  -0.33 -0.06
+flip + outer + stressed + mid            376   0.98  0.18
+flip + outer + stressed + vwap           429  -0.87 -0.14
+flip + outer + stressed + mid + vwap     325   1.01  0.17
+flip + both + calm                       692  10.42  1.18
+flip + both + calm + mid                 517  15.09  1.64
+flip + both + calm + vwap                595  10.99  1.14
+flip + both + calm + mid + vwap          450  15.80  1.56
+flip + both + stressed                   299  -8.49 -0.81
+flip + both + stressed + mid             166 -12.21 -1.39
+flip + both + stressed + vwap            241  -9.59 -0.89
+flip + both + stressed + mid + vwap      140 -10.85 -1.23
+
+B. AS A RULE, long: on a signal hold its side for 10 bars, filled at the next open, net of costs; mean across instruments
+                                      inmkt  sharpe  hold     dd  hold_dd  sh_win  sh_03  sh_13  sh_20
+v                                                                                                     
+flip                                  0.447   0.170  0.52 -0.514   -0.612   0.046  0.166  0.116  0.216
+flip + mid                            0.367   0.167  0.52 -0.459   -0.612   0.040  0.172  0.129  0.234
+flip + vwap                           0.422   0.195  0.52 -0.485   -0.612   0.033  0.192  0.174  0.230
+flip + mid + vwap                     0.349   0.177  0.52 -0.440   -0.612   0.053  0.183  0.157  0.241
+flip + outer                          0.399   0.239  0.52 -0.445   -0.612   0.079  0.275  0.202  0.234
+flip + outer + mid                    0.337   0.211  0.52 -0.398   -0.612   0.066  0.251  0.176  0.232
+flip + outer + vwap                   0.375   0.225  0.52 -0.431   -0.612   0.079  0.260  0.206  0.213
+flip + outer + mid + vwap             0.319   0.203  0.52 -0.387   -0.612   0.053  0.239  0.186  0.218
+flip + both                           0.378   0.231  0.52 -0.421   -0.612   0.066  0.260  0.186  0.196
+flip + both + mid                     0.308   0.198  0.52 -0.371   -0.612   0.066  0.238  0.150  0.197
+flip + both + vwap                    0.349   0.209  0.52 -0.409   -0.612   0.053  0.227  0.177  0.183
+flip + both + mid + vwap              0.288   0.186  0.52 -0.357   -0.612   0.073  0.215  0.154  0.184
+flip + outer + calm                   0.250   0.174  0.52 -0.309   -0.612   0.060  0.261  0.177  0.061
+flip + outer + calm + mid             0.218   0.144  0.52 -0.271   -0.612   0.066  0.224  0.124  0.068
+flip + outer + calm + vwap            0.237   0.171  0.52 -0.289   -0.612   0.066  0.254  0.179  0.058
+flip + outer + calm + mid + vwap      0.209   0.146  0.52 -0.254   -0.612   0.073  0.226  0.131  0.066
+flip + outer + stressed               0.211   0.107  0.52 -0.367   -0.612   0.040  0.058  0.069  0.224
+flip + outer + stressed + mid         0.193   0.105  0.52 -0.326   -0.612   0.053  0.054  0.086  0.239
+flip + outer + stressed + vwap        0.202   0.092  0.52 -0.358   -0.612   0.026  0.048  0.078  0.198
+flip + outer + stressed + mid + vwap  0.187   0.092  0.52 -0.318   -0.612   0.053  0.044  0.101  0.216
+flip + both + calm                    0.245   0.161  0.52 -0.299   -0.612   0.073  0.213  0.204  0.045
+flip + both + calm + mid              0.209   0.129  0.52 -0.262   -0.612   0.066  0.178  0.149  0.055
+flip + both + calm + vwap             0.230   0.153  0.52 -0.284   -0.612   0.073  0.199  0.194  0.043
+flip + both + calm + mid + vwap       0.199   0.121  0.52 -0.249   -0.612   0.066  0.173  0.146  0.041
+flip + both + stressed                0.192   0.081  0.52 -0.325   -0.612   0.046  0.039  0.037  0.146
+flip + both + stressed + mid          0.174   0.082  0.52 -0.270   -0.612   0.053  0.041  0.046  0.172
+flip + both + stressed + vwap         0.184   0.071  0.52 -0.309   -0.612   0.040  0.035  0.051  0.130
+flip + both + stressed + mid + vwap   0.168   0.073  0.52 -0.258   -0.612   0.060  0.040  0.067  0.152
+
+B. AS A RULE, long/short: on a signal hold its side for 10 bars, filled at the next open, net of costs; mean across instruments
+                                      inmkt  sharpe  hold     dd  hold_dd  sh_win  sh_03  sh_13  sh_20
+v                                                                                                     
+flip                                  0.744  -0.198  0.52 -0.823   -0.612   0.013 -0.183 -0.301 -0.185
+flip + mid                            0.684  -0.222  0.52 -0.810   -0.612   0.007 -0.203 -0.305 -0.196
+flip + vwap                           0.701  -0.139  0.52 -0.792   -0.612   0.000 -0.119 -0.208 -0.147
+flip + mid + vwap                     0.635  -0.174  0.52 -0.781   -0.612   0.000 -0.148 -0.234 -0.164
+flip + outer                          0.645  -0.050  0.52 -0.727   -0.612   0.026  0.020 -0.145 -0.109
+flip + outer + mid                    0.586  -0.094  0.52 -0.726   -0.612   0.026 -0.019 -0.188 -0.137
+flip + outer + vwap                   0.601  -0.046  0.52 -0.703   -0.612   0.020  0.025 -0.130 -0.105
+flip + outer + mid + vwap             0.546  -0.080  0.52 -0.696   -0.612   0.020 -0.006 -0.157 -0.129
+flip + both                           0.510   0.054  0.52 -0.616   -0.612   0.033  0.119  0.019 -0.042
+flip + both + mid                     0.428   0.015  0.52 -0.576   -0.612   0.033  0.090 -0.014 -0.062
+flip + both + vwap                    0.466   0.047  0.52 -0.596   -0.612   0.033  0.107  0.021 -0.035
+flip + both + mid + vwap              0.394   0.020  0.52 -0.554   -0.612   0.033  0.089  0.004 -0.045
+flip + outer + calm                   0.354   0.000  0.52 -0.474   -0.612   0.033  0.038 -0.034 -0.032
+flip + outer + calm + mid             0.323  -0.048  0.52 -0.478   -0.612   0.020 -0.035 -0.108 -0.043
+flip + outer + calm + vwap            0.333   0.004  0.52 -0.459   -0.612   0.020  0.030 -0.014 -0.025
+flip + outer + calm + mid + vwap      0.305  -0.033  0.52 -0.453   -0.612   0.026 -0.027 -0.075 -0.030
+flip + outer + stressed               0.301  -0.061  0.52 -0.594   -0.612   0.033 -0.003 -0.157 -0.075
+flip + outer + stressed + mid         0.282  -0.069  0.52 -0.568   -0.612   0.046 -0.011 -0.148 -0.084
+flip + outer + stressed + vwap        0.283  -0.059  0.52 -0.572   -0.612   0.033  0.002 -0.137 -0.080
+flip + outer + stressed + mid + vwap  0.266  -0.061  0.52 -0.544   -0.612   0.060 -0.005 -0.118 -0.083
+flip + both + calm                    0.292   0.088  0.52 -0.392   -0.612   0.046  0.119  0.148  0.003
+flip + both + calm + mid              0.251   0.051  0.52 -0.351   -0.612   0.033  0.071  0.098  0.008
+flip + both + calm + vwap             0.272   0.083  0.52 -0.372   -0.612   0.053  0.104  0.148  0.009
+flip + both + calm + mid + vwap       0.237   0.051  0.52 -0.335   -0.612   0.040  0.064  0.106  0.010
+flip + both + stressed                0.247  -0.039  0.52 -0.525   -0.612   0.033  0.029 -0.099 -0.105
+flip + both + stressed + mid          0.223  -0.049  0.52 -0.478   -0.612   0.040  0.023 -0.091 -0.108
+flip + both + stressed + vwap         0.231  -0.034  0.52 -0.498   -0.612   0.040  0.033 -0.073 -0.098
+flip + both + stressed + mid + vwap   0.211  -0.040  0.52 -0.450   -0.612   0.040  0.030 -0.053 -0.098
+
+═══ HOURLY BARS, about two years · daily VWAP ═══
+A. FOLLOW-THROUGH. Next 10 bars in the flip's direction, beyond drift, sigma x100 (ex crypto). t clustered by date, Newey-West over 10 bars.
+                                      events  per_inst_yr   all     t  long  short
+v                                                                                 
+flip                                  121658       320.29 -0.02 -0.06 -0.02  -0.02
+flip + mid                             95038       250.21  0.03  0.06 -0.09   0.13
+flip + vwap                            91008       239.60 -0.02 -0.05 -0.44   0.39
+flip + mid + vwap                      73068       192.37  0.03  0.06 -0.53   0.56
+flip + outer                           79127       208.32 -0.21 -0.37 -0.46   0.05
+flip + outer + mid                     66292       174.53 -0.11 -0.18 -0.55   0.30
+flip + outer + vwap                    65856       173.38 -0.17 -0.27 -0.65   0.33
+flip + outer + mid + vwap              55730       146.72 -0.12 -0.19 -0.86   0.58
+flip + both                            48512       127.72 -1.44 -1.83 -1.53  -1.33
+flip + both + mid                      39290       103.44 -1.20 -1.44 -1.47  -0.92
+flip + both + vwap                     39938       105.15 -1.40 -1.62 -1.73  -1.02
+flip + both + mid + vwap               32801        86.36 -1.20 -1.32 -1.75  -0.60
+flip + outer + calm                    29370        77.32  0.36  0.43 -1.04   1.80
+flip + outer + calm + mid              23992        63.16  0.21  0.22 -1.32   1.63
+flip + outer + calm + vwap             24496        64.49  0.50  0.53 -1.03   2.04
+flip + outer + calm + mid + vwap       20238        53.28  0.31  0.30 -1.39   1.88
+flip + outer + stressed                27430        72.22  0.06  0.07  0.77  -0.65
+flip + outer + stressed + mid          23646        62.25  0.41  0.44  0.93  -0.08
+flip + outer + stressed + vwap         22657        59.65  0.33  0.34  0.96  -0.30
+flip + outer + stressed + mid + vwap   19716        51.91  0.53  0.52  0.90   0.18
+flip + both + calm                     18069        47.57 -1.34 -1.13 -2.85   0.58
+flip + both + calm + mid               14267        37.56 -1.42 -1.11 -2.67   0.03
+flip + both + calm + vwap              14877        39.17 -1.28 -0.98 -3.12   1.04
+flip + both + calm + mid + vwap        11920        31.38 -1.21 -0.86 -2.90   0.72
+flip + both + stressed                 16903        44.50 -0.10 -0.08  1.03  -1.23
+flip + both + stressed + mid           14084        37.08  0.39  0.30  1.09  -0.28
+flip + both + stressed + vwap          13815        36.37  0.33  0.24  1.57  -0.94
+flip + both + stressed + mid + vwap    11674        30.73  0.55  0.39  1.31  -0.17
+
+   crypto:
+                                      events   all     t
+v                                                       
+flip                                   22498 -0.34 -0.37
+flip + mid                             17182  0.16  0.13
+flip + vwap                            16675 -1.73 -1.35
+flip + mid + vwap                      13230 -1.09 -0.74
+flip + outer                           14553  0.17  0.11
+flip + outer + mid                     11928  0.71  0.40
+flip + outer + vwap                    12487 -0.85 -0.49
+flip + outer + mid + vwap              10379 -0.54 -0.29
+flip + both                             8621 -0.52 -0.20
+flip + both + mid                       6721 -0.93 -0.33
+flip + both + vwap                      7342 -1.35 -0.47
+flip + both + mid + vwap                5820 -2.21 -0.75
+flip + outer + calm                     6524 -0.50 -0.23
+flip + outer + calm + mid               5304  0.79  0.32
+flip + outer + calm + vwap              5519 -1.65 -0.69
+flip + outer + calm + mid + vwap        4530 -0.95 -0.37
+flip + outer + stressed                 3916  1.11  0.41
+flip + outer + stressed + mid           3215  1.76  0.60
+flip + outer + stressed + vwap          3426  0.41  0.14
+flip + outer + stressed + mid + vwap    2877  1.00  0.32
+flip + both + calm                      3855 -1.69 -0.46
+flip + both + calm + mid                3065 -1.42 -0.37
+flip + both + calm + vwap               3259 -2.14 -0.55
+flip + both + calm + mid + vwap         2619 -2.87 -0.72
+flip + both + stressed                  2301 -0.42 -0.09
+flip + both + stressed + mid            1688  0.17  0.04
+flip + both + stressed + vwap           1971 -1.86 -0.38
+flip + both + stressed + mid + vwap     1493 -1.64 -0.32
+
+B. AS A RULE, long: on a signal hold its side for 10 bars, filled at the next open, net of costs; mean across instruments
+                                      inmkt  sharpe   hold     dd  hold_dd  sh_win
+v                                                                                 
+flip                                  0.442  -1.204  0.381 -0.422    -0.33   0.040
+flip + mid                            0.396  -0.791  0.381 -0.350    -0.33   0.066
+flip + vwap                           0.410  -0.740  0.381 -0.353    -0.33   0.086
+flip + mid + vwap                     0.365  -0.585  0.381 -0.309    -0.33   0.066
+flip + outer                          0.389  -0.611  0.381 -0.325    -0.33   0.079
+flip + outer + mid                    0.353  -0.504  0.381 -0.290    -0.33   0.073
+flip + outer + vwap                   0.361  -0.521  0.381 -0.298    -0.33   0.093
+flip + outer + mid + vwap             0.328  -0.452  0.381 -0.270    -0.33   0.126
+flip + both                           0.331  -0.405  0.381 -0.260    -0.33   0.132
+flip + both + mid                     0.291  -0.358  0.381 -0.227    -0.33   0.132
+flip + both + vwap                    0.302  -0.389  0.381 -0.240    -0.33   0.126
+flip + both + mid + vwap              0.268  -0.351  0.381 -0.214    -0.33   0.146
+flip + outer + calm                   0.229  -0.486  0.381 -0.182    -0.33   0.146
+flip + outer + calm + mid             0.212  -0.414  0.381 -0.163    -0.33   0.166
+flip + outer + calm + vwap            0.217  -0.437  0.381 -0.169    -0.33   0.139
+flip + outer + calm + mid + vwap      0.201  -0.392  0.381 -0.153    -0.33   0.152
+flip + outer + stressed               0.232  -0.243  0.381 -0.191    -0.33   0.179
+flip + outer + stressed + mid         0.219  -0.186  0.381 -0.173    -0.33   0.159
+flip + outer + stressed + vwap        0.217  -0.182  0.381 -0.174    -0.33   0.219
+flip + outer + stressed + mid + vwap  0.206  -0.140  0.381 -0.158    -0.33   0.219
+flip + both + calm                    0.208  -0.366  0.381 -0.151    -0.33   0.166
+flip + both + calm + mid              0.190  -0.307  0.381 -0.129    -0.33   0.166
+flip + both + calm + vwap             0.195  -0.350  0.381 -0.139    -0.33   0.172
+flip + both + calm + mid + vwap       0.180  -0.300  0.381 -0.119    -0.33   0.152
+flip + both + stressed                0.199  -0.132  0.381 -0.153    -0.33   0.212
+flip + both + stressed + mid          0.186  -0.117  0.381 -0.136    -0.33   0.185
+flip + both + stressed + vwap         0.187  -0.115  0.381 -0.138    -0.33   0.212
+flip + both + stressed + mid + vwap   0.177  -0.112  0.381 -0.124    -0.33   0.172
+
+B. AS A RULE, long/short: on a signal hold its side for 10 bars, filled at the next open, net of costs; mean across instruments
+                                      inmkt  sharpe   hold     dd  hold_dd  sh_win
+v                                                                                 
+flip                                  0.750  -1.962  0.381 -0.632    -0.33   0.020
+flip + mid                            0.691  -1.418  0.381 -0.553    -0.33   0.020
+flip + vwap                           0.692  -1.317  0.381 -0.541    -0.33   0.046
+flip + mid + vwap                     0.625  -1.105  0.381 -0.491    -0.33   0.033
+flip + outer                          0.643  -1.136  0.381 -0.509    -0.33   0.046
+flip + outer + mid                    0.592  -1.001  0.381 -0.466    -0.33   0.033
+flip + outer + vwap                   0.589  -0.991  0.381 -0.468    -0.33   0.066
+flip + outer + mid + vwap             0.541  -0.897  0.381 -0.433    -0.33   0.040
+flip + both                           0.508  -0.808  0.381 -0.409    -0.33   0.066
+flip + both + mid                     0.445  -0.716  0.381 -0.366    -0.33   0.099
+flip + both + vwap                    0.453  -0.738  0.381 -0.375    -0.33   0.086
+flip + both + mid + vwap              0.401  -0.662  0.381 -0.338    -0.33   0.086
+flip + outer + calm                   0.330  -0.723  0.381 -0.281    -0.33   0.113
+flip + outer + calm + mid             0.304  -0.646  0.381 -0.257    -0.33   0.119
+flip + outer + calm + vwap            0.307  -0.643  0.381 -0.260    -0.33   0.152
+flip + outer + calm + mid + vwap      0.284  -0.613  0.381 -0.240    -0.33   0.139
+flip + outer + stressed               0.335  -0.628  0.381 -0.325    -0.33   0.139
+flip + outer + stressed + mid         0.315  -0.542  0.381 -0.295    -0.33   0.093
+flip + outer + stressed + vwap        0.306  -0.518  0.381 -0.295    -0.33   0.132
+flip + outer + stressed + mid + vwap  0.288  -0.445  0.381 -0.268    -0.33   0.126
+flip + both + calm                    0.272  -0.525  0.381 -0.216    -0.33   0.126
+flip + both + calm + mid              0.245  -0.479  0.381 -0.192    -0.33   0.172
+flip + both + calm + vwap             0.250  -0.473  0.381 -0.198    -0.33   0.166
+flip + both + calm + mid + vwap       0.228  -0.442  0.381 -0.179    -0.33   0.179
+flip + both + stressed                0.272  -0.467  0.381 -0.264    -0.33   0.126
+flip + both + stressed + mid          0.250  -0.394  0.381 -0.236    -0.33   0.146
+flip + both + stressed + vwap         0.248  -0.397  0.381 -0.240    -0.33   0.146
+flip + both + stressed + mid + vwap   0.230  -0.339  0.381 -0.215    -0.33   0.146

@@ -116,6 +116,41 @@ Which stop is further does not tell the trend and is followed by nothing.
 
 VWAP is the one place something showed up, and it points the other way from a trend reading: a close below the session VWAP was followed by the higher next-bar return. It is a one-bar reversal, it fades within a bar, and it does not survive costs. Mixing the three did not make a signal.
 
+### Column-flip signals (v2.6)
+
+Tested in `research/flips.txt`: a flip of the surprise column, confirmed by the trend tapes, filtered by risk, and with the midline and VWAP added to every one, on 151 instruments, long and short, daily bars 2001–2026 and two years of hourly bars.
+
+- **Flip**: the column changes sign.
+- **Outer**: the stretch ladder (outer top tape) leans the flip's way.
+- **Both**: outer, and the trend tape agrees too.
+- **Calm / stressed**: the risk tape's regime on the flip bar.
+- **+ mid / + vwap**: the close is on the flip's side of the midline / the session VWAP.
+
+Outcome: the next 10 bars in the flip's direction, beyond the market's own drift, in σ × 100.
+
+| Condition (daily, ex crypto) | Follow-through | t | 2003–12 | 2013–19 | 2020–26 | Long rule Sharpe |
+|---|---|---|---|---|---|---|
+| Flip alone | −0.4 | −0.8 | −0.4 | −0.6 | −0.3 | 0.17 |
+| Flip + outer | 0.2 | 0.3 | 1.7 | −0.6 | −0.8 | 0.24 |
+| Flip + both | 0.4 | 0.4 | 3.2 | −1.2 | −1.6 | 0.23 |
+| Flip + outer + calm | 0.9 | 1.0 | 1.4 | 1.2 | −0.2 | 0.17 |
+| Flip + outer + stressed | 0.0 | 0.0 | 2.1 | −2.0 | −0.6 | 0.11 |
+| Flip + both + calm | 1.2 | 0.7 | 2.2 | 2.7 | −2.2 | 0.16 |
+| Flip + both + stressed | 0.0 | 0.0 | 4.9 | −2.7 | −2.8 | 0.08 |
+| Best with mid / vwap added: outer + calm + vwap | 1.3 | 1.3 | 1.0 | 2.3 | 0.7 | 0.17 |
+| Buy and hold | | | | | | 0.52 |
+
+None of the 28 conditions works:
+
+- **No significance.** The largest |t| on daily bars outside crypto is 1.3, from 28 conditions tested twice over. A real edge would need t above 3.
+- **No consistency.** Most flip sign between eras; "both + stressed" goes from +4.9 to −2.8.
+- **No rule beats holding.** Held for 10 bars after each signal, the best long rule made a Sharpe of 0.24 against 0.52 for buy and hold; the best long/short rule made 0.09.
+- **Hourly bars lose.** Every condition, long or long/short, lost money after costs (Sharpe −0.1 to −2.0).
+- **Midline and VWAP change little.** A flip already is a midline cross in most cases, and VWAP added no more than noise.
+- **Crypto leans positive** on daily bars (up to +16 σ × 100 for "both + calm + mid + vwap"), consistent with momentum found there before, but on 9 instruments with t below 2. Not enough to build on.
+
+So no flip signal is added to the script.
+
 ### What it does not do
 
 - **It does not call direction.** After 2013 the dial does not beat buy and hold on Sharpe. It is risk control: about the same return per unit of risk, with a drawdown roughly a quarter shallower.
@@ -190,5 +225,6 @@ python3 study.py > results.txt                     # every figure above (about 4
 python3 direction_null.py > direction_null.txt     # the search that came back empty
 python3 study_mid.py > midline.txt                 # the midline observation
 python3 study_obs.py > observations.txt            # stop asymmetry and VWAP
+python3 study_flip.py > flips.txt                  # column-flip signals
 python3 preview.py                                 # docs/preview_*.png
 ```
