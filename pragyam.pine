@@ -3,7 +3,7 @@
 
 //@version=6
 // ═══════════════════════════════════════════════════════════════════════════
-//  PRAGYAM  ·  CALIBRATED RISK, EXPOSURE AND SELF-AUDIT                      v2.4
+//  PRAGYAM  ·  CALIBRATED RISK, EXPOSURE AND SELF-AUDIT                      v2.6
 //  "How far can it go, how much should I hold - and has that been true here?"
 //
 //  Pragyam, from prajñā - discernment: telling what can be known from what
@@ -11,50 +11,47 @@
 //  states every forecast as a probability, and then tests itself on the chart.
 //  (Developed as Kasauti through v2.3; the engine is unchanged.)
 //
-//  v2.5 · THE UI AUDIT. Four review passes - hierarchy against what was
-//  measured, the colour system, layout and mobile, wording - and one finished
-//  surface. No engine number changed.
+//  v2.6 · THE UI AUDIT, AS IT ENDED. Two rounds. The first weighted the chart
+//  by evidence and made the cone its loudest element; the owner's direction
+//  reversed that, and it is the right call for a chart: the PROFILE is what is
+//  read at a glance, the cone is consulted. No engine number changed.
 //
-//  WEIGHT FOLLOWS EVIDENCE, loudest first:
-//    1  the forward cone (2 px) and the two stops (solid) - calibrated
-//    2  a surprise column that left the landing band - always solid
-//    3  TREND and RISK, the inner tapes - the cone and exposure read them
-//    4  columns inside the band; the STRETCH LADDER and RISK MOMENTUM, thinner
-//       and never solid - context
-//    5  the midline, then the landing band's edges - description
-//    6  the volume profile - display only, one grey family, narrow, its lines
-//       stopping at the last bar
-//    7  ledger marks - rare and faint
+//  ON THE PRICE CHART, loudest first:
+//    1  the VOLUME PROFILE - as it looks in Pragati: amber POC, blue value
+//       area, its rows and level lines at full weight, right beside the last
+//       bar, tags at the right edge.
+//    2  VWAP, rose and solid.
+//    3  the midline, then the landing band's edges - quiet neutral lines.
+//    4  the forward cone - a faint open outline drawn THROUGH the profile and
+//       beneath its rows - and the two stops, thin dashes named in small
+//       neutral text at the cone's far corner.
+//  IN THE PANE, loudest first:
+//    1  a surprise column that left the landing band - always solid.
+//    2  TREND and RISK, the tall inner tapes - the cone and exposure read them.
+//    3  columns inside the band; the STRETCH LADDER and RISK MOMENTUM, thin.
 //
 //  THE PALETTE, BY MEANING
-//    GREEN / RED     direction on the SHORT horizon: columns (only when the
-//                    trend backs the move), the stretch ladder, text.
-//    TEAL / CRIMSON  direction on the LONG horizon: the trend tape. A different
-//                    hue, because a darker green could not be told from a
-//                    fainter one on the tape beside it.
-//    GREY            no direction, no reading: a flat trend, a move the trend
-//                    does not back, falling risk, anything still warming.
-//    GOLD            risk, and only risk. Calm is the absence of gold.
-//    BLUE            the cone family, and only it: landing band, forward cone,
-//                    midline.
-//    THE PROFILE     greys by lightness - POC the strongest, value area mid,
-//                    tails faint. It was blue and amber; blue is the cone's and
-//                    amber sat on top of gold. VWAP stays rose.
-//  Greens and reds were re-chosen to differ in lightness as well as hue, so
-//  they hold under red-green colour blindness; gold was moved away from both.
-//  One transparency ladder everywhere: 0 solid · 40 committed · 65 quiet ·
-//  80 faint · 90 warming.
+//    GREEN / RED   direction, everywhere. Bright for the short horizon -
+//                  columns and the stretch ladder; deep for the trend tape.
+//                  The two tapes are told apart by height and by strength, not
+//                  by a new hue: a committed trend is never fainter than 30,
+//                  and the ladder is either much fainter than that or solid.
+//    GREY          no direction, no reading: a flat trend, a move the trend
+//                  does not back, falling risk, anything still warming. Also
+//                  the cone family on the chart - present, not focal.
+//    GOLD          risk, and only risk. Calm is the absence of gold.
+//    BLUE, AMBER   the profile's own: value area and POC. Nothing else on the
+//                  chart uses them.
 //
 //  COLUMNS  opacity is the MEASURED event - solid when the close left the
 //           landing band. Hue is description - coloured when the trend backs
 //           the move, neutral when it does not; a miss the trend does not back
 //           is bright neutral, never the grey that means nothing.
 //  STOPS    always on screen: two invisible points anchor the price scale.
-//           Each is named at the cone's far corner.
 //  WORDS    one name each: exposure, landing band, surprise (the number), miss
 //           (a close outside the band). Settings run Display, Forecast,
 //           Exposure, Advanced, Volume profile.
-//  (v2.4 renamed the script from Kasauti and first set the palette by meaning.)
+//  (v2.4 renamed the script from Kasauti. v2.5 was the first audit round.)
 //
 //  v2.3 · PRESENTATION CLOSED, TWO MORE OBSERVATIONS TESTED. No engine number
 //  changed.
@@ -125,8 +122,8 @@
 //        of the time (median −11%), in every era. A cone drawn into a spike
 //        is at its widest.
 //
-//  GOLD, everywhere here, means risk - never up or down. Blue is the cone.
-//  Teal and crimson are the trend; green and red the short horizon.
+//  GOLD, everywhere here, means risk - never up or down. Green and red are
+//  direction - bright for the short horizon, deep for the trend.
 //
 //  ═══ HOW IT WORKS ═════════════════════════════════════════════════════════
 //    RISK      per-bar variance from the bar's whole range and its gap
@@ -222,13 +219,13 @@ float  inpTau   = input.float(0.10, "Believable edge (σ)", minval = 0.02, maxva
 // ───────────────────────────────────────────────────────────────────────────
 float bgLum    = color.r(chart.bg_color) * 0.299 + color.g(chart.bg_color) * 0.587 + color.b(chart.bg_color) * 0.114
 bool  darkMode = inpTheme == "Dark" or (inpTheme == "Auto" and bgLum < 128)
-color C_UP    = darkMode ? #4FCB9B : #188561               // up, short horizon: columns, stretch ladder, text
-color C_DN    = darkMode ? #E5533C : #8D2614               // down, short horizon
-color C_UPD   = darkMode ? #1A9498 : #0B676A               // up, LONG horizon: teal - a different hue, not a darker green
-color C_DND   = darkMode ? #B85068 : #8D0F44               // down, long horizon: crimson
-color C_NEUT  = darkMode ? #8A97A0 : #5F6B74               // no direction, no reading
+color C_UP    = darkMode ? #3FB980 : #08724A               // up, short horizon: columns, stretch ladder, text
+color C_DN    = darkMode ? #E4776A : #A8443A               // down, short horizon
+color C_UPD   = darkMode ? #2A8660 : #5C9E86               // the same direction on the long horizon: deep, for the trend tape
+color C_DND   = darkMode ? #B4554B : #BC7A72
+color C_NEUT  = darkMode ? #8A97A0 : #69757E               // no direction, no reading
 color C_CONE  = darkMode ? #B4BEC6 : #414B53               // the cone family: a quiet neutral, so the profile keeps the chart's colour
-color C_GOLD  = darkMode ? #F0C54E : #8E7211               // risk - never a direction
+color C_GOLD  = darkMode ? #D9B44A : #8A6A0E               // risk - never a direction
 color C_TEXT  = darkMode ? #C9D1D6 : #2B3338
 color C_PANEL = darkMode ? color.new(#0D1215, 8) : color.new(#FFFFFF, 6)
 
@@ -242,7 +239,7 @@ color C_HVN    = darkMode ? #8F7BD8 : #5E4B9E      // High-Volume Node · dense 
 color C_LVN    = darkMode ? #C6BBEA : #8F7DBB      // Low-Volume Node  · pale  violet
 color C_VIOLET = darkMode ? #A87ABF : #6A3F84      // Initial Balance
 
-// ONE TRANSPARENCY LADDER, so the same strength means the same thing anywhere:
+// ONE TRANSPARENCY LADDER in the pane, so the same strength means the same thing:
 //     0  solid      the event: outside the landing band, top of a range
 //    40  committed  a trend past ±0.5σ, risk stressed, 3+ ladder rungs
 //    65  quiet      inside the band with the trend; top of a quiet range
@@ -1208,8 +1205,8 @@ color cHue  = cWith ? (u >= 0.0 ? C_UP : C_DN) : C_NEUT
 color cCol  = not settled ? color.new(C_NEUT, A_WARM) : mU or mD ? color.new(cWith ? cHue : C_TEXT, A_SOLID) : color.new(cHue, cWith ? A_QUIET : A_FAINT)
 plot(vSur ? math.max(-CLIP, math.min(CLIP, u)) : na,       "Surprise · columns (σ, clipped)", cCol, 1, plot.style_columns, display = display.pane, precision = 2)
 plot(u,                                                    "Surprise (σ)",                    cCol, 1, display = display.status_line + display.data_window, precision = 2)
-plot(vSur and not na(bU) ? math.min(bU, CLIP)   : na,      "Landing band · upper (σ)",        color.new(C_CONE, 30), 1, display = display.pane + display.data_window, precision = 2)
-plot(vSur and not na(bD) ? math.max(-bD, -CLIP) : na,      "Landing band · lower (σ)",        color.new(C_CONE, 30), 1, display = display.pane + display.data_window, precision = 2)
+plot(vSur and not na(bU) ? math.min(bU, CLIP)   : na,      "Landing band · upper (σ)",        color.new(C_CONE, 40), 1, display = display.pane + display.data_window, precision = 2)
+plot(vSur and not na(bD) ? math.max(-bD, -CLIP) : na,      "Landing band · lower (σ)",        color.new(C_CONE, 40), 1, display = display.pane + display.data_window, precision = 2)
 hline(0.0, "Zero", color.new(C_NEUT, 55), hline.style_dotted)
 
 plot(vPrf and nP > 0 ? 100.0 * math.log(eqF) : na, "Proof · exposure (log %)",     color.new(C_TEXT, 0),  2, display = display.pane + display.data_window, precision = 1)
@@ -1221,27 +1218,30 @@ plot(vPrf and nP > 0 ? 100.0 * math.log(eqH) : na, "Proof · buy and hold (log %
 // yet is neutral grey.
 bool tapesOn = vSur and inpTapes
 
-// TREND · teal up, crimson down - the long horizon's own hues, so it never
-// reads as a faded ladder. Faint while flat, a step at ±0.5σ, solid by 1.5σ.
+// TREND · green up, red down, in the deep tone of the long horizon. Faint
+// while flat; from ±0.5σ it is never fainter than 30 and runs to solid by 1.5σ.
+// That floor is what keeps it apart from the ladder above it: the ladder is
+// either much fainter than a committed trend, or solid bright.
 float tAbs  = math.abs(T)
 color tHue  = T >= 0.0 ? C_UPD : C_DND
 color tInk  = trRaw == 2 ? C_UP : trRaw == 0 ? C_DN : C_NEUT      // for text: a flat trend is grey
 color tapeT = na(T) ? color.new(C_NEUT, A_WARM) : tAbs < 0.5 ? color.from_gradient(tAbs, 0.0, 0.5, color.new(tHue, A_WARM), color.new(tHue, A_QUIET)) :
-     color.from_gradient(tAbs, 0.5, 1.5, color.new(tHue, A_FIRM), color.new(tHue, A_SOLID))
+     color.from_gradient(tAbs, 0.5, 1.5, color.new(tHue, 30), color.new(tHue, A_SOLID))
 
-// STRETCH LADDER (outer) · green / red by the side it leans; strength is how
-// many rungs are outside their own band. Never solid: it carries no direction.
+// STRETCH LADDER (outer, thin) · bright green / red by the side it leans.
+// Strength is how many rungs are outside their own band: none, faint; one or
+// two, a little clearer; three or four, solid.
 color lHue  = ladX >= 0.0 ? C_UP : C_DN
-color tapeL = not ladOk ? color.new(C_NEUT, A_WARM) : ladN >= 3 ? color.new(lHue, A_FIRM) : ladN >= 1 ? color.new(lHue, A_QUIET) :
-     color.from_gradient(math.abs(ladX), 0.0, 1.0, color.new(lHue, A_WARM), color.new(lHue, A_FAINT))
+color tapeL = not ladOk ? color.new(C_NEUT, A_WARM) : ladN >= 3 ? color.new(lHue, A_SOLID) : ladN >= 1 ? color.new(lHue, 72) :
+     color.from_gradient(math.abs(ladX), 0.0, 1.0, color.new(lHue, A_WARM), color.new(lHue, 82))
 
-// RISK · gold only. Calm is nearly nothing; a clear step at normal; another at
-// stressed, running to solid at the top of its range.
+// RISK · gold only. Calm is the absence of gold; a clear step at normal;
+// another at stressed, running to solid at the top of its range.
 color tapeR = not regOk ? color.new(C_NEUT, A_WARM) : regRaw == 2 ? color.from_gradient(prk, 200.0 / 3.0, 100.0, color.new(C_GOLD, A_FIRM), color.new(C_GOLD, A_SOLID)) :
-     regRaw == 1 ? color.from_gradient(prk, 100.0 / 3.0, 200.0 / 3.0, color.new(C_GOLD, A_QUIET), color.new(C_GOLD, 55)) : color.from_gradient(prk, 0.0, 100.0 / 3.0, color.new(C_GOLD, A_WARM), color.new(C_GOLD, A_FAINT))
+     regRaw == 1 ? color.from_gradient(prk, 100.0 / 3.0, 200.0 / 3.0, color.new(C_GOLD, A_QUIET), color.new(C_GOLD, 55)) : color.from_gradient(prk, 0.0, 100.0 / 3.0, color.new(C_GOLD, 95), color.new(C_GOLD, 86))
 
-// RISK MOMENTUM (outer) · gold while risk is rising, never stronger than the
-// risk tape's first stressed step; grey while it is falling; faint steady.
+// RISK MOMENTUM (outer, thin) · gold while risk is rising, never stronger than
+// the risk tape's first stressed step; grey while it is falling; faint steady.
 float rmAbs = math.abs(rMom)
 color tapeM = na(rMom) ? color.new(C_NEUT, A_WARM) : rmS == 2 ? color.from_gradient(rmAbs, 0.10, 0.40, color.new(C_GOLD, A_QUIET), color.new(C_GOLD, A_FIRM)) :
      rmS == 0 ? color.from_gradient(rmAbs, 0.10, 0.40, color.new(C_NEUT, A_QUIET), color.new(C_NEUT, 50)) : color.new(C_NEUT, A_FAINT)
