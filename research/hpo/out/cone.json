@@ -1,0 +1,11 @@
+{
+ "eta": 0.02,
+ "regimes": true,
+ "trendf": false,
+ "candidate": [
+  0.02,
+  true,
+  false
+ ],
+ "kept": true
+}
