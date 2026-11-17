@@ -20,6 +20,12 @@ coverage (80%), the stop's touch probability (20%), risk per trade, and max expo
 leverage). The ledger's τ has no clean objective here and stays at 0.10. The parts are tuned in the
 order above: each later part reads the earlier parts' chosen settings.
 
+**Amendment, made before any candidate was chosen.** The first stage-1 run showed the mean
+QLIKE on the tuning years dominated by a few glitched bars: a stale quote followed by a jump puts
+a near-zero forecast against a large realised move, and the mean reached 10²⁶⁰. Each point's
+realised-to-forecast ratio is now clipped to [0.01, 100] before the loss. The per-instrument median
+QLIKE and the mean squared log error are reported beside it as checks.
+
 ## Data and splits
 
 | Role | Data |
