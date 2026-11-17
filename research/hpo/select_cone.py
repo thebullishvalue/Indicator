@@ -20,9 +20,10 @@ def pooled(a, b):
     X = pd.concat([pd.read_csv(os.path.join(OUT, f"cone_{d}.csv")) for d in (a, b)])
     X["is_n"] = X.interval_score * X.n
     G = X.groupby(K + ["split"]).agg(is_n=("is_n", "sum"), n=("n", "sum"), cal=("worst_cal_err", "max"),
-                                     stop=("worst_stop_err", "max"), trend=("worst_trend_err", "max"))
+                                     stop=("worst_stop_err", "max"), trend=("worst_trend_err", "max"),
+                                     tside=("worst_trend_side_err", "max"))
     G["isc"] = G.is_n / G.n
-    P = G[["isc", "cal", "stop", "trend"]].unstack("split")
+    P = G[["isc", "cal", "stop", "trend", "tside"]].unstack("split")
     P.columns = [f"{m}_{s}" for m, s in P.columns]
     P["rel_tune"] = P.isc_tune / P.loc[DEFAULT, "isc_tune"]
     P["rel_validate"] = P.isc_validate / P.loc[DEFAULT, "isc_validate"]
@@ -36,7 +37,7 @@ def main():
     S["calibrated_validate"] = (S[["cal_validate_d", "cal_validate_h", "stop_validate_d", "stop_validate_h"]] <= TOL).all(axis=1)
     S = S.sort_values("tune")
     cols = ["tune", "rel_validate_d", "rel_validate_h", "cal_tune_d", "cal_tune_h", "cal_validate_d", "cal_validate_h",
-            "stop_validate_d", "stop_validate_h", "trend_validate_d", "trend_validate_h", "calibrated_tune"]
+            "stop_validate_d", "stop_validate_h", "trend_validate_d", "trend_validate_h", "tside_validate_d", "tside_validate_h", "calibrated_tune"]
     print("interval score relative to the default (1.000); worst calibration errors in points of coverage\n")
     print(S[cols].round(4).to_string())
     elig = S[S.calibrated_tune]
