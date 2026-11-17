@@ -1,11 +1,9 @@
 {
  "eta": 0.02,
  "regimes": true,
- "trendf": false,
- "candidate": [
-  0.02,
-  true,
-  false
- ],
- "kept": true
+ "trendf": true,
+ "candidate": [0.02, true, false],
+ "passed_validation": true,
+ "final_test": "reported only: 1.5% better interval score on the sealed set, but hourly regime coverage 3.2 points off and downtrend short-stop touches 27.5% against 20%",
+ "kept": false
 }
