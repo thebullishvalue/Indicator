@@ -32,7 +32,10 @@ def one(args):
     ok = o.nF.to_numpy(bool)
     y = o.u.to_numpy(float)
     U = o.qU.shift(H).to_numpy(float); L = -o.qD.shift(H).to_numpy(float)
-    reg = o.reg.shift(H).to_numpy(float)
+    reg = pd.Series(C.risk_regime(o.sig.to_numpy(float)), dtype=float).shift(H).to_numpy()   # the true regime
+    trs = pd.Series(np.where(o["T"] > 0.5, 2, np.where(o["T"] < -0.5, 0, 1)), dtype=float).where(o["T"].notna()).shift(H).to_numpy()
+    if cfg.get("regimes", True):
+        assert np.array_equal(reg[np.isfinite(reg)], o.reg.shift(H).to_numpy(float)[np.isfinite(reg)])
     m = ok & np.isfinite(y) & np.isfinite(U) & np.isfinite(L)
     isc = (U - L) + (2 / ALPHA) * (L - y) * (y < L) + (2 / ALPHA) * (y - U) * (y > U)
     split = C.split_of(d.index, DS, cut)
@@ -47,6 +50,8 @@ def one(args):
         for g in (0, 1, 2):
             kg = k & (reg == g)
             row[f"n_r{g}"] = int(kg.sum()); row[f"in_r{g}"] = float(((y[kg] <= U[kg]) & (y[kg] >= L[kg])).sum())
+            kt = k & (trs == g)
+            row[f"n_t{g}"] = int(kt.sum()); row[f"in_t{g}"] = float(((y[kt] <= U[kt]) & (y[kt] >= L[kt])).sum())
         out.append(row)
     return cfg, out
 
@@ -72,8 +77,10 @@ def main():
                    coverage=1 - (a["up"] + a["dn"]) / a["n"], stop_long=a["stop_l"] / a["n"], stop_short=a["stop_s"] / a["n"])
         for g, nm in ((0, "calm"), (1, "normal"), (2, "stressed")):
             rec[f"cov_{nm}"] = a[f"in_r{g}"] / a[f"n_r{g}"] if a[f"n_r{g}"] else np.nan
-        rec["worst_cal_err"] = max(abs(rec[f"cov_{nm}"] - COVER) for nm in ("calm", "normal", "stressed")
-                                   if np.isfinite(rec[f"cov_{nm}"]))
+        for g, nm in ((0, "down"), (1, "flat"), (2, "up")):
+            rec[f"cov_{nm}"] = a[f"in_t{g}"] / a[f"n_t{g}"] if a[f"n_t{g}"] else np.nan
+        rec["worst_cal_err"] = max(abs(rec[f"cov_{nm}"] - COVER) for nm in ("calm", "normal", "stressed"))
+        rec["worst_trend_err"] = max(abs(rec[f"cov_{nm}"] - COVER) for nm in ("down", "flat", "up"))
         rec["worst_stop_err"] = max(abs(rec["stop_long"] - PSTOP), abs(rec["stop_short"] - PSTOP))
         out.append(rec)
     R = pd.DataFrame(out).sort_values(["split", "interval_score"])

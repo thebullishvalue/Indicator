@@ -96,6 +96,17 @@ def run_p(d, H=10, cover=0.80, pstop=0.20, eta=0.02, cap=1.0, floor=0.5, power=1
                              nF=OK[1], E=E, pf=pf, ph=ph), index=d.index)
 
 
+def risk_regime(sig):
+    """The risk regime (0 calm, 1 normal, 2 stressed) exactly as run() labels it with regimes on - computed here so
+    every config, including those that do not adapt to it, is judged by the same yardstick."""
+    n = len(sig); reg = np.ones(n, dtype=int)
+    if n > RN:
+        W = np.lib.stride_tricks.sliding_window_view(sig, RN + 1)
+        p = (W[:, :-1] <= W[:, -1:]).sum(axis=1) / RN * 100.0; bad = np.isnan(W).any(axis=1)
+        reg[RN:] = np.where(bad, 1, np.where(p < 100 / 3, 0, np.where(p < 200 / 3, 1, 2)))
+    return reg
+
+
 def check_equal(d):
     a, b = P.run(d), run_p(d)
     for col in ("sig", "T", "reg", "u", "qU", "qD", "mS", "mR", "E", "pf"):
