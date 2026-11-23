@@ -50,9 +50,9 @@ instrument and its quote, the toolbar, notices, the chart, the watchlist, the Sy
 
 | | Desktop (over 1100px) | Tablet (641-1100px) | Phone (640px and under) |
 |---|---|---|---|
-| Command bar | One line: mark, instrument, quote, details, market state | Three lines: mark and market state; instrument and quote; the details as an even strip | Two lines: mark and market state; symbol left, quote right |
-| Toolbar | One line in three groups | Three lines: search with refresh and Settings; the nine intervals across the width; pane, volume, appearance | The same three lines, buttons as icons |
-| Rail | Beside the chart, exactly its height | Under the chart, panels at full width; the Symbol box in two columns, with what the command bar has no room for | Under the chart; the Symbol box in one column, with the last bar and as-of too |
+| Command bar | One line: mark, instrument, quote, details, market state | One line, as on a desktop: mark, instrument, quote, market state; the details move to the Symbol box | Two lines: mark and market state; symbol left, quote right |
+| Toolbar | One line in three groups | Two lines: search and the intervals; pane and volume on the left, refresh, Settings and appearance on the right | Three lines: search with refresh and Settings; the nine intervals across the width; pane, volume, appearance. Buttons as icons |
+| Rail | Beside the chart, exactly its height | Under the chart, panels at full width; the Symbol box in two columns, carrying the command bar's details (exchange, last bar, as of, bars, currency, profile) | Under the chart; the Symbol box in one column, with the last bar and as-of too |
 | Bottom panel | Side-by-side panels with computed, flush heights | Panels stacked at full width; headline cards in one even row | Panels stacked; headline cards two to a row; wide tables scroll sideways with a shadow at the edge and the first column pinned |
 
 On a touch screen the toolbar's controls are 40px high instead of 32. Spacing is one rhythm per size: 12px between blocks on

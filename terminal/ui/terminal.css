@@ -207,19 +207,13 @@ html body [data-testid="stToastContainer"] { top: auto !important; bottom: 16px 
 @media (max-width: 1100px) {
   .command-bar .m-bars { display: none !important; }
 
-  /* command bar, three lines: the mark and the market's state; the instrument and its quote; the details as an even strip */
-  html body .command-bar { flex-direction: column !important; flex-wrap: nowrap !important; align-items: stretch !important;
-    gap: 0 !important; padding: 0 !important; }
-  .command-bar .cb-top { display: flex; align-items: center; justify-content: space-between; gap: 12px;
-    padding: 10px 16px; border-bottom: 1px solid var(--line-faint); }
-  .command-bar .cb-top .cb-brand { display: flex !important; padding-right: 0; border-right: none; }
-  .command-bar .cb-left { flex-wrap: nowrap !important; justify-content: space-between; padding: 12px 16px 0; gap: 16px !important; }
-  .command-bar .cb-left > .cb-brand, .command-bar .cb-right > .chip { display: none !important; }
-  .command-bar .cb-quote { border-left: none !important; padding-left: 0 !important; }
-  .command-bar .cb-right { display: grid !important; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); gap: 0 !important;
-    padding: 10px 16px 12px; }
-  .command-bar .cb-meta { text-align: left !important; padding: 0 12px !important; border-left: 1px solid var(--line) !important; }
-  .command-bar .cb-meta:first-child { padding-left: 0 !important; border-left: none !important; }
+  /* command bar: one line, as on a desktop - the mark, the instrument, the quote, and the market's state at the right.
+     The details (exchange, last bar, as of...) move to the Symbol box under the chart. */
+  html body .command-bar { flex-wrap: nowrap !important; }
+  .command-bar .cb-left { flex-wrap: nowrap !important; min-width: 0; }
+  .command-bar .cb-left > .cb-brand { display: flex !important; }
+  .command-bar .cb-instrument .eyebrow { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 30vw; }
+  .command-bar .cb-right > .cb-meta { display: none !important; }
 
   /* the rail under the chart: its panels stacked at full width, as on a phone, so neither leaves a void beside the other */
   [data-testid="stMain"] .st-key-workspace [data-testid="stHorizontalBlock"]:has(> [data-testid="stColumn"]:nth-child(2):last-child) > [data-testid="stColumn"]:nth-child(1),
@@ -228,31 +222,26 @@ html body [data-testid="stToastContainer"] { top: auto !important; bottom: 16px 
   .st-key-workspace [data-testid="stHorizontalBlock"] { flex-wrap: wrap !important; row-gap: 12px !important; }
   .st-key-chartframe iframe { height: 640px !important; }
   .st-key-workspace [class*="st-key-panel-watch"] iframe { height: 420px !important; }
-  /* the Symbol box: what the command bar has no room for joins it, in two columns */
-  .st-key-panel-details .kv .kv-row.kv-x { display: flex; }
+  /* the Symbol box takes the command bar's details, in two columns: eight rows as four */
+  .st-key-panel-details .kv .kv-row.kv-x, .st-key-panel-details .kv .kv-row.kv-p { display: flex; }
   .st-key-panel-details .kv { display: grid; grid-template-columns: 1fr 1fr; }
   .st-key-panel-details .kv .kv-row:nth-child(odd) { border-right: 1px solid var(--line-faint); }
   .st-key-panel-details .kv .kv-row:nth-child(3) { border-bottom: 1px solid var(--line-faint); }
-  .st-key-panel-details .kv .kv-row:nth-child(5), .st-key-panel-details .kv .kv-row:nth-child(6) { border-bottom: none; }
+  .st-key-panel-details .kv .kv-row:nth-last-child(-n+2) { border-bottom: none; }
 
-  /* toolbar, three lines, as on a phone: search with refresh and settings; the intervals across the width; pane, volume
-     and appearance */
-  html body .st-key-toolbar { padding: 10px 16px !important; }
-  html body .st-key-toolbar [data-testid="stHorizontalBlock"] { flex-wrap: wrap !important; row-gap: 8px !important; column-gap: 8px !important; }
+  /* toolbar, two lines: search and the intervals; then how it is drawn (pane, volume) on the left and the app's controls
+     (refresh, settings, appearance) on the right. The second line's own top margin is the gap between the lines, so the
+     zero-height line break between them adds none. */
+  html body .st-key-toolbar { padding: 8px 16px !important; }
+  html body .st-key-toolbar [data-testid="stHorizontalBlock"] { flex-wrap: wrap !important; row-gap: 0 !important; column-gap: 8px !important; }
   [data-testid="stMain"] .st-key-toolbar [data-testid="stHorizontalBlock"]:has(> [data-testid="stColumn"]:nth-child(7):last-child) > [data-testid="stColumn"] { margin: 0 !important; padding: 0 !important; border: none !important; }
-  [data-testid="stMain"] .st-key-toolbar [data-testid="stHorizontalBlock"]:has(> [data-testid="stColumn"]:nth-child(7):last-child) > [data-testid="stColumn"]:nth-child(1) { order: 1; flex: 1 1 0 !important; }
-  [data-testid="stMain"] .st-key-toolbar [data-testid="stHorizontalBlock"]:has(> [data-testid="stColumn"]:nth-child(7):last-child) > [data-testid="stColumn"]:nth-child(6) { order: 2; margin-left: 0 !important; }
-  [data-testid="stMain"] .st-key-toolbar [data-testid="stHorizontalBlock"]:has(> [data-testid="stColumn"]:nth-child(7):last-child) > [data-testid="stColumn"]:nth-child(5) { display: none !important; }   /* the spacer: the full-width intervals break the line themselves */
-  [data-testid="stMain"] .st-key-toolbar [data-testid="stHorizontalBlock"]:has(> [data-testid="stColumn"]:nth-child(7):last-child) > [data-testid="stColumn"]:nth-child(2) { order: 4; flex: 0 0 100% !important; }
-  [data-testid="stMain"] .st-key-toolbar [data-testid="stHorizontalBlock"]:has(> [data-testid="stColumn"]:nth-child(7):last-child) > [data-testid="stColumn"]:nth-child(3) { order: 5; }
-  [data-testid="stMain"] .st-key-toolbar [data-testid="stHorizontalBlock"]:has(> [data-testid="stColumn"]:nth-child(7):last-child) > [data-testid="stColumn"]:nth-child(4) { order: 6; }
-  [data-testid="stMain"] .st-key-toolbar [data-testid="stHorizontalBlock"]:has(> [data-testid="stColumn"]:nth-child(7):last-child) > [data-testid="stColumn"]:nth-child(7) { order: 7; margin-left: auto !important; }
-  .st-key-toolbar [data-testid="stColumn"]:nth-child(2) > *, .st-key-toolbar [data-testid="stColumn"]:nth-child(2) [data-testid="stVerticalBlock"],
-  .st-key-toolbar [data-testid="stColumn"]:nth-child(2) [data-testid="stElementContainer"],
-  .st-key-toolbar [data-testid="stColumn"]:nth-child(2) [data-testid="stButtonGroup"] { width: 100% !important; max-width: 100% !important; }
-  .st-key-toolbar [data-testid="stColumn"]:nth-child(2) [data-testid="stButtonGroup"] > div {
-    display: grid !important; grid-template-columns: repeat(9, 1fr); width: 100% !important; min-width: 100% !important; max-width: none !important; }       /* nine intervals, evenly */
-  .st-key-toolbar [data-testid="stColumn"]:nth-child(2) [data-testid="stButtonGroup"] button { width: 100%; min-width: 0; padding: 0 !important; justify-content: center; }
+  [data-testid="stMain"] .st-key-toolbar [data-testid="stHorizontalBlock"]:has(> [data-testid="stColumn"]:nth-child(7):last-child) > [data-testid="stColumn"]:nth-child(1) { order: 1; flex: 1 1 160px !important; }
+  [data-testid="stMain"] .st-key-toolbar [data-testid="stHorizontalBlock"]:has(> [data-testid="stColumn"]:nth-child(7):last-child) > [data-testid="stColumn"]:nth-child(2) { order: 2; flex: 0 0 auto !important; }
+  [data-testid="stMain"] .st-key-toolbar [data-testid="stHorizontalBlock"]:has(> [data-testid="stColumn"]:nth-child(7):last-child) > [data-testid="stColumn"]:nth-child(5) { order: 3; flex: 0 0 100% !important; height: 0; overflow: hidden; display: block !important; }   /* the line break */
+  [data-testid="stMain"] .st-key-toolbar [data-testid="stHorizontalBlock"]:has(> [data-testid="stColumn"]:nth-child(7):last-child) > [data-testid="stColumn"]:nth-child(3) { order: 4; margin-top: 8px !important; }
+  [data-testid="stMain"] .st-key-toolbar [data-testid="stHorizontalBlock"]:has(> [data-testid="stColumn"]:nth-child(7):last-child) > [data-testid="stColumn"]:nth-child(4) { order: 5; margin-top: 8px !important; }
+  [data-testid="stMain"] .st-key-toolbar [data-testid="stHorizontalBlock"]:has(> [data-testid="stColumn"]:nth-child(7):last-child) > [data-testid="stColumn"]:nth-child(6) { order: 6; margin-top: 8px !important; margin-left: auto !important; }
+  [data-testid="stMain"] .st-key-toolbar [data-testid="stHorizontalBlock"]:has(> [data-testid="stColumn"]:nth-child(7):last-child) > [data-testid="stColumn"]:nth-child(7) { order: 7; margin-top: 8px !important; }
   [data-testid="stTabs"] [data-baseweb="tab-panel"] [data-testid="stHorizontalBlock"] { flex-wrap: wrap !important; }
   /* the bottom panel: each tab's columns stack at full width (side by side, a six-column table had 400px and was cut);
      the headline cards keep one even row instead of wrapping three and two */
@@ -272,22 +261,41 @@ html body [data-testid="stToastContainer"] { top: auto !important; bottom: 16px 
   .st-key-workspace [data-testid="stColumn"] [data-testid="stVerticalBlock"]:not([class*="st-key-panel-"]):not(.st-key-chartframe) { gap: 10px !important; }
 
   /* command bar, two lines: the mark and the market's state; the symbol on the left and the quote on the right */
-  .command-bar .cb-top { padding: 8px 12px; }
-  .command-bar .cb-left { padding: 10px 12px 12px; gap: 12px !important; }
+  html body .command-bar { flex-direction: column !important; align-items: stretch !important; gap: 0 !important; padding: 0 !important; }
+  .command-bar .cb-top { display: flex; align-items: center; justify-content: space-between; gap: 12px;
+    padding: 8px 12px; border-bottom: 1px solid var(--line-faint); }
+  .command-bar .cb-top .cb-brand { display: flex !important; padding-right: 0; border-right: none; }
+  .command-bar .cb-left > .cb-brand { display: none !important; }
+  .command-bar .cb-left { justify-content: space-between; padding: 10px 12px 12px; gap: 12px !important; }
   .command-bar .cb-right { display: none !important; }
   .command-bar .cb-instrument { min-width: 0; }
   .command-bar .cb-instrument .eyebrow { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 46vw; }
-  .command-bar .cb-quote { flex-direction: column; align-items: flex-end !important; gap: 2px !important; }
+  .command-bar .cb-quote { flex-direction: column; align-items: flex-end !important; gap: 2px !important; border-left: none !important; padding-left: 0 !important; }
   .command-bar .cb-quote .px { font-size: var(--fs-lg); }
 
-  /* the Symbol box takes the last bar and as-of too, in one column */
+  /* the Symbol box in one column */
   .st-key-panel-details .kv { display: block; }
-  .st-key-panel-details .kv .kv-row.kv-p { display: flex; }
   .st-key-panel-details .kv .kv-row:nth-child(odd) { border-right: none; }
-  .st-key-panel-details .kv .kv-row:nth-child(5), .st-key-panel-details .kv .kv-row:nth-child(6) { border-bottom: 1px solid var(--line-faint); }
+  .st-key-panel-details .kv .kv-row:nth-last-child(2) { border-bottom: 1px solid var(--line-faint); }
 
-  /* toolbar: the same three lines, tighter; the buttons go to icons */
+  /* toolbar, three lines: search with refresh and settings; the nine intervals across the width; pane, volume and
+     appearance. The buttons go to icons. */
   html body .st-key-toolbar { padding: 8px 10px !important; }
+  html body .st-key-toolbar [data-testid="stHorizontalBlock"] { row-gap: 8px !important; }
+  [data-testid="stMain"] .st-key-toolbar [data-testid="stHorizontalBlock"]:has(> [data-testid="stColumn"]:nth-child(7):last-child) > [data-testid="stColumn"], [data-testid="stMain"] .st-key-toolbar [data-testid="stHorizontalBlock"]:has(> [data-testid="stColumn"]:nth-child(7):last-child) > [data-testid="stColumn"]:nth-child(3), [data-testid="stMain"] .st-key-toolbar [data-testid="stHorizontalBlock"]:has(> [data-testid="stColumn"]:nth-child(7):last-child) > [data-testid="stColumn"]:nth-child(4), [data-testid="stMain"] .st-key-toolbar [data-testid="stHorizontalBlock"]:has(> [data-testid="stColumn"]:nth-child(7):last-child) > [data-testid="stColumn"]:nth-child(6), [data-testid="stMain"] .st-key-toolbar [data-testid="stHorizontalBlock"]:has(> [data-testid="stColumn"]:nth-child(7):last-child) > [data-testid="stColumn"]:nth-child(7) { margin: 0 !important; }   /* the tablet's line-two margins do not apply: row-gap spaces the lines here */
+  [data-testid="stMain"] .st-key-toolbar [data-testid="stHorizontalBlock"]:has(> [data-testid="stColumn"]:nth-child(7):last-child) > [data-testid="stColumn"]:nth-child(1) { order: 1; flex: 1 1 0 !important; }
+  [data-testid="stMain"] .st-key-toolbar [data-testid="stHorizontalBlock"]:has(> [data-testid="stColumn"]:nth-child(7):last-child) > [data-testid="stColumn"]:nth-child(6) { order: 2; }
+  [data-testid="stMain"] .st-key-toolbar [data-testid="stHorizontalBlock"]:has(> [data-testid="stColumn"]:nth-child(7):last-child) > [data-testid="stColumn"]:nth-child(5) { display: none !important; }
+  [data-testid="stMain"] .st-key-toolbar [data-testid="stHorizontalBlock"]:has(> [data-testid="stColumn"]:nth-child(7):last-child) > [data-testid="stColumn"]:nth-child(2) { order: 4; flex: 0 0 100% !important; }
+  [data-testid="stMain"] .st-key-toolbar [data-testid="stHorizontalBlock"]:has(> [data-testid="stColumn"]:nth-child(7):last-child) > [data-testid="stColumn"]:nth-child(3) { order: 5; }
+  [data-testid="stMain"] .st-key-toolbar [data-testid="stHorizontalBlock"]:has(> [data-testid="stColumn"]:nth-child(7):last-child) > [data-testid="stColumn"]:nth-child(4) { order: 6; }
+  [data-testid="stMain"] .st-key-toolbar [data-testid="stHorizontalBlock"]:has(> [data-testid="stColumn"]:nth-child(7):last-child) > [data-testid="stColumn"]:nth-child(7) { order: 7; margin-left: auto !important; }
+  .st-key-toolbar [data-testid="stColumn"]:nth-child(2) > *, .st-key-toolbar [data-testid="stColumn"]:nth-child(2) [data-testid="stVerticalBlock"],
+  .st-key-toolbar [data-testid="stColumn"]:nth-child(2) [data-testid="stElementContainer"],
+  .st-key-toolbar [data-testid="stColumn"]:nth-child(2) [data-testid="stButtonGroup"] { width: 100% !important; max-width: 100% !important; }
+  .st-key-toolbar [data-testid="stColumn"]:nth-child(2) [data-testid="stButtonGroup"] > div {
+    display: grid !important; grid-template-columns: repeat(9, 1fr); width: 100% !important; min-width: 100% !important; max-width: none !important; }       /* nine intervals, evenly */
+  .st-key-toolbar [data-testid="stColumn"]:nth-child(2) [data-testid="stButtonGroup"] button { width: 100%; min-width: 0; padding: 0 !important; justify-content: center; }
   .st-key-toolbar [data-testid="stButtonGroup"] button { padding: 0 9px !important; }
   .st-key-toolbar [data-testid="stButton"] button { width: 32px !important; min-width: 32px; padding: 0 !important; justify-content: center; }
   .st-key-toolbar [data-testid="stButton"] button [data-testid="stMarkdownContainer"] { display: none !important; }   /* an empty label still took the 8px gap and pushed the icon off centre */
