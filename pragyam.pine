@@ -3,7 +3,7 @@
 
 //@version=6
 // ═══════════════════════════════════════════════════════════════════════════
-//  PRAGYAM  ·  CALIBRATED RISK, EXPOSURE AND SELF-AUDIT                    v2.6.1
+//  PRAGYAM  ·  CALIBRATED RISK, EXPOSURE AND SELF-AUDIT                      v2.7
 //  "How far can it go, how much should I hold - and has that been true here?"
 //
 //  Pragyam, from prajñā - discernment: telling what can be known from what
@@ -11,12 +11,18 @@
 //  states every forecast as a probability, and then tests itself on the chart.
 //  (Developed as Kasauti through v2.3; the engine is unchanged.)
 //
-//  v2.6.1 · FASTER, SAME OUTPUT. For TradingView's execution-time limit. The
-//  profile's value area is walked only where it is read (the last bar and each
-//  session's close) instead of on every bar; rows are found with one search per
-//  span, and first beside the previous intrabar's; label text is built on the
-//  last bar only. Ported line for line, old and new agree exactly on every
-//  value. Opt-in, not exact: "Recent sessions only" skips the profile on old bars.
+//  v2.7 · THE PROFILE, REPAIRED AND BOUNDED. No engine number changed.
+//    · A BUG SINCE v2.1. The profile's row search halved with (lo + hi) / 2,
+//      which in Pine v6 is fractional. Rows went in out of order, the POC
+//      could not be found, and POC, VAH and VAL stood at an older session's
+//      values while the histogram showed this one. Fixed.
+//    · TIME LIMIT. The profile is built only over the stretch it draws from:
+//      two naked-POC ages and three sessions back from the last bar. Intrabars
+//      are about sixteen to a chart bar (a fixed 5 minutes put 288 into a daily
+//      crypto bar), requested only for that stretch. The value area is walked
+//      where it is read, not on every bar; rows are found with one search per
+//      span. Label text is built on the last bar only.
+//    · A row with volume is never drawn zero bars wide.
 //
 //  v2.6 · THE UI AUDIT, AS IT ENDED. Two rounds. The first weighted the chart
 //  by evidence and made the cone its loudest element; the owner's direction
@@ -662,7 +668,7 @@ float shM = sdM > 0.0 ? sM / nP / sdM * math.sqrt(bpy) : na
 // ══════════════════════════════════════════════════════════════════════════════
 var string G_VP = "5 · Volume profile"
 bool   inpVpMaster    = input.bool(true,  "Volume profile", group=G_VP, tooltip="Draws the session volume profile and its levels on the price chart. Off also stops it being computed.\n\nThe cone, stops and exposure never read it.", display=display.none)
-bool   inpVpIntrabar  = input.bool(true,  "    Use intrabar data", group=G_VP, tooltip="request.security_lower_tf() distributes volume by ACTUAL traded price. More accurate, slower, plan-dependent history. Falls back automatically.", display=display.none)
+bool   inpVpIntrabar  = input.bool(true,  "    Use intrabar data", group=G_VP, tooltip="Places each bar's volume where it actually traded, from about sixteen lower-timeframe bars per chart bar, over the stretch the profile is built from. Off, or where intrabar data does not reach, a bar's volume is spread evenly over its range.", display=display.none)
 bool   inpVpUseVol    = input.bool(true,  "    Volume-weighted", group=G_VP, tooltip="Off degrades the profile to a time-at-price (TPO) distribution — for spot FX / synthetic volume.", display=display.none)
 string inpVpBinMode   = input.string("ATR adaptive", "    Row size", options=["ATR adaptive", "Fixed ticks"], group=G_VP, display=display.none)
 float  inpVpBinsPerAtr= input.float(4.0,  "        Rows per ATR", minval=1.0, maxval=20.0, step=0.5, group=G_VP, tooltip="Bin width = ATR / this. Frozen at session start so keys stay consistent within a profile.", display=display.none)
@@ -684,7 +690,6 @@ int    inpVpNakedAge  = input.int(250,    "        Max age (bars)", minval=50, m
 bool   inpVpVwap      = input.bool(true,  "    Session VWAP", group=G_VP, display=display.none)
 bool   inpVpIb        = input.bool(true,  "    Initial balance (IBH / IBL)", group=G_VP, tooltip="Drawn on intraday charts only. On a daily chart the session is a week and the Initial Balance span outlasts it.", display=display.none)
 int    inpVpIbBars    = input.int(12,     "        Span (bars)", minval=3, maxval=60, group=G_VP, display=display.none)
-bool   inpVpRecent    = input.bool(false, "    Recent sessions only", group=G_VP, tooltip="Builds the profile only over the stretch of bars it draws from - the last two naked-POC ages and three sessions - instead of the whole chart. Much faster on long charts with intrabar data.\n\nThe drawing is the same except, rarely, where a naked POC's line starts. Measured on 151 instruments: identical on hourly charts; on daily charts a naked POC line started one session apart at 0.06% of bars.", display=display.none)
 
 // ── gates, resolved once ────────────────────────────────────────────────────────
 bool   vpChartOn  = inpVpMaster
@@ -736,7 +741,7 @@ f_vpLocate(array<int> keys, int k) =>
     int  pos   = 0
     bool found = false
     while lo <= hi
-        int mid = (lo + hi) / 2
+        int mid = int((lo + hi) / 2)                          // v6 division is fractional: 5 / 2 = 2.5
         int mk  = array.get(keys, mid)
         if mk == k
             pos   := mid
@@ -824,9 +829,23 @@ var bool  vpIntraOk = false
 // by, and on a SECONDS chart "1" is HIGHER than the chart - a runtime error. The
 // request then asks for the chart's own timeframe (harmless) and intrabar
 // distribution stands down.
-string vpLtf      = vpTfSec >= 3600 ? "5" : vpTfSec > 60 ? "1" : timeframe.period
-bool   vpIntraUse = inpVpIntrabar and vpTfSec > 60
-[vpIbHi, vpIbLo, vpIbVol, vpIbClose] = request.security_lower_tf(syminfo.tickerid, vpLtf, [high, low, volume, close])
+//
+// About sixteen intrabars to a chart bar: enough to place volume within the
+// rows (a row is a quarter of an ATR, and an intrabar of a sixteenth of a bar
+// spans about one), and a fixed cost per bar whatever the timeframe. A fixed
+// "5" minutes put 288 intrabars into every bar of a daily crypto chart.
+// The request is bounded to the stretch the profile is built over.
+f_vpLtf(int sec) =>
+    int t = int(sec / 16)
+    t >= 86400 ? "D" : t >= 14400 ? "240" : t >= 7200 ? "120" : t >= 3600 ? "60" : t >= 1800 ? "30" : t >= 900 ? "15" : t >= 600 ? "10" : t >= 300 ? "5" : t >= 180 ? "3" : t >= 120 ? "2" : "1"
+bool   vpIntraUse = vpCtxOn and inpVpIntrabar and vpTfSec > 60
+string vpLtf      = vpIntraUse ? f_vpLtf(vpTfSec) : timeframe.period
+int    vpLtfSec   = timeframe.in_seconds(vpLtf)
+int    vpAnchorSec = vpIsIntra ? 86400 : timeframe.isdaily ? 604800 : 2678400
+int    vpSessBars  = math.max(1, int(math.ceil(float(vpAnchorSec) / math.max(vpTfSec, 1))))
+int    vpReach     = 2 * inpVpNakedAge + 3 * vpSessBars
+int    vpIbCount   = vpIntraUse ? math.min(100000, (vpReach + vpSessBars + 10) * math.max(1, int(math.ceil(float(vpTfSec) / math.max(vpLtfSec, 1))))) : 1
+[vpIbHi, vpIbLo, vpIbVol, vpIbClose] = request.security_lower_tf(syminfo.tickerid, vpLtf, [high, low, volume, close], calc_bars_count = vpIbCount)
 
 // inferred delta (DISPLAY ONLY) — gap-aware close-location share to buyers
 float vpTrHi  = math.max(high, nz(close[1], high))
@@ -927,19 +946,15 @@ f_vpVA(float sTot, int sKey, float poc0, float vah0, float val0) =>
             sVal := array.get(vpKey, lo) * vpBin
     [sPoc, sVah, sVal]
 
-// RECENT SESSIONS ONLY (opt-in). Everything the profile draws comes from the
-// current session, the one before it, and the naked POCs - and a naked POC is
-// dropped once it is inpVpNakedAge bars old, and judged against those up to that
-// age before it. So the profile can start at the first session that opens within
-// two naked ages and three sessions of the last bar, sparing every bar before it.
-// Not exact: one naked POC suppressing the next as a duplicate can chain back
-// further, which moves where a line starts. Off by default, and ignored with
-// trails on, since then every bar's levels are drawn.
-int  vpAnchorSec = vpIsIntra ? 86400 : timeframe.isdaily ? 604800 : 2678400
-int  vpSessBars  = math.max(1, int(math.ceil(float(vpAnchorSec) / math.max(vpTfSec, 1))))
-int  vpReach     = 2 * inpVpNakedAge + 3 * vpSessBars
+// THE PROFILE IS BUILT WHERE IT IS DRAWN FROM. Everything it draws comes from
+// the current session, the one before it, and the naked POCs - and a naked POC
+// is dropped once it is inpVpNakedAge bars old. So the profile starts at the
+// first session that opens within two naked ages and three sessions of the last
+// bar (vpReach, above), and a naked POC is judged against the naked POCs of that
+// stretch. Bars before it do no profile work at all. With trails on, every bar's
+// levels are drawn, so it starts at the first bar.
 var bool vpLive  = false
-if not vpLive and vpNewSess and (not inpVpRecent or inpVpTrail or bar_index >= last_bar_index - vpReach)
+if not vpLive and vpNewSess and (inpVpTrail or bar_index >= last_bar_index - vpReach)
     vpLive := true
 
 if vpCtxOn and vpLive
@@ -1131,7 +1146,7 @@ f_vpRender() =>
                 if array.size(vpBoxes) >= 470
                     break
                 float tV = array.get(rV, r)
-                int wTot = tV > 0 and rMax > 0 ? int(math.round(inpVpWidth * tV / rMax)) : 0
+                int wTot = tV > 0 and rMax > 0 ? math.max(1, int(math.round(inpVpWidth * tV / rMax))) : 0     // thin rows stay visible
                 if wTot > 0
                     float yB    = array.get(rLo, r)
                     float ySpan = array.get(rHi, r) - yB
