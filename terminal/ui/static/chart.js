@@ -259,4 +259,21 @@
   };
   home();
   window.addEventListener('dblclick', home);
+
+  // "/" jumps to the symbol search from anywhere, as in a terminal; Escape leaves it. The handler lives on the page, and
+  // each render of the chart replaces the last one's, so there is only ever one.
+  try {
+    const P = window.parent;
+    const onKey = (ev) => {
+      const t = ev.target, typing = t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' || t.isContentEditable);
+      if (ev.key === '/' && !typing && !ev.metaKey && !ev.ctrlKey) {
+        const box = P.document.querySelector('.st-key-toolbar input');
+        if (box) { ev.preventDefault(); box.focus(); box.select(); }
+      } else if (ev.key === 'Escape' && typing && t.closest && t.closest('.st-key-toolbar')) { t.blur(); }
+    };
+    if (P.__anumaanKeys) P.document.removeEventListener('keydown', P.__anumaanKeys);
+    P.__anumaanKeys = onKey;
+    P.document.addEventListener('keydown', onKey);
+    window.addEventListener('keydown', onKey);
+  } catch (e) { /* a page that is not ours: no shortcut */ }
 })();

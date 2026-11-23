@@ -45,11 +45,23 @@ interval live in the address bar (`?symbol=GOLD&tf=W`), so a reload keeps your p
 
 ## Screens
 
-It works on any screen. On a desktop the chart and the rail sit side by side, and the rail is exactly the chart's height. On a
-tablet (1100px and narrower) the rail moves under the chart, with its two panels side by side, and the toolbar wraps. On a phone
-(640px and narrower) everything stacks in one column, the interval strip scrolls sideways, and the command bar keeps the symbol,
-the price and the last bar. The chart and the watchlist fill whatever height their frames get. Tested at 390, 834, 1280, 1440 and
-1920px wide, with no sideways scroll at any of them.
+It works on any screen, and every size is organised the same way, top to bottom: the mark and the market's state, the
+instrument and its quote, the toolbar, notices, the chart, the watchlist, the Symbol box, the bottom panel.
+
+| | Desktop (over 1100px) | Tablet (641-1100px) | Phone (640px and under) |
+|---|---|---|---|
+| Command bar | One line: mark, instrument, quote, details, market state | Three lines: mark and market state; instrument and quote; the details as an even strip | Two lines: mark and market state; symbol left, quote right |
+| Toolbar | One line in three groups | Three lines: search with refresh and Settings; the nine intervals across the width; pane, volume, appearance | The same three lines, buttons as icons |
+| Rail | Beside the chart, exactly its height | Under the chart, panels at full width; the Symbol box in two columns, with what the command bar has no room for | Under the chart; the Symbol box in one column, with the last bar and as-of too |
+| Bottom panel | Side-by-side panels with computed, flush heights | Panels stacked at full width; headline cards in one even row | Panels stacked; headline cards two to a row; wide tables scroll sideways with a shadow at the edge and the first column pinned |
+
+On a touch screen the toolbar's controls are 40px high instead of 32. Spacing is one rhythm per size: 12px between blocks on
+a desktop or tablet, 10px on a phone, 8px between toolbar lines. Tested at 320 (iPhone SE, Galaxy S9+), 390, 768, 834,
+1194, 1280, 1440 and 1920px wide, with no sideways scroll at any of them.
+
+**Keys and memory.** `/` jumps to the symbol search from anywhere, Escape leaves it. Folded watchlist sections are remembered
+in the browser. A tab that fails to draw says so in its place while the others draw; if the script itself fails on a chart,
+the terminal steps back to D, else to the last symbol that ran, and says why.
 
 ## How faithful it is
 

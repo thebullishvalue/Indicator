@@ -11,6 +11,7 @@ bar, drawn on TradingView's open-source Lightweight Charts library.
 """
 from __future__ import annotations
 
+import html as H
 import math
 import sys
 import warnings
@@ -155,7 +156,7 @@ flush_notes()
 def refresh_data() -> None:
     for f in (load_bars, load_avail, load_quotes, load_intrabars):
         f.clear()
-    notify("Data refreshed from Yahoo.", "ok")
+    ss.refreshed = True          # told at the end of the run, once the new data is in, not as the reload starts
 
 
 # ── symbol and what Yahoo has for it, before the toolbar draws ──────────────
@@ -218,7 +219,7 @@ with st.container(key="toolbar"):
     tcols = st.columns([1, 1, 1, 1, 1, 1, 1], gap="small", vertical_alignment="center")
     with tcols[0]:
         st.text_input("Symbol", key="sym_in", placeholder=f"{ss.symbol}", label_visibility="collapsed", on_change=_set_symbol,
-                      help="Type a symbol and press Enter: NIFTY, NSE:TCS, AAPL, GC=F, BTC-USD, or any Yahoo ticker.")
+                      help="Type a symbol and press Enter: NIFTY, NSE:TCS, AAPL, GC=F, BTC-USD, or any Yahoo ticker. Press / anywhere to jump here.")
     with tcols[1]:
         st.segmented_control("Interval", INTERVALS, key="tf_seg", label_visibility="collapsed", on_change=_set_tf)
         off = [i + 1 for i, k in enumerate(INTERVALS) if avail.get(k)]
@@ -285,7 +286,32 @@ if ticker not in ss.recent:
 mintick = D.mintick_of(meta, df)
 decimals = max(0, int(round(-math.log10(mintick)))) if mintick > 0 else 2
 pal = palette(dark)
-e = P.run(df, inp)
+
+
+def engine_failed(stage: str, exc: Exception) -> None:
+    """The script could not run on these bars: say so and step back (to D, else to the last symbol that ran) instead of
+    leaving a traceback where the chart should be."""
+    msg = f"Anumaan could not {stage} on {name} · {ss.tf}: {type(exc).__name__}: {str(exc)[:140]}"
+    if ss.tf != "D":
+        notify(msg + ". Showing D.", "error")
+        ss.tf = "D"
+        st.rerun()
+    if ss.get("last_ran") and ss.last_ran != ss.symbol:
+        notify(msg + f". Back to {ss.last_ran}.", "error")
+        ss.symbol = ss.last_ran
+        st.rerun()
+    with top.container():
+        K.command_bar(name=name, description=description or "—", price=None, change_pct=None, decimals=2, meta=[("Interval", ss.tf)],
+                      status=("Error", "danger"))
+    st.markdown(f'<div class="notice notice-error"><b>{H.escape(msg)}.</b></div>', unsafe_allow_html=True)
+    flush_notes()
+    st.stop()
+
+
+try:
+    e = P.run(df, inp)
+except Exception as exc:
+    engine_failed("calculate", exc)
 ib, ib_info = ({}, dict(pine_ltf=None, yf_ltf=None, bars_with_intrabars=0, volume_refilled=0))
 ib_failed = False
 no_intraday = all(avail.get(k) for k in ("1m", "5m", "1h"))     # a fund: daily bars only
@@ -294,12 +320,16 @@ if inp.vp and inp.vp_intrabar and not no_intraday:
         ib, ib_info = load_intrabars(ticker, ss.tf, inp.vp_naked_age, len(df), int(df.index[-1].value))
     except Exception:
         ib_failed = True
-vp = PR.build(df, inp, tfo.sec, mintick, pal, ib, cone_on=inp.cone)
-vp["state"]["decimals"] = decimals
-TONES = dict(CONE=pal["CONE"], DN=pal["DN"], UP=pal["UP"], GOLD=pal["GOLD"], NEUT=pal["NEUT"], TEXT=pal["TEXT"])
-rows = TB.rows(e, float(df.close.iloc[-1]), decimals)
-for r in rows:
-    r["color"] = TONES[r["tone"]]
+try:
+    vp = PR.build(df, inp, tfo.sec, mintick, pal, ib, cone_on=inp.cone)
+    vp["state"]["decimals"] = decimals
+    TONES = dict(CONE=pal["CONE"], DN=pal["DN"], UP=pal["UP"], GOLD=pal["GOLD"], NEUT=pal["NEUT"], TEXT=pal["TEXT"])
+    rows = TB.rows(e, float(df.close.iloc[-1]), decimals)
+    for r in rows:
+        r["color"] = TONES[r["tone"]]
+except Exception as exc:
+    engine_failed("draw its profile and table", exc)
+ss.last_ran = ss.symbol
 
 # ── command bar ────────────────────────────────────────────────────────────
 last, prev = float(df.close.iloc[-1]), float(df.close.iloc[-2])
@@ -383,9 +413,10 @@ with left:
         components.html(C.html(payload, tok, title, height=CHART_H), height=CHART_H, scrolling=False)
 
 with rail:
-    with K.panel("watch", "Watchlist", meta="1D change · click to open"):
-        tickers = tuple(dict.fromkeys([w[1] for w in D.WATCHLIST] + ss.recent))
-        q = load_quotes(tickers)
+    tickers = tuple(dict.fromkeys([w[1] for w in D.WATCHLIST] + ss.recent))
+    q = load_quotes(tickers)
+    unquoted = sum(tk not in q for tk in tickers)
+    with K.panel("watch", "Watchlist", meta="1D change · click to open" + (f" · {unquoted} unquoted" if 0 < unquoted < len(tickers) else "")):
         info = {w[1]: w for w in D.WATCHLIST}
         wrows = []
         for tk in tickers:
@@ -411,19 +442,28 @@ with rail:
         kind = (meta.get("instrumentType") or "").replace("_", " ").title()
         K.kv_list([("Exchange", " · ".join(x for x in (ex_name, kind) if x) or "—"),
                    ("Day range", f"{df.low.iloc[-1]:,.{decimals}f} – {df.high.iloc[-1]:,.{decimals}f}"),
-                   ("52-week range" if not intraday else "Loaded range", f"{lo52:,.{decimals}f} – {hi52:,.{decimals}f}")])
+                   ("52-week range" if not intraday else "Loaded range", f"{lo52:,.{decimals}f} – {hi52:,.{decimals}f}"),
+                   # What the command bar has no room for on a tablet (kv-x) or a phone (kv-x and kv-p); hidden on a desktop,
+                   # where the command bar shows it and the box keeps its three rows.
+                   ("Bars", f"{len(df):,} of {P.CALC_BARS:,}", "kv-x"),
+                   ("Currency", meta.get("currency") or "—", "kv-x"),
+                   ("Profile", profile_txt or "off", "kv-x"),
+                   ("Last bar", df.index[-1].strftime("%d %b %Y %H:%M" if intraday else "%d %b %Y"), "kv-p"),
+                   ("As of", as_of_txt or "—", "kv-p")])
 
 # ── bottom panel ───────────────────────────────────────────────────────────
 # Three questions, in the order a trader asks them, and the record of what changed.
 tabs = st.tabs(["Plan", "Forecast", "Audit", "Events"])
-with tabs[0]:
-    PN.plan(e, vp, df, decimals, meta.get("currency") or "", intraday, tok)
-with tabs[1]:
-    PN.forecast(e, df, tok, decimals)
-with tabs[2]:
-    PN.audit(e, df, tok)
-with tabs[3]:
-    PN.events(e, df, intraday, decimals)
+# Each tab draws on its own: one that fails says so in its place, and the others still draw.
+for tab, draw in zip(tabs, (lambda: PN.plan(e, vp, df, decimals, meta.get("currency") or "", intraday, tok),
+                            lambda: PN.forecast(e, df, tok, decimals), lambda: PN.audit(e, df, tok),
+                            lambda: PN.events(e, df, intraday, decimals))):
+    with tab:
+        try:
+            draw()
+        except Exception as exc:
+            st.markdown(f'<div class="notice notice-error"><b>This tab could not be drawn for {H.escape(name)} · {ss.tf}.</b>'
+                        f'&nbsp;{H.escape(type(exc).__name__)}: {H.escape(str(exc)[:200])}</div>', unsafe_allow_html=True)
 
 refill = (f" · Yahoo has no intraday volume for {ticker}: on {ib_info['volume_refilled']} bars the profile shares each bar's own "
           "volume over its intrabars") if ib_info.get("volume_refilled") else ""
@@ -431,4 +471,6 @@ st.markdown(
     '<div class="t-foot">Anumaan · anumaan.pine ported to Python bar for bar · data: Yahoo Finance (delayed)' + refill + ' · charts by '
     '<a href="https://www.tradingview.com/" target="_blank" rel="noopener">TradingView Lightweight Charts™</a>, Apache-2.0</div>',
     unsafe_allow_html=True)
+if ss.pop("refreshed", False):
+    notify(f"Data refreshed from Yahoo · {pd.Timestamp.now(tz=tz):%H:%M:%S %Z}.", "ok")
 flush_notes()

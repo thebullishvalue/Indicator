@@ -30,9 +30,12 @@ def command_bar(*, name: str, description: str, price: float | None, change_pct:
     slug = lambda k: "m-" + "".join(ch for ch in k.lower() if ch.isalnum())
     meta_html = "".join(f'<div class="cb-meta {slug(k)}"><span class="k">{H.escape(k)}</span><span class="v">{H.escape(v)}</span></div>'
                         for k, v in meta if v)
+    brand = '<div class="cb-brand"><span class="mark">ANU<span class="accent-ink">MAAN</span></span><span class="sub">अनुमान · terminal</span></div>'
+    # cb-top: on tablets and phones the mark and the market's state get their own line above the instrument (hidden on a
+    # desktop, where both sit in the one line).
     st.markdown(
-        f'<div class="command-bar"><div class="cb-left">'
-        f'<div class="cb-brand"><span class="mark">ANU<span class="accent-ink">MAAN</span></span><span class="sub">अनुमान · terminal</span></div>'
+        f'<div class="command-bar"><div class="cb-top">{brand}{chip(*status) if status else ""}</div><div class="cb-left">'
+        f'{brand}'
         f'<div class="cb-instrument"><span class="eyebrow">{H.escape(description)}</span><span class="sym">{H.escape(name)}</span></div>'
         f'{quote}</div><div class="cb-right">{meta_html}{chip(*status) if status else ""}</div></div>',
         unsafe_allow_html=True,
@@ -97,8 +100,10 @@ def kpi_strip(items: list[dict], key: str, max_cols: int = 6) -> None:
                     metric_card(it["label"], it["value"], it.get("subtext", ""), it.get("tone", "neutral"), it.get("tooltip", ""))
 
 
-def kv_list(rows: list[tuple[str, str]], cls: str = "kv") -> None:
-    body = "".join(f'<div class="kv-row"><span class="kv-k">{H.escape(k)}</span><span class="kv-v">{v}</span></div>' for k, v in rows)
+def kv_list(rows: list[tuple], cls: str = "kv") -> None:
+    """rows: (key, value) or (key, value, row class) - a row class lets a screen size show or hide that row."""
+    body = "".join(f'<div class="kv-row {r[2] if len(r) > 2 else ""}"><span class="kv-k">{H.escape(r[0])}</span>'
+                   f'<span class="kv-v">{r[1]}</span></div>' for r in rows)
     st.markdown(f'<div class="{cls}">{body}</div>', unsafe_allow_html=True)
 
 

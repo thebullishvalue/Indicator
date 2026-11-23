@@ -25,7 +25,11 @@
   // A Streamlit component in plain JavaScript: the bidirectional protocol, with no build step.
   const send = (type, data) => window.parent.postMessage(Object.assign({ isStreamlitMessage: true, type }, data), '*');
   let tk = {};
-  const shut = new Set();   // sections folded by the viewer; kept while the page lives
+  // Sections the viewer folded, remembered in this browser (storage can be blocked: then they last while the page does).
+  const KEY = 'anumaan.watchlist.folded';
+  let shut = new Set();
+  try { shut = new Set(JSON.parse(localStorage.getItem(KEY) || '[]')); } catch (e) {}
+  const keep = () => { try { localStorage.setItem(KEY, JSON.stringify([...shut])); } catch (e) {} };
   function render(args) {
     tk = args.tokens;
     document.body.style.color = tk.ink;
@@ -40,7 +44,7 @@
         h.innerHTML = `<td colspan="4"><span class="car"></span>${sec}<span class="n">${count[sec]}</span></td>`;
         h.firstChild.style.color = tk.tertiary; h.firstChild.style.borderBottom = '1px solid ' + tk.line;
         const name = sec;
-        h.onclick = () => { shut.has(name) ? shut.delete(name) : shut.add(name); render(args); };
+        h.onclick = () => { shut.has(name) ? shut.delete(name) : shut.add(name); keep(); render(args); };
         tb.appendChild(h);
       }
       if (shut.has(sec)) return;
