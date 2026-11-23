@@ -70,13 +70,6 @@ def kpi_strip(items: list[dict], key: str, max_cols: int = 6) -> None:
                     metric_card(it["label"], it["value"], it.get("subtext", ""), it.get("tone", "neutral"), it.get("tooltip", ""))
 
 
-def readout(rows: list[dict]) -> None:
-    """The script's table, as a rail block: key on the left, value in the script's colour, tooltip on hover."""
-    body = "".join(f'<div class="ro-row" title="{H.escape(r["tip"])}"><span class="ro-k">{H.escape(r["key"])}</span>'
-                   f'<span class="ro-v" style="color:{r["color"]}">{H.escape(r["value"])}</span></div>' for r in rows)
-    st.markdown(f'<div class="readout">{body}</div>', unsafe_allow_html=True)
-
-
 def kv_list(rows: list[tuple[str, str]], cls: str = "kv") -> None:
     body = "".join(f'<div class="kv-row"><span class="kv-k">{H.escape(k)}</span><span class="kv-v">{v}</span></div>' for k, v in rows)
     st.markdown(f'<div class="{cls}">{body}</div>', unsafe_allow_html=True)

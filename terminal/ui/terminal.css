@@ -28,11 +28,6 @@ header[data-testid="stHeader"] { height: 0; min-height: 0; background: transpare
 
 /* The rail: panels stacked tight beside the chart. */
 [class*="st-key-panel-"] { margin-bottom: 8px; }
-.readout { font-family: var(--mono); font-size: var(--fs-xs); }
-.readout .ro-row { display: flex; justify-content: space-between; gap: 10px; padding: 5px 2px; border-bottom: 1px solid var(--line-faint); cursor: help; }
-.readout .ro-row:last-child { border-bottom: none; }
-.readout .ro-k { color: var(--ink-tertiary); letter-spacing: 0.04em; white-space: nowrap; }
-.readout .ro-v { text-align: right; font-variant-numeric: tabular-nums; }
 .kv { font-family: var(--mono); font-size: var(--fs-xs); }
 .kv .kv-row { display: flex; justify-content: space-between; gap: 10px; padding: 4px 2px; border-bottom: 1px solid var(--line-faint); }
 .kv .kv-row:last-child { border-bottom: none; }

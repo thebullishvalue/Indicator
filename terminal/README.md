@@ -17,7 +17,7 @@ streamlit run terminal/app.py
 | **Toolbar** | Symbol search (`NSE:TCS`, `AAPL`, `GC=F`, any Yahoo ticker), interval (1m 5m 15m 30m 1h 4h D W M), the Anumaan pane (Surprise or Proof), volume, **Settings**, and Slate / Paper |
 | **Chart** | Candles and volume, the volume profile with its value area, POC, VWAP, Initial Balance, prior-session and naked-POC levels and their tags, the landing band, midline, stop history, proven-state marks, the forward cone with its stops, and the table. Below it, the Anumaan pane: the surprise columns against the landing band, and the four tapes with their labels. The status lines follow the crosshair |
 | **Watchlist** | Click a row to open it |
-| **Anumaan** | The script's table: cone, stops and size, exposure, record, risk, trend, Sharpe, with the script's tooltips on hover |
+| **Symbol** | Exchange, type, timezone, min tick, the day's and 52-week range, and where the profile's intrabars came from |
 | **Bottom panel** | **Pine Editor** (the script, read only) · **Proof** (the strategy report: exposure against buy and hold) · **Ledger** (the nine states) · **Record** (calibration per rung, per risk regime, per trend state) · **Alerts** (every alert condition as it fired) · **Data Window** |
 
 **Settings** reads its inputs from `anumaan.pine` itself: the same labels, defaults, options, limits, groups and tooltips, all 45 of

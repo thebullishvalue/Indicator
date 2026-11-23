@@ -3,7 +3,7 @@ Anumaan - a terminal for anumaan.pine.
 अनुमान (Anumāna) - "inference: knowing what cannot be seen from what can"
 
 A chart terminal laid out the way a trading terminal is - symbol and interval on the toolbar, the chart with its
-indicator pane, a watchlist and the indicator's readout in the rail, the script's source, its proof, ledger,
+indicator pane, a watchlist and the symbol's details in the rail, the script's source, its proof, ledger,
 calibration record, alert log and data window in the bottom panel - running anumaan.pine ported to Python bar for
 bar, drawn on TradingView's open-source Lightweight Charts library.
 
@@ -247,8 +247,6 @@ with rail:
                     st.rerun()
         else:
             K.note("Quotes unavailable right now.")
-    with K.panel("readout", "Anumaan", context=f"{name} · {ss.tf}", meta="the script's table"):
-        K.readout(rows)
     with K.panel("details", "Symbol", context=ticker):
         hi52 = df.high.iloc[-252:].max() if not intraday else df.high.max()
         lo52 = df.low.iloc[-252:].min() if not intraday else df.low.min()
