@@ -3,7 +3,7 @@ html, body { margin: 0; padding: 0; background: transparent; overflow: hidden; h
 #chart { position: relative; width: 100%; }
 .legend { position: absolute; left: 12px; top: 8px; z-index: 5; pointer-events: none;
   font: 12px/1.55 var(--mono, "JetBrains Mono", ui-monospace, monospace); color: var(--axis, #8b95a3); }
-.legend.pane { font-size: 11.5px; }
+.legend.pane { font-size: 11px; }               /* the family's 11px tier (was 11.5) */
 .lrow { display: flex; align-items: baseline; gap: 6px; white-space: nowrap; }
 .legend.pane { display: flex; align-items: baseline; gap: 0; }
 .legend .sym { font: 600 13px/1.4 var(--sans, Inter, system-ui, sans-serif); color: var(--ink, #e6eaf1); }
@@ -16,7 +16,7 @@ html, body { margin: 0; padding: 0; background: transparent; overflow: hidden; h
 .legend .v { font-variant-numeric: tabular-nums; }
 .legend .muted { opacity: .7; margin-left: 8px; }
 .ptable { position: absolute; z-index: 6; min-width: 236px; padding: 6px 8px; border-radius: 4px;
-  background: var(--panel); border: 1px solid var(--panel-edge); font: 10.5px/1.6 var(--mono, "JetBrains Mono", monospace); }
+  background: var(--panel); border: 1px solid var(--panel-edge); font: 11px/1.6 var(--mono, "JetBrains Mono", monospace); }   /* on the family's scale (was 10.5) */
 .ptable .tr { display: flex; justify-content: space-between; gap: 14px; }
 .ptable .tk { color: var(--axis); }
 .ptable.bottom-left { left: 10px; bottom: 34%; } .ptable.top-left { left: 10px; top: 52px; }

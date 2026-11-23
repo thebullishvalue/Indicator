@@ -77,7 +77,10 @@ def _fig(tok: dict, height: int) -> dict:
                 font=dict(family="JetBrains Mono, monospace", size=10, color=tok["axis"]), hovermode="x unified",
                 hoverlabel=dict(bgcolor=tok["bg"], bordercolor=tok["border"], align="left", namelength=-1,
                                 font=dict(family="JetBrains Mono, monospace", size=11, color=tok["ink"])),
-                legend=dict(orientation="h", y=1.08, x=0, bgcolor="rgba(0,0,0,0)"))
+                # the legend's colour is named: Streamlit's Plotly template paints it from its own dark base, near-white
+                # (250, 250, 250) on Paper, over the layout's font
+                legend=dict(orientation="h", y=1.08, x=0, bgcolor="rgba(0,0,0,0)",
+                            font=dict(family="JetBrains Mono, monospace", size=10, color=tok["axis"])))
 
 
 def _edge(v: float) -> str:

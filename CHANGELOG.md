@@ -48,6 +48,19 @@ a chart or a number looks.
   from the app's tokens in both appearances.
 - **One rule per table row.** Streamlit's markdown table drew its own rule on every row, from the same dark base
   (near-white on Paper), against the cell's hairline. The cells now carry the only rule.
+- **The charts' legends read on Paper.** Streamlit's Plotly template paints a legend from its own dark base, over
+  the layout's font: "Every state", "This state", "Buy and hold", "Risk rank" were near-white (250, 250, 250) on
+  the white panel, all but invisible. The legend's colour is now named, as in every member.
+- **The watchlist fits a 320px phone.** There the frame is 298px, and four columns cut the prices ("25,349…") and
+  the changes ("−1,483…"). On a frame under 340px the absolute change steps aside and Chg% carries the move, in
+  its colour; 390px and up keep all four.
+- **The chart's type is on the family's scale.** The pane's status line was 11.5px and the script's table 10.5px,
+  between the family's tiers; both are now 11px.
+### Checked
+- Paper and Slate at 1920, 1440, 1194, 1024, 834, 390 and 320px, every tab: no colour from Streamlit's native
+  base left on either appearance, nothing wider than the page, no console errors. What the family scan still
+  reports is by design: the watchlist's descriptions and the panel headers' context end in an ellipsis where they
+  run out of room. Type is on the family's tiers, in its two faces, Inter and JetBrains Mono.
 ### Docs
 - The README in the family layout, the indicator's research and reading guide in `docs/GUIDE.md`, the family's
   proprietary `LICENSE` (the three Pine scripts stay under the Mozilla Public License 2.0, as their headers say),
