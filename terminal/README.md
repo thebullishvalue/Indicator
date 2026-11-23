@@ -13,8 +13,8 @@ streamlit run terminal/app.py
 
 | Area | What it is |
 |---|---|
-| **Command bar** | The instrument, its last price and change, the exchange, interval, bars calculated (at most 5,000, as `calc_bars_count`), the last bar's time, and where the profile's intrabars came from |
-| **Toolbar** | Three groups: what you are looking at (symbol search, which takes `NSE:TCS`, `AAPL`, `GC=F` or any Yahoo ticker, and the interval, 1m 5m 15m 30m 1h 4h D W M), how it is drawn (the Anumaan pane, Surprise or Proof, and volume), and the app's own settings (**Settings** and Slate / Paper) |
+| **Command bar** | The instrument, its last price and its change on the previous session's close (on every interval, as a terminal shows it), the exchange, interval, bars calculated (at most 5,000, as `calc_bars_count`), the last bar's time, when Yahoo last priced it (As of), where the profile's intrabars came from, and whether the market is open |
+| **Toolbar** | Three groups: what you are looking at (symbol search, which takes `NSE:TCS`, `AAPL`, `GC=F` or any Yahoo ticker, and the interval, 1m 5m 15m 30m 1h 4h D W M), how it is drawn (the Anumaan pane, Surprise or Proof, and volume), and the app's own controls (refresh, **Settings** and Slate / Paper). Intervals Yahoo has no bars for on this symbol are dimmed and struck through |
 | **Chart** | Candles and volume, the volume profile with its value area, POC, VWAP, Initial Balance, prior-session and naked-POC levels and their tags, the landing band, midline, stop history, proven-state marks, the forward cone with its stops, and the table. Below it, the Anumaan pane: the surprise columns against the landing band, and the four tapes with their labels. The status lines follow the crosshair |
 | **Watchlist** | The TradingView list in its own sections: India, United States, Commodities, Crypto, plus Recent for symbols you search. Click a row to open it; click a section's header to fold it |
 | **Symbol** | Exchange and type, the day's range and the 52-week range |
@@ -22,6 +22,26 @@ streamlit run terminal/app.py
 
 **Settings** reads its inputs from `anumaan.pine` itself: the same labels, defaults, options, limits, groups and tooltips, all 45 of
 them. The **Display** group's **Theme** behaves as in the script: on Auto it follows the terminal's appearance.
+
+## When something does not go as asked
+
+The terminal says so, rather than drawing nothing or the wrong thing. Events are toasts, at the bottom right; conditions of
+the chart in front of you are notices, under the toolbar, for as long as they hold.
+
+| What happened | What the terminal does |
+|---|---|
+| An interval Yahoo has no bars for on this symbol (a fund has daily bars only) | The interval is dimmed. Clicking it says why and stays put. Opening such a symbol on that interval falls back to D, with a toast |
+| An interval with too few bars to calculate | Falls back to D, with a toast |
+| A symbol Yahoo does not have | Stays on the last symbol that loaded, with a toast saying why; for TradingView symbols Yahoo lacks (NIFTY1!, GOLD1!, SILVER1!, XAUUSD), what to open instead. TradingView prefixes work: `NSE:NIFTY`, `TVC:GOLD` |
+| Yahoo unreachable, or no data on a first visit | An error panel with the reason and **Try again** |
+| Yahoo's daily bars a session behind (NSE and BSE indices: on 23 Nov NIFTY's daily bars stopped at 20 Nov, its hourly bars and quote did not) | The missing session is built from the hourly bars and closes at the official close (`regularMarketPrice`); a notice says so. Weekly and monthly bars are rolled up from these daily bars, and the watchlist quotes the same bars, so chart and watchlist agree |
+| A chart too short for the risk forecast (fewer than 252 + H bars) | A notice: the cone, stops and exposure are warming up, and which interval has enough |
+| The market is open but the last bar is old | A notice: the feed is behind |
+| No volume (yields, some indices), no intraday bars for the profile, intrabars failing to load | A notice each |
+| Settings applied, defaults restored, data refreshed | A toast |
+
+**Refresh** (the ↻ beside Settings) reloads bars and quotes from Yahoo; they are otherwise kept 5 minutes (quotes 2). The symbol and
+interval live in the address bar (`?symbol=GOLD&tf=W`), so a reload keeps your place and a link opens that chart.
 
 ## Screens
 

@@ -39,6 +39,22 @@ def command_bar(*, name: str, description: str, price: float | None, change_pct:
     )
 
 
+_NOTICE_ICON = {
+    "info": '<circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/>',
+    "warn": '<path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/><path d="M12 9v4M12 17h.01"/>',
+    "error": '<circle cx="12" cy="12" r="10"/><path d="m15 9-6 6M9 9l6 6"/>',
+}
+
+
+def notices(items: list[tuple[str, str]]) -> None:
+    """[(kind, text)]: conditions of the chart in front of the viewer - info, warn or error - one line each."""
+    rows = "".join(
+        f'<div class="notice notice-{k}"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" '
+        f'stroke-width="2" stroke-linecap="round" stroke-linejoin="round">{_NOTICE_ICON[k]}</svg><span>{H.escape(t)}</span></div>'
+        for k, t in items)
+    st.markdown(f'<div class="notices">{rows}</div>', unsafe_allow_html=True)
+
+
 def panel_header(title: str = "", *, context: str = "", meta: str = "", chip_: tuple[str, str] | None = None, help: str = "") -> None:
     if not (title or context or meta or chip_ or help):
         return

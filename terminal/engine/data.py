@@ -69,6 +69,23 @@ WATCHLIST = [
 ]
 SECTIONS = ["India", "United States", "Commodities", "Crypto"]
 
+# TradingView symbols Yahoo does not carry, and what to open instead.
+UNAVAILABLE = {
+    "NIFTY1!": "GIFT Nifty futures are not on Yahoo. NIFTY, the cash index, is.",
+    "BANKNIFTY1!": "NSE futures are not on Yahoo. BANKNIFTY, the cash index, is.",
+    "GOLD1!": "MCX contracts are not on Yahoo. GOLD (COMEX gold futures) is the nearest.",
+    "SILVER1!": "MCX contracts are not on Yahoo. SILVER (COMEX silver futures) is the nearest.",
+    "CRUDEOIL1!": "MCX contracts are not on Yahoo. USOIL (NYMEX WTI futures) is the nearest.",
+    "XAUUSD": "Spot gold is not on Yahoo. GOLD (COMEX gold futures) is the nearest.",
+    "XAGUSD": "Spot silver is not on Yahoo. SILVER (COMEX silver futures) is the nearest.",
+}
+
+
+def hint(symbol: str) -> str:
+    """Why a symbol has no data, when it is one we know about, else how to type one."""
+    s = symbol.strip().upper().split(":")[-1]
+    return UNAVAILABLE.get(s, "Try a watchlist name (NIFTY, GOLD), NSE:TCS for an NSE stock, or a Yahoo ticker (AAPL, GC=F, BTC-USD).")
+
 
 def resolve(symbol: str) -> tuple[str, str, str, str]:
     """A typed symbol to (display, Yahoo ticker, exchange, description). Accepts watchlist names, 'NSE:XYZ' and Yahoo tickers."""
@@ -79,6 +96,9 @@ def resolve(symbol: str) -> tuple[str, str, str, str]:
     if ":" in s:
         ex, tk = s.split(":", 1)
         ex, tk = ex.upper(), tk.upper()
+        for row in WATCHLIST:              # TradingView's prefixed names: NSE:NIFTY, TVC:GOLD, CME_MINI:ES1!
+            if tk == row[0]:
+                return row[:4]
         if ex == "NSE":
             return tk, f"{tk}.NS", "NSE", tk
         if ex == "BSE":
@@ -88,27 +108,90 @@ def resolve(symbol: str) -> tuple[str, str, str, str]:
 
 
 def fetch(ticker: str, tf: Timeframe) -> tuple[pd.DataFrame, dict]:
-    """Bars for the chart: open/high/low/close/volume, oldest first, plus Yahoo's metadata (price hint, exchange, tz)."""
+    """Bars for the chart: open/high/low/close/volume, oldest first, plus Yahoo's metadata (price hint, exchange, tz).
+
+    Daily bars come from `daily()`, which repairs what Yahoo's daily series misses; weekly and monthly bars are rolled
+    up from them (Monday weeks, calendar months), as TradingView builds its own."""
     import yfinance as yf
+    if tf.yf in ("1wk", "1mo"):
+        d, meta = daily(ticker)
+        return _rollup(d, tf.yf), meta
+    if tf.yf == "1d":
+        return daily(ticker)
     t = yf.Ticker(ticker)
-    df = t.history(period=tf.period, interval=tf.yf, auto_adjust=False, actions=False)
-    meta = dict(getattr(t, "history_metadata", {}) or {})
-    df = _clean(df)
+    df = _clean(t.history(period=tf.period, interval=tf.yf, auto_adjust=False, actions=False))
+    meta = _meta(t)
     if tf.resample and len(df):
         df = _resample(df, tf.resample)
-    if tf.yf in ("1d", "1wk", "1mo") and len(df) < 60:
-        # Some NSE indices (Midcap 100, Smallcap 100, Microcap 250) carry a single daily bar on Yahoo but about three
-        # years of hourly bars. Their daily, weekly and monthly bars are built from those: the closes match Yahoo's own daily
-        # closes exactly, highs and lows to a few hundredths of a percent.
-        hourly = _clean(t.history(period="730d", interval="60m", auto_adjust=False, actions=False))
-        built = _from_hourly(hourly, tf.yf)
-        if len(built) > len(df):
-            df, meta["builtFrom"] = built, "60m"
     return df, meta
 
 
-def _from_hourly(h: pd.DataFrame, interval: str) -> pd.DataFrame:
-    """Daily, weekly (Monday) or monthly bars from hourly ones, on the exchange's calendar."""
+def daily(ticker: str, period: str = "max") -> tuple[pd.DataFrame, dict]:
+    """Daily bars, with two of Yahoo's gaps repaired from its hourly bars. meta gains builtFrom / patched when they apply.
+
+    1. Some NSE indices (Midcap 100, Smallcap 100, Microcap 250) carry a single daily bar but about three years of
+       hourly bars: their daily bars are built from those (closes match Yahoo's own daily closes exactly, highs and
+       lows to a few hundredths of a percent).
+    2. Yahoo's daily series for NSE and BSE indices runs a session behind: on 23 Nov 2026 NIFTY's last daily bar was
+       20 Nov while its hourly bars and quote had 23 Nov. Sessions after the last daily bar, up to the date Yahoo's own
+       market time gives, are built from the hourly bars, and the last one closes at the official close
+       (regularMarketPrice). Futures and crypto, whose daily bars are current, are left as they are.
+    """
+    import yfinance as yf
+    t = yf.Ticker(ticker)
+    df = _clean(t.history(period=period, interval="1d", auto_adjust=False, actions=False))
+    meta = _meta(t)
+    short = len(df) < (60 if period == "max" else 3)
+    try:      # secondary: a fund has daily bars only, and yfinance raises on its hourly request
+        hourly = _clean(t.history(period="730d" if short and period == "max" else "5d", interval="60m", auto_adjust=False, actions=False))
+    except Exception:
+        hourly = _clean(None)
+    if short:
+        built = _rollup(hourly, "1d")
+        if len(built) > len(df):
+            df, meta["builtFrom"] = built, "60m"
+        return df, meta
+    rmt, rmp = meta.get("regularMarketTime"), meta.get("regularMarketPrice")
+    if not len(df) or not len(hourly) or rmt is None:
+        return df, meta
+    try:
+        mkt_day = pd.Timestamp(rmt).tz_convert(df.index.tz).normalize() if df.index.tz is not None else pd.Timestamp(rmt).normalize()
+    except Exception:
+        return df, meta
+    last_day = df.index[-1].normalize()
+    if mkt_day <= last_day:
+        return df, meta
+    hd = _rollup(hourly, "1d")
+    hd = hd[(hd.index > last_day) & (hd.index <= mkt_day)]
+    if not len(hd):
+        return df, meta
+    if isinstance(rmp, (int, float)) and rmp > 0 and hd.index[-1] == mkt_day:
+        i = hd.index[-1]
+        hd.loc[i, "close"] = float(rmp)
+        hd.loc[i, "high"] = max(hd.loc[i, "high"], float(rmp))
+        hd.loc[i, "low"] = min(hd.loc[i, "low"], float(rmp))
+    meta["patched"] = dict(after=last_day, sessions=[d for d in hd.index])
+    return pd.concat([df, hd]).sort_index(), meta
+
+
+def _meta(t) -> dict:
+    """Yahoo's metadata for the last request. yfinance's lazy mapping raises on fields some symbols lack (a fund has no
+    tradingPeriods), so it is read field by field."""
+    m = getattr(t, "history_metadata", None) or {}
+    try:
+        return dict(m)
+    except Exception:
+        out = {}
+        for k in list(getattr(m, "keys", lambda: [])()):
+            try:
+                out[k] = m[k]
+            except Exception:
+                pass
+        return out
+
+
+def _rollup(h: pd.DataFrame, interval: str) -> pd.DataFrame:
+    """Daily, weekly (Monday) or monthly bars from finer ones, on the exchange's calendar."""
     if not len(h):
         return h
     day = h.index.normalize()
@@ -120,16 +203,41 @@ def _from_hourly(h: pd.DataFrame, interval: str) -> pd.DataFrame:
 
 
 def quote(ticker: str) -> tuple[float, float, float] | None:
-    """(last, change, change %) from hourly bars, for symbols whose daily history Yahoo cuts to one bar."""
-    import yfinance as yf
+    """(last, change, change %) off the same repaired daily bars the chart draws, so the watchlist and chart agree."""
     try:
-        d = _from_hourly(_clean(yf.Ticker(ticker).history(period="5d", interval="60m", auto_adjust=False, actions=False)), "1d")
+        d, _ = daily(ticker, "1mo")
     except Exception:
         return None
     if len(d) < 2:
         return None
     c = d.close
     return float(c.iloc[-1]), float(c.iloc[-1] - c.iloc[-2]), float(c.iloc[-1] / c.iloc[-2] - 1) * 100
+
+
+# Which of the toolbar's intervals Yahoo has for a symbol: one short request per intraday resolution.
+_PROBE = {"1m": "1m", "5m": "5m", "15m": "5m", "30m": "5m", "1h": "60m", "4h": "60m"}
+_RES_NAME = {"1m": "1-minute", "5m": "5-minute", "60m": "hourly"}
+
+
+def availability(ticker: str) -> dict[str, str]:
+    """{interval: ""} where Yahoo has bars, {interval: reason} where it has none. All empty-handed: an unknown symbol."""
+    import yfinance as yf
+    from concurrent.futures import ThreadPoolExecutor
+
+    def probe(res: str) -> int:
+        try:
+            if res == "1d":
+                return len(quote(ticker) or ())
+            return len(_clean(yf.Ticker(ticker).history(period="5d", interval=res, auto_adjust=False, actions=False)))
+        except Exception:
+            return 0
+    with ThreadPoolExecutor(4) as ex:
+        got = dict(zip(["1d", "1m", "5m", "60m"], ex.map(probe, ["1d", "1m", "5m", "60m"])))
+    out = {}
+    for k in TIMEFRAMES:
+        res = _PROBE.get(k, "1d")
+        out[k] = "" if got[res] else (f"Yahoo has no {_RES_NAME[res]} bars for {ticker}" if res != "1d" else f"Yahoo has no bars for {ticker}")
+    return out
 
 
 def fetch_intrabars(ticker: str, tf: Timeframe, chart: pd.DataFrame, inp_naked_age: int) -> tuple[dict, dict]:
