@@ -210,7 +210,7 @@ var string G_A = "4 · Advanced"
 // Tooltips: first line says what it does; "Measured:" gives one number.
 string inpPane  = input.string("Surprise", "Pane", options = ["Surprise", "Proof"], group = G_D, tooltip = "Surprise: the 10-bar move divided by its forecast, against the landing band, with the tapes.\n\nProof: growth of following exposure against buy and hold on this chart, one bar late, net of costs.", display = display.none)
 bool   inpTapes = input.bool(true, "Tapes", group = G_D, tooltip = "Trend and risk next to the columns - what the cone and exposure read. Stretch ladder and risk momentum, thinner, outside them - context.", display = display.none)
-bool   inpCone  = input.bool(true, "Forward cone", group = G_D, tooltip = "Where the close should be one horizon from now, with the long and short stops across it.", display = display.none)
+bool   inpCone  = input.bool(false, "Forward cone", group = G_D, tooltip = "Where the close should be one horizon from now, with the long and short stops across it.", display = display.none)
 bool   inpLand  = input.bool(true, "Landing band", group = G_D, tooltip = "The cone drawn one horizon ago, at today's bar. A close outside it is a miss.", display = display.none)
 bool   inpMid   = input.bool(true, "Midline", group = G_D, tooltip = "The middle of the landing band, close to where price stood one horizon ago.\n\nNot a signal. Measured: long above, flat below made a Sharpe of 0.24 against 0.48 for buy and hold.", display = display.none)
 bool   inpMidMk = input.bool(false, "    Cross marks", group = G_D, tooltip = "A dot on each bar that closes across the midline.\n\nMeasured: 37% of the runs that follow end in profit.", display = display.none)
