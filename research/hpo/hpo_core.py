@@ -1,6 +1,6 @@
-"""Pragyam HPO - the reference implementation with its constants as arguments, plus loaders and splits.
+"""Pramana HPO - the reference implementation with its constants as arguments, plus loaders and splits.
 
-run_p() is research/pragyam.py's run() verbatim, except that the risk forecast's EMA spans, blend weights
+run_p() is research/pramana.py's run() verbatim, except that the risk forecast's EMA spans, blend weights
 and k clip, and the trend's lookbacks, are arguments. With defaults it reproduces run() exactly
 (check_equal() asserts it).
 """
@@ -11,7 +11,7 @@ from statistics import NormalDist
 HERE = os.path.dirname(os.path.abspath(__file__))
 RESEARCH = os.path.abspath(os.path.join(HERE, ".."))
 sys.path.insert(0, RESEARCH)
-import pragyam as P                                      # noqa: E402
+import pramana as P                                      # noqa: E402
 
 WARM, RN = 252, 500
 ema, lag = P.ema, P.lag
@@ -35,7 +35,7 @@ def sigma(d, spans=DEF["spans"], w=DEF["w"], kclip=DEF["kclip"]):
 def run_p(d, H=10, cover=0.80, pstop=0.20, eta=0.02, cap=1.0, floor=0.5, power=1.0, tau=0.10, cost=0.0005,
           conformal=True, regimes=True, trendf=True, ladf=False, band=0.10,
           spans=DEF["spans"], w=DEF["w"], kclip=DEF["kclip"], tlb=DEF["tlb"]):
-    """research/pragyam.py run(), constants as arguments. Returns the same DataFrame."""
+    """research/pramana.py run(), constants as arguments. Returns the same DataFrame."""
     o, h, l, c = (d[k].values.astype(float) for k in ("open", "high", "low", "close")); n = len(c)
     lc = np.log(c)
     sig, S, L = sigma(d, spans, w, kclip)

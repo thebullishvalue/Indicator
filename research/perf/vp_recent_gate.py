@@ -1,4 +1,4 @@
-"""Does starting pragyam.pine's volume profile at the gate change the naked-POC list on the last bar?
+"""Does starting pramana.pine's volume profile at the gate change the naked-POC list on the last bar?
 Replays the Pine bookkeeping bar for bar (bar-range spread, ATR rows frozen at session start, strict POC,
 touch removal, de-duplication within 0.1 ATR, cap, age) from the first bar and from the gate, and compares
 the lists at many end points."""

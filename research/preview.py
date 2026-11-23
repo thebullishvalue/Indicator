@@ -1,8 +1,8 @@
-"""Draws what pragyam.pine draws, from the reference implementation: price chart with the volume profile, pane with the tapes.
+"""Draws what pramana.pine draws, from the reference implementation: price chart with the volume profile, pane with the tapes.
 The profile here is built from daily bars (weekly sessions, each bar's range spread evenly) - TradingView builds it from intrabars.
 The table is not drawn.  python3 preview.py"""
 from lib import *
-from pragyam import run
+from pramana import run
 import warnings; warnings.filterwarnings("ignore")
 import matplotlib; matplotlib.use("Agg")
 import matplotlib.pyplot as plt
@@ -72,7 +72,7 @@ for sym, title in (("_NSEI", "Nifty 50 · daily"), ("AAPL", "Apple · daily")):
     for yy, t, cc in ((P["poc"], "POC", POC), (P["vah"], "VAH", VA), (P["val"], "VAL", VA), (vw[-1], "VWAP", VWAP), (Pp["poc"], "pPOC", POC), (Pp["vah"], "pVAH", VA), (Pp["val"], "pVAL", VA)):
         if all(abs(yy - s) >= gap for s in seated): seated.append(yy); a.text(tagx + 1, yy, f"{t} {yy:,.0f}", color=cc, fontsize=7.5, va="center", bbox=dict(facecolor=tr(cc, 88), edgecolor="none", pad=1.2))
     a.legend(loc="upper left", fontsize=8, facecolor=BG, edgecolor="#222a30", labelcolor=TEXT)
-    a.set_title(f"Pragyam · {title}   (rendered from research/pragyam.py, not from TradingView)", color=TEXT, fontsize=10.5, loc="left")
+    a.set_title(f"Pramana · {title}   (rendered from research/pramana.py, not from TradingView)", color=TEXT, fontsize=10.5, loc="left")
     lo, hi = min(d2.low.min(), bot), max(d2.high.max(), top); a.set_ylim(lo - (hi - lo) * .04, hi + (hi - lo) * .05)
     # ---------------- the pane ----------------
     a = ax[1]; u = R2.u.values; T = R2["T"].values; bU = R.qU.shift(H).iloc[-n:].values; bD = R.qD.shift(H).iloc[-n:].values; sgH = R.sig.shift(H).iloc[-n:].values

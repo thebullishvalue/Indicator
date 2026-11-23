@@ -2,13 +2,14 @@
 
 | File | What it is |
 |---|---|
-| `pragyam.pine` | **Pragyam** — one self-contained TradingView indicator (Pine v6): calibrated risk, exposure, tapes, self-audit and volume profile. |
+| `pramana.pine` | **Pramana** — one self-contained TradingView indicator (Pine v6): calibrated risk, exposure, tapes, self-audit and volume profile. |
+| `pragyam.pine` | The same script under its earlier name, Pragyam. Identical apart from the name; kept so charts that use it keep working. |
 | `pragati.pine` | **Pragati** — the original multi-timeframe conviction oscillator. Unchanged; it was the direction of thought and the benchmark. |
-| `research/` | The data fetch, the Python reference for Pragyam, and the study behind every number below. |
+| `research/` | The data fetch, the Python reference for Pramana, and the study behind every number below. |
 
-## Pragyam
+## Pramana
 
-*Pragyam*, from *prajñā*, discernment: telling what can be known from what cannot. (Developed as Kasauti through v2.3.)
+*Pramana*, from *pramāṇa*, proof: a valid means of knowing. It forecasts only what can be forecast, and keeps a record of whether each forecast came true on the chart it is on. (Developed as Kasauti through v2.3 and as Pragyam through v2.7.)
 It is **one script**. The pane, the tapes, the cone and stops, the volume profile and the table are all the same indicator.
 The only data it requests is the chart symbol's own lower timeframe, for the profile.
 
@@ -18,9 +19,9 @@ It answers three questions for the chart it is on, and then tests its own answer
 2. **Where am I wrong?** A stop level that is touched within 10 bars 20% of the time, and the position size that goes with it.
 3. **How much should I hold?** An exposure dial between 0 and 1.
 
-![Pragyam on Nifty 50](docs/preview_nsei.png)
+![Pramana on Nifty 50](docs/preview_nsei.png)
 
-*Rendered from the reference implementation (`research/pragyam.py`), not from TradingView. Its profile is built from daily bars; TradingView builds it from intrabars.*
+*Rendered from the reference implementation (`research/pramana.py`), not from TradingView. Its profile is built from daily bars; TradingView builds it from intrabars.*
 
 ### Why it does not call direction
 
@@ -32,7 +33,7 @@ On 151 instruments (US and NSE stocks, indices, commodities, FX, bonds, crypto),
 - No simple long/flat rule beat a risk-scaled buy and hold on Sharpe.
 
 Risk is different. The next 10 bars' variance is forecast out of sample with a log R² of 0.71.
-So Pragyam forecasts risk, states it as probabilities, and turns it into size, stop and exposure.
+So Pramana forecasts risk, states it as probabilities, and turns it into size, stop and exposure.
 
 ### The tapes
 
@@ -52,7 +53,7 @@ The ladder uses horizons on the chart's own bars instead of other timeframes. A 
 
 All figures are from `research/results.txt`, net of 5 bp costs (10 bp crypto), acting one bar late.
 
-| Claim | Pragyam | Comparison |
+| Claim | Pramana | Comparison |
 |---|---|---|
 | Cone holds 80% of the time | 79.9% realised; within 3 points in 99% of instrument-eras | fixed normal band: 61% of instrument-eras |
 | Cone holds in calm / normal / stressed markets | 79% / 80% / 81% | fixed normal band: 80% / 83% / 85% |
@@ -196,8 +197,8 @@ Trend and stretch ladder share green and red and are told apart by height and st
 | Where | What | Read it as |
 |---|---|---|
 | Price chart | Volume profile (focal) | Pragati's: session histogram, POC, value area, VWAP, Initial Balance, prior-session levels, naked POCs, beside the last bar. Display only |
-| Price chart | Forward cone (faint outline) | where the close should be H bars from now |
-| Price chart | Dashed lines across the cone | long and short stops at the stated touch probability, each named at the cone's far corner |
+| Price chart | Forward cone (faint outline; off by default) | where the close should be H bars from now |
+| Price chart | Dashed lines across the cone (drawn with the cone) | long and short stops at the stated touch probability, each named at the cone's far corner |
 | Price chart | Midline (quiet neutral) | the middle of the landing band; where price stands against H bars ago. A description, not a signal |
 | Price chart | Landing band (faint) | the cone drawn H bars ago; a close outside it is a surprise |
 | Pane | Columns against the landing band | the surprise: the realised move ÷ the forecast made H bars ago. Solid when the close left the band (a miss); green or red when the trend backs the move, neutral when it does not |
@@ -210,10 +211,10 @@ Gold always means risk, never up or down.
 
 ### Status
 
-- **v2.7** repairs and bounds the volume profile; no engine number changed. Its row search halved with `(lo + hi) / 2`, which Pine v6 makes fractional: rows went in out of order and POC, VAH and VAL stood at an older session's values while the histogram showed this one. For TradingView's execution-time limit, the profile is now built only over the stretch it draws from (two naked-POC ages and three sessions), with about sixteen intrabars per chart bar, read only inside that stretch, and its value area is walked only where it is read. The script now runs on the last 5,000 bars: daily charts load a symbol's whole history (13,000+ bars for DXY, or gold and silver on TVC and ICE), which ran past the time limit.
+- **v2.7** renames the script to Pramana (`pragyam.pine` stays, identical apart from the name), turns the forward cone off by default, and repairs and bounds the volume profile; no engine number changed. Its row search halved with `(lo + hi) / 2`, which Pine v6 makes fractional: rows went in out of order and POC, VAH and VAL stood at an older session's values while the histogram showed this one. For TradingView's execution-time limit, the profile is now built only over the stretch it draws from (two naked-POC ages and three sessions), with about sixteen intrabars per chart bar, read only inside that stretch, and its value area is walked only where it is read. The script now runs on the last 5,000 bars: daily charts load a symbol's whole history (13,000+ bars for DXY, or gold and silver on TVC and ICE), which ran past the time limit.
 - **v2.6** is the interface above, after the second audit round; **v2.5** was the first round; **v2.4** renamed the script to Pragyam and first set the palette by meaning; **v2.3** closed the presentation (status line, line weights, column colours, compact table) and tests two more observations; **v2.2** added the midline and its record; **v2.1** added the volume profile. No engine number changed from v2.0. The preview image does not show the profile.
 - A later experiment ("Maryada": touch probabilities on profile levels, unified tapes, Pragati's palette) was set aside; it remains in the git history at commit `7c5340a`.
-- The Pine script has **not been compiled in TradingView**. No Pine compiler is available here; it was checked by hand against the reference implementation. Expect to fix a syntax detail or two on first load.
+- The Pine script loads and runs in TradingView as of v2.7, including daily charts with decades of history (DXY, gold and silver on TVC and ICE).
 - The Python reference and the Pine script were written to the same arithmetic but have not been compared bar for bar.
 
 ### Reproduce

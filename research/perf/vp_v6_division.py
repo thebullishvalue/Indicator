@@ -1,4 +1,4 @@
-"""pragyam.pine's binary search under Pine v6 division ((lo+hi)/2 is fractional), with array indices truncated.
+"""pramana.pine's binary search under Pine v6 division ((lo+hi)/2 is fractional), with array indices truncated.
 Does inserting keys with it keep them sorted, and does it find keys that are there?"""
 import random, math
 
