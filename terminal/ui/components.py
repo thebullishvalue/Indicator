@@ -39,20 +39,25 @@ def command_bar(*, name: str, description: str, price: float | None, change_pct:
     )
 
 
-def panel_header(title: str = "", *, context: str = "", meta: str = "", chip_: tuple[str, str] | None = None) -> None:
-    if not (title or context or meta or chip_):
+def panel_header(title: str = "", *, context: str = "", meta: str = "", chip_: tuple[str, str] | None = None, help: str = "") -> None:
+    if not (title or context or meta or chip_ or help):
         return
     left = (f'<span class="ph-title">{_x(title)}</span>' if title else "") + (
         f'<span class="ph-context">{_x(context)}</span>' if context else "")
-    right = (f"<span>{H.escape(meta)}</span>" if meta else "") + (chip(*chip_) if chip_ else "")
+    right = (f"<span>{H.escape(meta)}</span>" if meta else "") + (chip(*chip_) if chip_ else "") + (
+        f'<span class="ph-help" title="{H.escape(help)}" aria-label="{H.escape(help)}">'
+        '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/>'
+        '<path d="M12 16v-4M12 8h.01"/></svg></span>' if help else "")
     st.markdown(f'<div class="panel-hdr"><div class="ph-left">{left}</div><div class="ph-right">{right}</div></div>',
                 unsafe_allow_html=True)
 
 
 @contextmanager
-def panel(key: str, title: str = "", *, context: str = "", meta: str = "", chip_: tuple[str, str] | None = None, footer: str = ""):
+def panel(key: str, title: str = "", *, context: str = "", meta: str = "", chip_: tuple[str, str] | None = None, footer: str = "",
+          help: str = ""):
+    """help: the panel's explanation, behind an (i) in its header - so a panel's height is its content's, not its prose's."""
     with st.container(key=f"panel-{key}"):
-        panel_header(title, context=context, meta=meta, chip_=chip_)
+        panel_header(title, context=context, meta=meta, chip_=chip_, help=help)
         yield
         if footer:
             st.markdown(f'<div class="panel-foot">{footer}</div>', unsafe_allow_html=True)
@@ -98,7 +103,8 @@ def watchlist(rows: list[dict], tokens: dict, cap: int = 420, key: str = "watchl
     return _WATCH(rows=rows, tokens=tokens, cap=cap, key=key, default=None)
 
 
-def table(df, *, fmt: dict | None = None, tone: dict | None = None, mark: int | None = None, align_left: tuple = ()) -> None:
+def table(df, *, fmt: dict | None = None, tone: dict | None = None, mark: int | None = None, align_left: tuple = (),
+          height: int | None = None) -> None:
     """A themed HTML table - the design system's tables are HTML so Paper restyles them (st.dataframe's grid cannot).
 
     fmt: {column: callable(value) -> str}. tone: {column: callable(value) -> css colour or None}. mark: row to highlight."""
@@ -114,5 +120,6 @@ def table(df, *, fmt: dict | None = None, tone: dict | None = None, mark: int | 
             style = f' style="color:{col}"' if col else ""
             cells.append(f'<td class="{"l" if c in align_left else ""}"{style}>{H.escape(txt)}</td>')
         body.append(f'<tr class="{"mark" if mark == i else ""}">{"".join(cells)}</tr>')
-    st.markdown(f'<div class="t-table"><table><thead><tr>{head}</tr></thead><tbody>{"".join(body)}</tbody></table></div>',
+    hstyle = f' style="height:{int(height)}px"' if height else ""      # rows share any extra height: a table can meet its neighbour
+    st.markdown(f'<div class="t-table"><table{hstyle}><thead><tr>{head}</tr></thead><tbody>{"".join(body)}</tbody></table></div>',
                 unsafe_allow_html=True)

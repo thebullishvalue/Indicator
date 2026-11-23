@@ -268,7 +268,7 @@ with rail:
 # Three questions, in the order a trader asks them, and the record of what changed.
 tabs = st.tabs(["Plan", "Forecast", "Audit", "Events"])
 with tabs[0]:
-    PN.plan(e, vp, df, decimals, meta.get("currency") or "", intraday)
+    PN.plan(e, vp, df, decimals, meta.get("currency") or "", intraday, tok)
 with tabs[1]:
     PN.forecast(e, df, tok, decimals)
 with tabs[2]:

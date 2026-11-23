@@ -119,17 +119,32 @@ html body .st-key-toolbar { background: var(--surface-1); border: 1px solid var(
    on the panel's 16px inset */
 .t-table { overflow-x: auto; }
 .t-table table { width: 100%; border-collapse: collapse; font-family: var(--mono); font-size: var(--fs-xs); }
+.t-table { margin: 0 !important; }
+.t-table table { margin: 0 !important; border: none !important; }
 .t-table th { font-size: var(--fs-3xs); font-weight: 600; letter-spacing: 0.14em; text-transform: uppercase; color: var(--ink-quaternary);
-  text-align: right; padding: 8px 12px; border-bottom: 1px solid var(--line-strong); white-space: nowrap; }
-.t-table td { text-align: right; padding: 7px 12px; color: var(--ink-secondary); border-bottom: 1px solid var(--line-faint);
-  font-variant-numeric: tabular-nums; white-space: nowrap; }
-.t-table tr:last-child td { border-bottom: none; }
+  text-align: right; height: 34px; box-sizing: border-box; padding: 0 12px; vertical-align: middle; background: var(--surface-1);
+  border: none !important; border-bottom: 1px solid var(--line-strong) !important; white-space: nowrap; }
+.t-table td { text-align: right; height: 34px; box-sizing: border-box; padding: 0 12px; vertical-align: middle; color: var(--ink-secondary);
+  border: none !important; border-bottom: 1px solid var(--line-faint) !important; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.t-table tr:last-child td { border-bottom: none !important; }
 .t-table th:first-child, .t-table td:first-child { padding-left: 16px; }
 .t-table th:last-child, .t-table td:last-child { padding-right: 16px; }
 .t-table th.l, .t-table td.l { text-align: left; }
 .t-table tr.mark td { background: var(--accent-fill); color: var(--ink); }
 .t-table tr.mark td:first-child { box-shadow: inset 2px 0 0 var(--accent); }
 .t-table tbody tr:hover td { background: var(--surface-2); }
+
+[class*="st-key-panel-"] [data-testid="stMarkdownContainer"]:has(> .t-table),
+[class*="st-key-panel-"] [data-testid="stElementContainer"]:has(.t-table) { margin: 0 !important; padding: 0 !important; }
+
+/* every panel header: one line, 42px, the explanation behind an (i) */
+[data-testid="stMain"] [class*="st-key-panel-"] .panel-hdr { height: 42px; box-sizing: border-box; padding: 0 16px; align-items: center; flex-wrap: nowrap; }
+.panel-hdr .ph-left { display: flex; align-items: baseline; gap: 10px; min-width: 0; overflow: hidden; }
+.panel-hdr .ph-title { white-space: nowrap; flex: none; }
+.panel-hdr .ph-context { white-space: nowrap !important; overflow: hidden; text-overflow: ellipsis; min-width: 0; }
+.panel-hdr .ph-right { display: flex; align-items: center; gap: 10px; flex: none; }
+.panel-hdr .ph-help { display: inline-flex; color: var(--ink-quaternary); cursor: help; }
+.panel-hdr .ph-help:hover { color: var(--ink); }
 
 /* notes under a panel's body, and the page footer */
 .t-note { font-size: var(--fs-xs); color: var(--ink-tertiary); line-height: 1.55; padding: 10px 16px 12px; border-top: 1px solid var(--line-faint); }
@@ -153,54 +168,74 @@ html body .st-key-toolbar { background: var(--surface-1); border: 1px solid var(
 
 /* ═══ Screens ══════════════════════════════════════════════════════════════
    Desktop (above 1100px): chart and rail side by side, the rail exactly the chart's height.
-   Tablet (1100px and below): the rail moves under the chart, its two panels side by side; the toolbar wraps.
-   Phone (640px and below): one column; the interval strip scrolls sideways; the command bar keeps identity, price and
-   the last bar. The chart and the watchlist fill whatever height their frames are given. */
+   Tablet (1100px and below): the rail moves under the chart, its two panels side by side. The toolbar takes two
+     ordered lines: search and intervals; then pane and volume on the left, settings and appearance on the right.
+   Phone (640px and below): one column. The command bar is the symbol on the left and the quote on the right. The
+     toolbar takes three lines: search with the settings icon; the intervals across the width; pane, volume and
+     appearance spread across the width.
+   The chart and the watchlist fill whatever height their frames are given. */
 @media (max-width: 1100px) {
   [data-testid="stMain"] .st-key-workspace [data-testid="stHorizontalBlock"]:has(> [data-testid="stColumn"]:nth-child(2):last-child) > [data-testid="stColumn"]:nth-child(1),
   [data-testid="stMain"] .st-key-workspace [data-testid="stHorizontalBlock"]:has(> [data-testid="stColumn"]:nth-child(2):last-child) > [data-testid="stColumn"]:nth-child(2) {
     flex: 1 1 100% !important; flex-basis: 100% !important; width: 100% !important; }
   .st-key-workspace [data-testid="stHorizontalBlock"] { flex-wrap: wrap !important; row-gap: 12px !important; }
   .st-key-chartframe iframe { height: 640px !important; }
-  /* the rail's two panels share a row under the chart */
   .st-key-workspace [data-testid="stColumn"]:nth-child(2) > [data-testid="stVerticalBlock"],
   .st-key-workspace [data-testid="stColumn"]:nth-child(2) [data-testid="stVerticalBlock"]:has(> [data-testid="stLayoutWrapper"] [class*="st-key-panel-watch"]) {
     flex-direction: row !important; flex-wrap: wrap !important; align-items: flex-start !important; }
   .st-key-workspace [data-testid="stColumn"]:nth-child(2) [data-testid="stLayoutWrapper"]:has([class*="st-key-panel-"]) { flex: 1 1 320px; min-width: 0; }
   .st-key-workspace [class*="st-key-panel-watch"] iframe { height: 380px !important; }
 
-  html body .st-key-toolbar [data-testid="stHorizontalBlock"] { flex-wrap: wrap !important; row-gap: 8px !important; }
-  [data-testid="stMain"] .st-key-toolbar [data-testid="stHorizontalBlock"]:has(> [data-testid="stColumn"]:nth-child(7):last-child) > [data-testid="stColumn"]:nth-child(5) { display: none !important; }
-  .st-key-toolbar [data-testid="stColumn"]:nth-child(6) { margin-left: 0 !important; padding-left: 0 !important; border-left: none !important; }
+  /* toolbar: line 1 search + intervals, line 2 pane + volume ... settings + appearance */
+  html body .st-key-toolbar [data-testid="stHorizontalBlock"] { flex-wrap: wrap !important; row-gap: 8px !important; column-gap: 8px !important; }
+  [data-testid="stMain"] .st-key-toolbar [data-testid="stHorizontalBlock"]:has(> [data-testid="stColumn"]:nth-child(7):last-child) > [data-testid="stColumn"] { margin: 0 !important; padding: 0 !important; border: none !important; }
+  [data-testid="stMain"] .st-key-toolbar [data-testid="stHorizontalBlock"]:has(> [data-testid="stColumn"]:nth-child(7):last-child) > [data-testid="stColumn"]:nth-child(1) { order: 1; flex: 1 1 180px !important; }
+  [data-testid="stMain"] .st-key-toolbar [data-testid="stHorizontalBlock"]:has(> [data-testid="stColumn"]:nth-child(7):last-child) > [data-testid="stColumn"]:nth-child(2) { order: 2; }
+  [data-testid="stMain"] .st-key-toolbar [data-testid="stHorizontalBlock"]:has(> [data-testid="stColumn"]:nth-child(7):last-child) > [data-testid="stColumn"]:nth-child(5) { order: 3; flex: 0 0 100% !important; height: 0; overflow: hidden; display: block !important; }   /* the line break */
+  [data-testid="stMain"] .st-key-toolbar [data-testid="stHorizontalBlock"]:has(> [data-testid="stColumn"]:nth-child(7):last-child) > [data-testid="stColumn"]:nth-child(3) { order: 4; }
+  [data-testid="stMain"] .st-key-toolbar [data-testid="stHorizontalBlock"]:has(> [data-testid="stColumn"]:nth-child(7):last-child) > [data-testid="stColumn"]:nth-child(4) { order: 5; }
+  [data-testid="stMain"] .st-key-toolbar [data-testid="stHorizontalBlock"]:has(> [data-testid="stColumn"]:nth-child(7):last-child) > [data-testid="stColumn"]:nth-child(6) { order: 6; margin-left: auto !important; }
+  [data-testid="stMain"] .st-key-toolbar [data-testid="stHorizontalBlock"]:has(> [data-testid="stColumn"]:nth-child(7):last-child) > [data-testid="stColumn"]:nth-child(7) { order: 7; }
   .command-bar .m-currency { display: none !important; }
+  [data-testid="stTabs"] [data-baseweb="tab-panel"] [data-testid="stHorizontalBlock"] { flex-wrap: wrap !important; }
 }
 @media (max-width: 640px) {
   html body [data-testid="stMain"] .block-container, html body [data-testid="stMain"] [data-testid="stMainBlockContainer"] {
     padding: 10px 10px 20px !important; }
   [data-testid="stMain"] [data-testid="stMainBlockContainer"] > [data-testid="stVerticalBlock"] { gap: 10px !important; }
-  .command-bar { padding: 10px 12px !important; gap: 8px 12px !important; }
-  .command-bar .cb-brand { display: none !important; }
-  .command-bar .cb-quote { padding-left: 12px !important; }
-  .command-bar .cb-right { gap: 12px !important; width: 100%; justify-content: flex-start; }
-  .command-bar .m-exchange, .command-bar .m-bars, .command-bar .m-currency { display: none !important; }
-  .command-bar .cb-meta { text-align: left; }
-  .command-bar .cb-meta + .cb-meta { padding-left: 12px; }
-  .command-bar .chip { display: none !important; }
 
+  /* command bar: the symbol on the left, the quote on the right - one line */
+  .command-bar { padding: 10px 12px !important; flex-wrap: nowrap !important; }
+  .command-bar .cb-left { width: 100%; flex-wrap: nowrap !important; justify-content: space-between; gap: 12px !important; }
+  .command-bar .cb-brand, .command-bar .cb-right { display: none !important; }
+  .command-bar .cb-instrument { min-width: 0; }
+  .command-bar .cb-instrument .eyebrow { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 46vw; }
+  .command-bar .cb-quote { border-left: none !important; padding-left: 0 !important; flex-direction: column; align-items: flex-end !important; gap: 2px !important; }
+  .command-bar .cb-quote .px { font-size: var(--fs-lg); }
+
+  /* toolbar: three lines */
   html body .st-key-toolbar { padding: 8px 10px !important; }
-  [data-testid="stMain"] .st-key-toolbar [data-testid="stHorizontalBlock"]:has(> [data-testid="stColumn"]:nth-child(7):last-child) > [data-testid="stColumn"]:nth-child(1),
-  [data-testid="stMain"] .st-key-toolbar [data-testid="stHorizontalBlock"]:has(> [data-testid="stColumn"]:nth-child(7):last-child) > [data-testid="stColumn"]:nth-child(2) {
-    flex: 1 1 100% !important; flex-basis: 100% !important; margin-left: 0 !important; }
-  .st-key-toolbar [data-testid="stColumn"]:nth-child(2) [data-testid="stButtonGroup"] { width: 100% !important; overflow-x: auto; scrollbar-width: none; }
-  .st-key-toolbar [data-testid="stColumn"]:nth-child(2) [data-testid="stButtonGroup"] > div { justify-content: space-between; min-width: 100%; }
-  .st-key-toolbar [data-testid="stColumn"]:nth-child(3) { margin-left: 0 !important; padding-left: 0 !important; border-left: none !important; }
-  .st-key-toolbar [data-testid="stColumn"]:nth-child(6) { margin-left: 6px !important; padding-left: 0 !important; border-left: none !important; }
+  [data-testid="stMain"] .st-key-toolbar [data-testid="stHorizontalBlock"]:has(> [data-testid="stColumn"]:nth-child(7):last-child) > [data-testid="stColumn"]:nth-child(1) { order: 1; flex: 1 1 0 !important; }
+  [data-testid="stMain"] .st-key-toolbar [data-testid="stHorizontalBlock"]:has(> [data-testid="stColumn"]:nth-child(7):last-child) > [data-testid="stColumn"]:nth-child(6) { order: 2; margin-left: 0 !important; }
+  [data-testid="stMain"] .st-key-toolbar [data-testid="stHorizontalBlock"]:has(> [data-testid="stColumn"]:nth-child(7):last-child) > [data-testid="stColumn"]:nth-child(5) { order: 3; }
+  [data-testid="stMain"] .st-key-toolbar [data-testid="stHorizontalBlock"]:has(> [data-testid="stColumn"]:nth-child(7):last-child) > [data-testid="stColumn"]:nth-child(2) { order: 4; flex: 0 0 100% !important; }
+  [data-testid="stMain"] .st-key-toolbar [data-testid="stHorizontalBlock"]:has(> [data-testid="stColumn"]:nth-child(7):last-child) > [data-testid="stColumn"]:nth-child(3) { order: 5; }
+  [data-testid="stMain"] .st-key-toolbar [data-testid="stHorizontalBlock"]:has(> [data-testid="stColumn"]:nth-child(7):last-child) > [data-testid="stColumn"]:nth-child(4) { order: 6; }
+  [data-testid="stMain"] .st-key-toolbar [data-testid="stHorizontalBlock"]:has(> [data-testid="stColumn"]:nth-child(7):last-child) > [data-testid="stColumn"]:nth-child(7) { order: 7; margin-left: auto !important; }
+  .st-key-toolbar [data-testid="stColumn"]:nth-child(2) > *, .st-key-toolbar [data-testid="stColumn"]:nth-child(2) [data-testid="stVerticalBlock"],
+  .st-key-toolbar [data-testid="stColumn"]:nth-child(2) [data-testid="stElementContainer"],
+  .st-key-toolbar [data-testid="stColumn"]:nth-child(2) [data-testid="stButtonGroup"] { width: 100% !important; max-width: 100% !important; }
+  .st-key-toolbar [data-testid="stColumn"]:nth-child(2) [data-testid="stButtonGroup"] > div {
+    display: grid !important; grid-template-columns: repeat(9, 1fr); width: 100% !important; min-width: 100% !important; max-width: none !important; }       /* nine intervals, evenly */
+  .st-key-toolbar [data-testid="stColumn"]:nth-child(2) [data-testid="stButtonGroup"] button { width: 100%; min-width: 0; padding: 0 !important; justify-content: center; }
+  .st-key-toolbar [data-testid="stButtonGroup"] button { padding: 0 9px !important; }
   .st-key-toolbar [data-testid="stButton"] button { width: 32px !important; min-width: 32px; padding: 0 !important; justify-content: center; }
-  .st-key-toolbar [data-testid="stButton"] button p { display: none; }          /* Settings shows its icon alone */
+  .st-key-toolbar [data-testid="stButton"] button p { display: none; }
   .st-key-toolbar [data-testid="stButton"] [data-testid="stIconMaterial"] { margin: 0; }
 
   .st-key-chartframe iframe { height: 540px !important; }
   .st-key-workspace [class*="st-key-panel-watch"] iframe { height: 340px !important; }
   [data-testid="stTabs"] [data-baseweb="tab-list"] { overflow-x: auto; scrollbar-width: none; }
   .t-table th, .t-table td { padding-left: 10px; padding-right: 10px; }
+  .panel-hdr .ph-context { display: none; }            /* a phone keeps the title and the (i) */
 }

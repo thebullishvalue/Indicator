@@ -36,6 +36,16 @@ CATEGORY = {"Landing band": "Misses", "Stretch ladder": "Ladder", "Risk": "Risk"
             "Ledger": "Ledger"}
 
 
+# Every panel's height is arithmetic, so side-by-side panels can be made equal: a panel is 2px of border and a 42px header,
+# a table is a 34px header row and 34px rows (terminal.css fixes both), a plotly chart is exactly its height (no padding),
+# rows of panels are 12px apart. Prose lives behind each header's (i), not in the body.
+PANEL, HDR, ROW, GAP, PLOT_PAD, INPUTS = 44, 34, 34, 12, 0, 89
+
+
+def _table_h(rows: int) -> int:
+    return HDR + rows * ROW
+
+
 def _na(x):
     return x is None or (isinstance(x, float) and math.isnan(x))
 
@@ -69,7 +79,15 @@ def _units(u: float) -> str:
 
 
 # ═══ PLAN ═══════════════════════════════════════════════════════════════════
-def plan(e: dict, vp: dict, df: pd.DataFrame, decimals: int, currency: str, intraday: bool) -> None:
+_TOK: dict = {}
+
+
+def tok_axis() -> str:
+    return _TOK.get("axis", "#8B95A6")
+
+
+def plan(e: dict, vp: dict, df: pd.DataFrame, decimals: int, currency: str, intraday: bool, tok: dict) -> None:
+    _TOK.clear(); _TOK.update(tok)
     s, L, inp = e["series"], e["last"], e["inputs"]
     t = e["n"] - 1
     W = words(e, t)
@@ -99,15 +117,36 @@ def plan(e: dict, vp: dict, df: pd.DataFrame, decimals: int, currency: str, intr
              tooltip=f"How often this chart's cone held (target {fmt(inp.cover, '#')}%) and its long / short stops were touched (target {fmt(inp.stop, '#')}%)."),
     ], key="kpi-plan", max_cols=5)
 
+    st_ = vp["state"]
+    lv = [("Short stop", stopS), ("Cone · upper", hi), ("Cone · lower", lo), ("Long stop", stopL),
+          ("Landing band · upper", s["upper"][t - H] if t >= H else float("nan")),
+          ("Landing band · lower", s["lower"][t - H] if t >= H else float("nan")), ("Midline", s["midL"][t]),
+          ("POC", st_["poc"]), ("VAH", st_["vah"]), ("VAL", st_["val"]), ("VWAP", st_["vwap"]),
+          ("Prior POC", st_["prev_poc"]), ("Prior VAH", st_["prev_vah"]), ("Prior VAL", st_["prev_val"])]
+    if intraday:
+        lv += [("IBH", st_["ibh"]), ("IBL", st_["ibl"])]
+    lv += [("Naked POC", y) for y, _ in st_.get("naked", []) if not _na(y) and y != st_["prev_poc"]]
+    lv = [(k, v) for k, v in lv if not _na(v)]
+    lv.append(("Close", c))
+    lv.sort(key=lambda kv: -kv[1])
+
+    # the two columns meet: the ladder sets the height, the risk chart takes what the sizing table leaves
+    ladder_tbl = _table_h(len(lv))
+    size_h = PANEL + INPUTS + _table_h(3)
+    chart_h = max(220, PANEL + ladder_tbl - size_h - GAP - PANEL - PLOT_PAD)
+    ladder_tbl = max(ladder_tbl, size_h + GAP + PANEL + chart_h + PLOT_PAD - PANEL)
+
     left, right = st.columns(2, gap="small")
     with left:
-        with K.panel("size", "Position size", context="sized to lose a set share of equity at the script's stops"):
+        with K.panel("size", "Position size", context="sized to lose a set share of equity at the script's stops",
+                     help=f"Each stop is touched within {H} bars {fmt(inp.stop, '#')}% of the time. Above 100% of equity a size needs "
+                          "leverage. The exposure row is the position the dial says to hold, before any stop."):
             with st.container(key="sizeinputs"):
-                a, b = st.columns(2, gap="small")
-                equity = a.number_input(f"Equity · {currency}" if currency else "Equity", min_value=0.0, value=1_000_000.0,
-                                        step=10_000.0, format="%.0f", key="equity")
-                risk = b.number_input("Risk per trade · %", min_value=0.05, max_value=10.0, value=float(inp.risk), step=0.05,
-                                      format="%.2f", key="risk_pct")
+                a_, b_ = st.columns(2, gap="small")
+                equity = a_.number_input(f"Equity · {currency}" if currency else "Equity", min_value=0.0, value=1_000_000.0,
+                                         step=10_000.0, format="%.0f", key="equity")
+                risk = b_.number_input("Risk per trade · %", min_value=0.05, max_value=10.0, value=float(inp.risk), step=0.05,
+                                       format="%.2f", key="risk_pct")
             rows = []
             for side, stop in (("Long", stopL), ("Short", stopS)):
                 dist = abs(c - stop)
@@ -121,26 +160,31 @@ def plan(e: dict, vp: dict, df: pd.DataFrame, decimals: int, currency: str, intr
             rows.append({"Side": "Exposure", "Entry": _px(c, decimals), "Stop": "—", "Distance": "—", "Units": _units(ev / c),
                          "Value": f"{ev:,.0f}", "Of equity": f_pct(E, "#"), "Loss at stop": "—"})
             K.table(pd.DataFrame(rows), align_left=("Side",))
-            K.note(f"Each stop is touched within {H} bars {fmt(inp.stop, '#')}% of the time. Above 100% of equity a size needs leverage. "
-                   "The exposure row is the position the dial says to hold, before any stop.")
+        n = min(250, t + 1)
+        with K.panel("riskexp", "Risk and exposure", context=f"the last {n} bars · risk's rank in its last 500, and the exposure it set",
+                     help="Exposure is the instrument's usual risk over its risk now, cut in a downtrend: it falls as risk climbs its range. "
+                          "The dotted lines split risk into calm, normal and stressed thirds."):
+            idx = df.index[-n:]
+            fig = make_subplots(rows=2, cols=1, shared_xaxes=True, row_heights=[0.55, 0.45], vertical_spacing=0.08)
+            fig.add_trace(go.Scatter(x=idx, y=s["prk"][-n:], name="Risk rank", line=dict(color="rgba(215,154,60,0.95)", width=1),
+                                     fill="tozeroy", fillcolor="rgba(215,154,60,0.10)"), 1, 1)
+            for v in (100 / 3, 200 / 3):
+                fig.add_hline(y=v, line=dict(color=tok_axis(), width=1, dash="dot"), row=1, col=1)
+            fig.add_trace(go.Scatter(x=idx, y=100 * s["E"][-n:], name="Exposure", line=dict(color="rgba(76,125,240,0.9)", width=1, shape="hv"),
+                                     fill="tozeroy", fillcolor="rgba(76,125,240,0.10)"), 2, 1)
+            fig.update_layout(**_fig(_TOK, chart_h))
+            fig.update_xaxes(gridcolor=_TOK["grid"], zeroline=False)
+            fig.update_yaxes(gridcolor=_TOK["grid"], zeroline=False, side="right", range=[0, 100], tickvals=[0, 33, 67, 100], row=1, col=1)
+            fig.update_yaxes(gridcolor=_TOK["grid"], zeroline=False, side="right", range=[0, 105], tickvals=[0, 50, 100], ticksuffix="%", row=2, col=1)
+            _chart(fig)
     with right:
-        with K.panel("levels", "Level ladder", context=f"every level the script draws, by price · distance in % and in {H}-bar σ"):
-            st_ = vp["state"]
-            lv = [("Short stop", stopS), ("Cone · upper", hi), ("Cone · lower", lo), ("Long stop", stopL),
-                  ("Landing band · upper", s["upper"][t - H] if t >= H else float("nan")),
-                  ("Landing band · lower", s["lower"][t - H] if t >= H else float("nan")), ("Midline", s["midL"][t]),
-                  ("POC", st_["poc"]), ("VAH", st_["vah"]), ("VAL", st_["val"]), ("VWAP", st_["vwap"]),
-                  ("Prior POC", st_["prev_poc"]), ("Prior VAH", st_["prev_vah"]), ("Prior VAL", st_["prev_val"])]
-            if intraday:
-                lv += [("IBH", st_["ibh"]), ("IBL", st_["ibl"])]
-            lv += [("Naked POC", y) for y, _ in st_.get("naked", []) if not _na(y) and y != st_["prev_poc"]]
-            lv = [(k, v) for k, v in lv if not _na(v)]
-            lv.append(("Close", c))
-            lv.sort(key=lambda kv: -kv[1])
+        with K.panel("levels", "Level ladder", context=f"every level the script draws, by price · distance in % and in {H}-bar σ",
+                     help="Sorted by price around the close (marked). σ is the distance over one horizon's risk: a level at ±1σ is one "
+                          "standard move away."):
             rows = [{"Level": k, "Price": _px(v, decimals), "From close": "—" if k == "Close" else _signed_pct(v / c - 1),
                      "σ": "—" if k == "Close" else fmt(math.log(v / c) / sH, "+0.00;-0.00")} for k, v in lv]
             close_row = next(i for i, (k, _) in enumerate(lv) if k == "Close")
-            K.table(pd.DataFrame(rows), mark=close_row, align_left=("Level",),
+            K.table(pd.DataFrame(rows), mark=close_row, align_left=("Level",), height=ladder_tbl,
                     tone={"From close": lambda x: None if x == "—" else "var(--long)" if x.startswith("+") else "var(--short)"})
 
 
@@ -156,9 +200,14 @@ def forecast(e: dict, df: pd.DataFrame, tok: dict, decimals: int) -> None:
     hs = [L["h0"], H, L["h2"], L["h3"]]
     ups = [c * math.exp(s[f"qU{i}"][t] * sig * math.sqrt(h)) for i, h in enumerate(hs)]
     dns = [c * math.exp(-s[f"qD{i}"][t] * sig * math.sqrt(h)) for i, h in enumerate(hs)]
+    # right column: term structure over stops; the fan takes the column's height
+    term_h, stops_h = PANEL + _table_h(4), PANEL + _table_h(2)
+    fan_h = term_h + GAP + stops_h - PANEL - PLOT_PAD
     left, right = st.columns(2, gap="small")
     with left:
-        with K.panel("fan", "Forward ranges", context=f"where the close should be {fmt(inp.cover, '#')}% of the time · stops at {H} bars"):
+        with K.panel("fan", "Forward ranges", context=f"where the close should be {fmt(inp.cover, '#')}% of the time · stops at {H} bars",
+                     help="Each horizon's cone from today's close, joined into a fan. The dashed lines are the long and short stops, "
+                          f"which hold for {H} bars."):
             back = min(80, t + 1)
             hist = df.close.iloc[-back:].to_numpy(float)
             fig = go.Figure()
@@ -174,12 +223,13 @@ def forecast(e: dict, df: pd.DataFrame, tok: dict, decimals: int) -> None:
             fig.add_trace(go.Scatter(x=[0, H], y=[s["stopL"][t]] * 2, mode="lines", name="Long stop", line=dict(color=tok["candleDown"], width=1, dash="dash")))
             for h, u_ in zip(hs, ups):
                 fig.add_annotation(x=h, y=u_, text=f"{h}", showarrow=False, yshift=10, font=dict(size=9, color=tok["axis"]))
-            fig.update_layout(**dict(_fig(tok, 320), hovermode="closest"))
+            fig.update_layout(**dict(_fig(tok, fan_h), hovermode="closest"))
             fig.update_xaxes(gridcolor=tok["grid"], zeroline=True, zerolinecolor=tok["grid"], title=dict(text="bars from now", font=dict(size=9)))
             fig.update_yaxes(gridcolor=tok["grid"], side="right")
             _chart(fig)
     with right:
-        with K.panel("term", "Term structure", context="each horizon's range, and how often it held on this chart"):
+        with K.panel("term", "Term structure", context="each horizon's range, and how often it held on this chart",
+                     help="Each horizon learns its own widths, so a longer one is not the shorter one scaled by the square root of time."):
             rows = []
             for i, h in enumerate(hs):
                 ok = s[f"ok{i}"].astype(bool)
@@ -189,7 +239,25 @@ def forecast(e: dict, df: pd.DataFrame, tok: dict, decimals: int) -> None:
                              "Width": f_pct(math.log(ups[i] / dns[i]), "#.0"), "Held here": held, "Of": f"{n:,}"})
             K.table(pd.DataFrame(rows), align_left=("Horizon",), fmt={"Held here": lambda x: "—" if _na(x) else f"{100 * x:.1f}%"},
                     tone={"Held here": lambda x: None if _na(x) or abs(x - inp.cover / 100) <= 0.03 else "var(--caution)"})
-            K.note("Each horizon learns its own widths, so a longer one is not the shorter one scaled by the square root of time.")
+        reg_now, tr_now = int(s["reg"][t]), int(s["trRaw"][t])
+        regs = pd.Series(s["reg"]).shift(H).to_numpy()
+        trs_ = pd.Series(np.where(np.isnan(s["T"]), np.nan, s["trRaw"])).shift(H).to_numpy()
+        ok = s["settled"].astype(bool)
+        rlab, tlab = ("calm", "normal", "stressed")[reg_now], ("down", "flat", "up")[tr_now]
+        with K.panel("stops", "Stops", context=f"touched within {H} bars · target {fmt(inp.stop, '#')}% · here, and in today's {rlab} risk and {tlab} trend",
+                     help="How often each stop was touched on this chart overall, and among forecasts made in the same risk regime and "
+                          "trend state as today's."):
+            rows = []
+            for side, px_, hit in (("Long", s["stopL"][t], s["mS"]), ("Short", s["stopS"][t], s["mR"])):
+                mr, mt = ok & (regs == reg_now), ok & (trs_ == tr_now)
+                rows.append({"Stop": side, "Price": _px(px_, decimals), "Distance": f_pct(abs(px_ / c - 1), "#.00"),
+                             "Touched": float(hit[ok].mean()) if ok.any() else float("nan"),
+                             f"In {rlab} risk": float(hit[mr].mean()) if mr.any() else float("nan"),
+                             f"In {tlab} trend": float(hit[mt].mean()) if mt.any() else float("nan")})
+            pc = lambda x: "—" if _na(x) else f"{100 * x:.1f}%"
+            off = lambda x: None if _na(x) or abs(x - inp.stop / 100) <= 0.03 else "var(--caution)"
+            cols3 = ["Touched", f"In {rlab} risk", f"In {tlab} trend"]
+            K.table(pd.DataFrame(rows), align_left=("Stop",), fmt={k: pc for k in cols3}, tone={k: off for k in cols3})
 
     st_now = int(s["st"][t])
     y, stv = s["yOut"], s["st"]
@@ -197,28 +265,42 @@ def forecast(e: dict, df: pd.DataFrame, tok: dict, decimals: int) -> None:
     scored = s["settled"].astype(bool) & ~np.isnan(y) & (prior >= 0)
     allv = y[scored]
     this = y[scored & (prior == st_now)] if st_now >= 0 else np.array([])
-    with K.panel("state", "What followed this state",
-                 context=f"{st_name(st_now) if st_now >= 0 else 'no state yet'} · the next {H} bars, from the next open, in σ"):
-        if len(this) >= 5:
+    stats_rows = 7
+    hist_h = PANEL + _table_h(stats_rows) - PANEL - PLOT_PAD
+    left, right = st.columns([1.6, 1], gap="small")
+    with left:
+        with K.panel("state", "What followed this state",
+                     context=f"{st_name(st_now) if st_now >= 0 else 'no state yet'} · the next {H} bars, from the next open, in σ",
+                     help="The distribution of what followed every past visit to today's state, against every state's. Pooled across "
+                          "151 instruments no state had a reliable edge: read a difference here as this chart's history, not a forecast."):
             fig = go.Figure()
             bins = dict(start=-6, end=6, size=0.5)
             fig.add_trace(go.Histogram(x=allv, xbins=bins, histnorm="probability", name=f"Every state · {len(allv):,}",
                                        marker=dict(color="rgba(139,149,166,0.35)")))
-            fig.add_trace(go.Histogram(x=this, xbins=bins, histnorm="probability", name=f"This state · {len(this):,}",
-                                       marker=dict(color="rgba(76,125,240,0.65)")))
-            fig.add_vline(x=float(np.mean(allv)), line=dict(color=tok["axis"], width=1, dash="dot"))
-            fig.add_vline(x=float(np.mean(this)), line=dict(color="rgba(76,125,240,0.9)", width=1, dash="dot"))
-            fig.update_layout(**dict(_fig(tok, 240), barmode="overlay", hovermode="x"))
+            if len(this):
+                fig.add_trace(go.Histogram(x=this, xbins=bins, histnorm="probability", name=f"This state · {len(this):,}",
+                                           marker=dict(color="rgba(76,125,240,0.65)")))
+                fig.add_vline(x=float(np.mean(this)), line=dict(color="rgba(76,125,240,0.9)", width=1, dash="dot"))
+            if len(allv):
+                fig.add_vline(x=float(np.mean(allv)), line=dict(color=tok["axis"], width=1, dash="dot"))
+            fig.update_layout(**dict(_fig(tok, hist_h), barmode="overlay", hovermode="x"))
             fig.update_xaxes(gridcolor=tok["grid"], title=dict(text=f"next {H} bars, σ", font=dict(size=9)))
             fig.update_yaxes(gridcolor=tok["grid"], tickformat=".0%")
             _chart(fig)
-            z = s["lZ"][t]
-            verdict = "too few to judge" if _na(z) else "proven positive" if z >= 2 else "proven negative" if z <= -2 else "unproven"
-            K.note(f"This state: {len(this):,} samples ({fmt(s['lNe'][t], '#')} independent), mean {fmt(float(np.mean(this)), '+0.00;-0.00')}σ "
-                   f"against {fmt(float(np.mean(allv)), '+0.00;-0.00')}σ for every state: {verdict}. Pooled across 151 instruments no state had "
-                   "a reliable edge, so read a difference here as this chart's history, not a forecast.")
-        else:
-            K.note("Too few samples of this state on this chart to draw its outcomes.")
+    with right:
+        z = s["lZ"][t]
+        verdict = "too few to judge" if _na(z) else "proven positive" if z >= 2 else "proven negative" if z <= -2 else "unproven"
+        stat = lambda f, v: "—" if len(v) == 0 else f(v)
+        rows = [{"": "Samples", "This state": f"{len(this):,}", "Every state": f"{len(allv):,}"},
+                {"": "Independent", "This state": fmt(s["lNe"][t], "#"), "Every state": "—"},
+                {"": "Mean (σ)", "This state": stat(lambda v: f"{np.mean(v):+.2f}", this), "Every state": stat(lambda v: f"{np.mean(v):+.2f}", allv)},
+                {"": "Median (σ)", "This state": stat(lambda v: f"{np.median(v):+.2f}", this), "Every state": stat(lambda v: f"{np.median(v):+.2f}", allv)},
+                {"": "Ended higher", "This state": stat(lambda v: f"{100 * np.mean(v > 0):.0f}%", this), "Every state": stat(lambda v: f"{100 * np.mean(v > 0):.0f}%", allv)},
+                {"": "Spread (σ)", "This state": stat(lambda v: f"{np.std(v):.2f}", this), "Every state": stat(lambda v: f"{np.std(v):.2f}", allv)},
+                {"": "Verdict", "This state": verdict, "Every state": "—"}]
+        with K.panel("statestats", "This state against every state", context=f"the next {H} bars, in σ",
+                     help="A state is proven when its shrunk edge is at least 2 standard errors from the chart's usual outcome."):
+            K.table(pd.DataFrame(rows), align_left=("",))
 
 
 # ═══ AUDIT ══════════════════════════════════════════════════════════════════
@@ -243,7 +325,8 @@ def audit(e: dict, df: pd.DataFrame, tok: dict) -> None:
     tgt = lambda v: (lambda x: None if _na(x) or abs(x - v) <= 0.03 else "var(--caution)")
     left, right = st.columns(2, gap="small")
     with left:
-        with K.panel("cal-h", "By horizon", context=f"every settled forecast · target {fmt(inp.cover, '#')}% inside, {fmt((100 - inp.cover) / 2, '#')}% each side"):
+        with K.panel("cal-h", "By horizon", context=f"every settled forecast · target {fmt(inp.cover, '#')}% inside, {fmt((100 - inp.cover) / 2, '#')}% each side",
+                     help="How often each horizon's cone held on this chart, and which side it missed on. Amber: more than 3 points off."):
             rows = []
             for i, h in enumerate([L["h0"], inp.H, L["h2"], L["h3"]]):
                 ok = s[f"ok{i}"].astype(bool)
@@ -252,23 +335,11 @@ def audit(e: dict, df: pd.DataFrame, tok: dict) -> None:
                 dn = float(s[f"mD{i}"][ok].mean()) if n else float("nan")
                 rows.append({"Horizon": f"{h} bars", "Settled": f"{n:,}", "Inside": 1 - up - dn if n else float("nan"), "Above": up, "Below": dn})
             K.table(pd.DataFrame(rows), fmt={c: pct for c in ("Inside", "Above", "Below")}, align_left=("Horizon",),
-                    tone={"Inside": tgt(inp.cover / 100)})
-        with K.panel("cal-x", "Surprises, in band widths", context=f"each {inp.H}-bar surprise over the band it was judged against · beyond ±1 is a miss"):
-            x = s["x1"][s["settled"].astype(bool)]
-            x = x[~np.isnan(x)]
-            if len(x):
-                fig = go.Figure(go.Histogram(x=np.clip(x, -3, 3), xbins=dict(start=-3, end=3.0001, size=0.125), histnorm="probability",
-                                             marker=dict(color="rgba(139,149,166,0.45)")))
-                for v in (-1, 1):
-                    fig.add_vline(x=v, line=dict(color="rgba(215,154,60,0.9)", width=1, dash="dot"))
-                fig.update_layout(**dict(_fig(tok, 220), hovermode="x", showlegend=False))
-                fig.update_xaxes(gridcolor=tok["grid"], tickvals=[-3, -2, -1, 0, 1, 2, 3])
-                fig.update_yaxes(gridcolor=tok["grid"], tickformat=".0%")
-                _chart(fig)
-                K.note(f"Beyond +1: {f_pct(float((x > 1).mean()), '#.0')}, beyond −1: {f_pct(float((x < -1).mean()), '#.0')} "
-                       f"(target {fmt((100 - inp.cover) / 2, '#')}% each). Bunched near 0, the forecasts were too wide; piled past ±1, too narrow.")
+                    tone={"Inside": tgt(inp.cover / 100)}, height=_table_h(6))          # meets the six-row table beside it
     with right:
-        with K.panel("cal-s", "By risk regime and trend", context="the state each forecast was made in · amber: more than 3 points off"):
+        with K.panel("cal-s", "By risk regime and trend", context="the state each forecast was made in",
+                     help="The cone and the stops learn their widths per risk regime and per trend state, so each row should sit near its "
+                          "target. Amber: more than 3 points off."):
             reg = pd.Series(s["reg"]).shift(inp.H).to_numpy()
             trs = pd.Series(np.where(np.isnan(s["T"]), np.nan, s["trRaw"])).shift(inp.H).to_numpy()
             ok = s["settled"].astype(bool)
@@ -283,9 +354,30 @@ def audit(e: dict, df: pd.DataFrame, tok: dict) -> None:
                                "Short stop": float(s["mR"][m].mean()) if n else float("nan")})
             K.table(pd.DataFrame(by), fmt={c: pct for c in ("Cone held", "Long stop", "Short stop")}, align_left=("By", "State"),
                     tone={"Cone held": tgt(inp.cover / 100), "Long stop": tgt(inp.stop / 100), "Short stop": tgt(inp.stop / 100)})
-        with K.panel("proof-chart", "Exposure against buy and hold", context="growth, log %, net of costs · exposure held, beneath"):
+    x = s["x1"][s["settled"].astype(bool)]
+    x = x[~np.isnan(x)]
+    left, right = st.columns(2, gap="small")
+    with left:
+        with K.panel("cal-x", "Surprises, in band widths",
+                     context=f"beyond +1 {f_pct(float((x > 1).mean()) if len(x) else float('nan'), '#.0')} · beyond −1 "
+                             f"{f_pct(float((x < -1).mean()) if len(x) else float('nan'), '#.0')} · target {fmt((100 - inp.cover) / 2, '#')}% each",
+                     help=f"Each {inp.H}-bar surprise over the band it was judged against: beyond ±1 is a miss. Bunched near 0, the "
+                          "forecasts were too wide; piled past ±1, too narrow."):
+            fig = go.Figure(go.Histogram(x=np.clip(x, -3, 3), xbins=dict(start=-3, end=3.0001, size=0.125), histnorm="probability",
+                                         marker=dict(color="rgba(139,149,166,0.45)")))
+            for v in (-1, 1):
+                fig.add_vline(x=v, line=dict(color="rgba(215,154,60,0.9)", width=1, dash="dot"))
+            fig.update_layout(**dict(_fig(tok, 300), hovermode="x", showlegend=False))
+            fig.update_xaxes(gridcolor=tok["grid"], tickvals=[-3, -2, -1, 0, 1, 2, 3])
+            fig.update_yaxes(gridcolor=tok["grid"], tickformat=".0%", side="right")
+            _chart(fig)
+    with right:
+        with K.panel("proof-chart", "Exposure against buy and hold",
+                     context=f"CAGR {f_pct(L['cagF'], '#.0')} against {f_pct(L['cagH'], '#.0')} · log %, net of costs",
+                     help=f"{L['nP']:,} bars over {fmt(L['yrs'], '0.0')} years, one bar late, {fmt(inp.cost, '#')} bp per unit of change. "
+                          "Exposure held is beneath. The dial's job is the drawdown, not the return."):
             idx = df.index[-len(s["eqF"]):]
-            fig = make_subplots(rows=2, cols=1, shared_xaxes=True, row_heights=[0.72, 0.28], vertical_spacing=0.05)
+            fig = make_subplots(rows=2, cols=1, shared_xaxes=True, row_heights=[0.72, 0.28], vertical_spacing=0.06)
             fig.add_trace(go.Scatter(x=idx, y=100 * np.log(s["eqH"]), name="Buy and hold", line=dict(color=tok["axis"], width=1)), 1, 1)
             fig.add_trace(go.Scatter(x=idx, y=100 * np.log(s["eqF"]), name="Following exposure", line=dict(color=tok["ink"], width=1.5)), 1, 1)
             fig.add_trace(go.Scatter(x=idx, y=100 * s["E"], name="Exposure", line=dict(color="rgba(76,125,240,0.85)", width=1, shape="hv"),
@@ -295,8 +387,6 @@ def audit(e: dict, df: pd.DataFrame, tok: dict) -> None:
             fig.update_yaxes(gridcolor=tok["grid"], zeroline=False, side="right", ticksuffix="%", row=1, col=1)
             fig.update_yaxes(gridcolor=tok["grid"], zeroline=False, side="right", range=[0, 105], tickvals=[0, 50, 100], ticksuffix="%", row=2, col=1)
             _chart(fig)
-            K.note(f"{L['nP']:,} bars over {fmt(L['yrs'], '0.0')} years, one bar late, {fmt(inp.cost, '#')} bp per unit of change. "
-                   f"CAGR {f_pct(L['cagF'], '#.0')} against {f_pct(L['cagH'], '#.0')}. The dial's job is the drawdown, not the return.")
     _ledger(e)
 
 
@@ -319,13 +409,13 @@ def _ledger(e: dict) -> None:
                      f"Next {H_} bars (σ)": mu, "Against usual (σ)": edge, "Shrunk edge (σ)": post, "z": z, "Verdict": verdict})
     df = pd.DataFrame(rows)
     with K.panel("ledger", "Ledger", context=f"nine states · scored {H_} bars later from the next open · usual {fmt(gM, '+0.00;-0.00')}σ over {gN:,} samples",
-                 meta=f"believable edge τ = {inp.tau}"):
+                 meta=f"believable edge τ = {inp.tau}",
+                 help="A state is proven when its shrunk edge is at least 2 standard errors from the chart's usual outcome. Samples count "
+                      "as independent only when their signal bars are at least one horizon apart. The marked row is the state now."):
         num = lambda x: "—" if _na(x) else f"{x:+.2f}"
         vtone = lambda v: "var(--long)" if v == "proven positive" else "var(--short)" if v == "proven negative" else None
         K.table(df, fmt={c: num for c in df.columns if "σ" in c or c == "z"}, tone={"Verdict": vtone},
                 mark=cur if cur >= 0 else None, align_left=("Trend", "Close", "Verdict"))
-        K.note("A state is proven when its shrunk edge is at least 2 standard errors from the chart's usual outcome. Samples count as "
-               "independent only when their signal bars are at least one horizon apart. The marked row is the state now.")
 
 
 # ═══ EVENTS ═════════════════════════════════════════════════════════════════
@@ -341,7 +431,9 @@ def events(e: dict, df: pd.DataFrame, intraday: bool, decimals: int) -> None:
     opts = [c for c in counts if counts[c]]
     default = [c for c in opts if c not in ("Misses", "Midline")] or opts
     with K.panel("events", "Events", context="every alert condition the script defines, as it fired on this chart's closed bars",
-                 meta=f"{len(ev):,} in all"):
+                 meta=f"{len(ev):,} in all",
+                 help="Titles and messages are the script's alertcondition() text; none of them is a trade signal. Misses and midline "
+                      "crosses are frequent by design, so they start hidden. The latest 300 are listed."):
         with st.container(key="eventfilter"):
             pick = st.pills("Show", opts, selection_mode="multi", default=default, key="ev_pick", label_visibility="collapsed",
                             format_func=lambda c: f"{c} · {counts[c]:,}")
@@ -350,5 +442,3 @@ def events(e: dict, df: pd.DataFrame, intraday: bool, decimals: int) -> None:
                 for t_, cat, title, px_ in keep[:300]]
         if rows:
             K.table(pd.DataFrame(rows), align_left=("Time", "Kind", "Event", "What it means"))
-        K.note("Titles and messages are the script's alertcondition() text; none of them is a trade signal. Misses and midline crosses "
-               "are frequent by design, so they start hidden. The latest 300 are listed.")
