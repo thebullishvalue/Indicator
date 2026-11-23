@@ -11,17 +11,9 @@ header[data-testid="stHeader"] { height: 0; min-height: 0; background: transpare
 /* The command bar sits flush on the toolbar, as one block of chrome. */
 .command-bar { margin-bottom: 0 !important; border-bottom-left-radius: 0; border-bottom-right-radius: 0; position: relative; top: 0; }
 
-.st-key-toolbar { background: var(--surface-1); border: 1px solid var(--line); border-radius: var(--r-lg) var(--r-lg) 0 0;
   padding: 6px 8px; margin-bottom: 0; }
-.st-key-toolbar [data-testid="stHorizontalBlock"] { gap: 8px !important; align-items: center; }
-.st-key-toolbar [data-testid="stElementContainer"] { margin: 0 !important; }
-.st-key-toolbar [data-testid="stTextInput"] input { font-family: var(--mono); font-size: var(--fs-sm); height: 32px; }
-.st-key-toolbar [data-testid="stButtonGroup"] button { min-height: 30px; padding: 0 10px; font-family: var(--mono); font-size: var(--fs-xs); }
-.st-key-toolbar [data-testid="stCheckbox"] label p { font-family: var(--mono); font-size: var(--fs-xs); color: var(--ink-secondary); }
-.st-key-toolbar button[kind="secondary"] { min-height: 32px; font-size: var(--fs-xs); }
 
 /* Under the toolbar: command bar, then the chart frame. */
-.st-key-toolbar + div .command-bar, .command-bar { border-top: none; }
 .st-key-chartframe { background: var(--surface-1); border: 1px solid var(--line); border-top: none; border-radius: 0 0 0 var(--r-lg);
   padding: 0; overflow: hidden; }
 .st-key-chartframe iframe { display: block; border: 0; }
@@ -51,23 +43,11 @@ header[data-testid="stHeader"] { height: 0; min-height: 0; background: transpare
   flex: 0 0 352px !important; flex-basis: 352px !important; min-width: 0 !important; }
 .st-key-workspace [data-testid="stHorizontalBlock"] { flex-wrap: nowrap !important; gap: 0.5rem !important; }
 
-[data-testid="stMain"] .st-key-toolbar [data-testid="stHorizontalBlock"]:has(> [data-testid="stColumn"]:nth-child(6):last-child) > [data-testid="stColumn"] {
   flex: 0 0 auto !important; min-width: 0 !important; width: auto !important; }
-[data-testid="stMain"] .st-key-toolbar [data-testid="stHorizontalBlock"]:has(> [data-testid="stColumn"]:nth-child(6):last-child) > [data-testid="stColumn"]:nth-child(1) { flex-basis: 250px !important; }
-[data-testid="stMain"] .st-key-toolbar [data-testid="stHorizontalBlock"]:has(> [data-testid="stColumn"]:nth-child(6):last-child) > [data-testid="stColumn"]:nth-child(2) { flex-basis: 390px !important; }
-[data-testid="stMain"] .st-key-toolbar [data-testid="stHorizontalBlock"]:has(> [data-testid="stColumn"]:nth-child(6):last-child) > [data-testid="stColumn"]:nth-child(3) { flex-basis: 178px !important; }
-[data-testid="stMain"] .st-key-toolbar [data-testid="stHorizontalBlock"]:has(> [data-testid="stColumn"]:nth-child(6):last-child) > [data-testid="stColumn"]:nth-child(4) { flex-basis: 92px !important; }
-[data-testid="stMain"] .st-key-toolbar [data-testid="stHorizontalBlock"]:has(> [data-testid="stColumn"]:nth-child(6):last-child) > [data-testid="stColumn"]:nth-child(5) { flex-basis: 124px !important; }
-[data-testid="stMain"] .st-key-toolbar [data-testid="stHorizontalBlock"]:has(> [data-testid="stColumn"]:nth-child(6):last-child) > [data-testid="stColumn"]:nth-child(6) { flex-basis: 150px !important; margin-left: auto; }
-.st-key-toolbar [data-testid="stHorizontalBlock"] { flex-wrap: nowrap !important; }
-.st-key-toolbar [data-testid="stButtonGroup"] > div { flex-wrap: nowrap !important; }
-.st-key-toolbar [data-testid="stButtonGroup"] button { text-transform: none !important; letter-spacing: 0 !important; }
 
 /* Command bar on top, then the toolbar, then the chart frame: one continuous block of chrome. */
 .command-bar { border-radius: var(--r-lg) var(--r-lg) 0 0 !important; }
-.st-key-toolbar { border-radius: 0 !important; border-top: none !important; }
 .st-key-workspace { margin-top: -1rem; }
-.st-key-toolbar [data-testid="stCheckbox"] label, .st-key-toolbar [data-testid="stToggle"] label { white-space: nowrap; }
 
 /* Themed HTML tables (ledger, record, alerts): mono figures, hairline rows, the current row marked by the accent. */
 .t-table { overflow-x: auto; }
@@ -81,3 +61,51 @@ header[data-testid="stHeader"] { height: 0; min-height: 0; background: transpare
 .t-table tr.mark td:first-child { box-shadow: inset 2px 0 0 var(--accent); }
 .t-table tbody tr:hover td { background: var(--surface-2); }
 [class*="st-key-panel-watch"] iframe { display: block; }
+
+/* ── Toolbar ──────────────────────────────────────────────────────────────
+   One row, one rhythm: every control is 32px tall, set in the same mono at the same size and case, on the same
+   recessed track. Three groups - what you are looking at, how it is drawn, the app's settings - each opened by a
+   hairline; the last group is pushed to the right edge by the empty sixth column. */
+.st-key-toolbar { background: var(--surface-1); border: 1px solid var(--line); border-top: none; border-radius: 0; padding: 7px 10px; margin: 0; }
+.st-key-toolbar [data-testid="stHorizontalBlock"] { flex-wrap: nowrap !important; gap: 0 !important; align-items: center !important; }
+.st-key-toolbar [data-testid="stElementContainer"] { margin: 0 !important; }
+[data-testid="stMain"] .st-key-toolbar [data-testid="stHorizontalBlock"]:has(> [data-testid="stColumn"]:nth-child(7):last-child) > [data-testid="stColumn"] {
+  flex: 0 0 auto !important; flex-basis: auto !important; width: auto !important; min-width: 0 !important; }
+[data-testid="stMain"] .st-key-toolbar [data-testid="stHorizontalBlock"]:has(> [data-testid="stColumn"]:nth-child(7):last-child) > [data-testid="stColumn"]:nth-child(1) {
+  flex-basis: 196px !important; }
+[data-testid="stMain"] .st-key-toolbar [data-testid="stHorizontalBlock"]:has(> [data-testid="stColumn"]:nth-child(7):last-child) > [data-testid="stColumn"]:nth-child(5) {
+  flex: 1 1 auto !important; }
+/* group openers: a hairline and equal air on both sides */
+.st-key-toolbar [data-testid="stColumn"]:nth-child(3), .st-key-toolbar [data-testid="stColumn"]:nth-child(6) {
+  margin-left: 12px; padding-left: 12px; border-left: 1px solid var(--line); }
+.st-key-toolbar [data-testid="stColumn"]:nth-child(2) { margin-left: 6px; }
+.st-key-toolbar [data-testid="stColumn"]:nth-child(4) { margin-left: 6px; }
+.st-key-toolbar [data-testid="stColumn"]:nth-child(7) { margin-left: 6px; }
+
+/* the shared track, sized once */
+.st-key-toolbar [data-testid="stButtonGroup"] { height: 32px; box-sizing: border-box; padding: 2px !important; gap: 2px !important;
+  flex-wrap: nowrap !important; align-items: stretch; }
+.st-key-toolbar [data-testid="stButtonGroup"] > div { flex-wrap: nowrap !important; gap: 2px !important; height: 100%; }
+.st-key-toolbar [data-testid="stButtonGroup"] button { min-height: 0 !important; height: 26px; padding: 0 10px !important;
+  font-family: var(--mono) !important; font-size: var(--fs-xs) !important; font-weight: 500 !important;
+  text-transform: none !important; letter-spacing: 0 !important; }
+.st-key-toolbar [data-testid="stButtonGroup"] button[data-testid$="Active"] { font-weight: 600 !important; }
+
+/* symbol search: the same track, a lens, the current symbol as the placeholder */
+.st-key-toolbar [data-testid="stTextInput"] [data-baseweb="input"] { height: 32px; box-sizing: border-box; background: var(--bg) !important;
+  border: 1px solid var(--line) !important; border-radius: var(--r-md) !important; }
+.st-key-toolbar [data-testid="stTextInput"] input { height: 30px; padding: 0 10px 0 30px !important; font-family: var(--mono) !important;
+  font-size: var(--fs-sm) !important; font-weight: 600; color: var(--ink) !important; background: transparent !important;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%238B95A6' stroke-width='2' stroke-linecap='round'%3E%3Ccircle cx='11' cy='11' r='7'/%3E%3Cpath d='m20 20-3.5-3.5'/%3E%3C/svg%3E") !important;
+  background-repeat: no-repeat !important; background-position: 10px center !important; }
+.st-key-toolbar [data-testid="stTextInput"] input::placeholder { color: var(--ink); opacity: 1; font-weight: 600; letter-spacing: 0.02em; }
+.st-key-toolbar [data-testid="stTextInput"] [data-testid="stTooltipIcon"], .st-key-toolbar [data-testid="InputInstructions"] { display: none; }
+
+/* Settings: the same 32px track, not a second button style */
+.st-key-toolbar [data-testid="stButton"] button { height: 32px; min-height: 0 !important; padding: 0 12px !important; box-sizing: border-box;
+  background: var(--bg) !important; border: 1px solid var(--line) !important; border-radius: var(--r-md) !important; box-shadow: none !important; }
+.st-key-toolbar [data-testid="stButton"] button p { font-family: var(--mono) !important;
+  font-size: var(--fs-xs) !important; font-weight: 500 !important; text-transform: none !important; letter-spacing: 0 !important; color: var(--ink-secondary); }
+.st-key-toolbar [data-testid="stButton"] button:hover { background: var(--surface-2) !important; border-color: var(--line-strong) !important; }
+.st-key-toolbar [data-testid="stButton"] button:hover p { color: var(--ink); }
+.st-key-toolbar [data-testid="stButton"] [data-testid="stIconMaterial"] { font-size: 16px; color: var(--ink-tertiary); margin-right: 2px; }

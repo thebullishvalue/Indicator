@@ -35,6 +35,7 @@ from ui import chart as C, components as K, inputs as I, panels as PN, theme  # 
 
 INTERVALS = list(D.TIMEFRAMES)
 CHART_H = 760
+WATCH_H = 578                          # the watchlist fills the rail beside the chart, above a three-row Symbol box
 
 # ── state ──────────────────────────────────────────────────────────────────
 ss = st.session_state
@@ -131,10 +132,12 @@ def _set_symbol():
 
 
 with st.container(key="toolbar"):
-    tcols = st.columns([2.1, 4.2, 1.6, 1.05, 0.9, 1.5], gap="small", vertical_alignment="center")
+    # Three groups, left to right: what you are looking at (symbol, interval), how it is drawn (pane, volume), and the
+    # app's own settings (the script's inputs, appearance) - pushed right by an empty spacer column.
+    tcols = st.columns([1, 1, 1, 1, 1, 1, 1], gap="small", vertical_alignment="center")
     with tcols[0]:
-        st.text_input("Symbol", key="sym_in", placeholder=f"{ss.symbol}  ·  search: NSE:TCS, AAPL, GC=F…", label_visibility="collapsed",
-                      on_change=_set_symbol)
+        st.text_input("Symbol", key="sym_in", placeholder=f"{ss.symbol}", label_visibility="collapsed", on_change=_set_symbol,
+                      help="Type a symbol and press Enter: NIFTY, NSE:TCS, AAPL, GC=F, BTC-USD, or any Yahoo ticker.")
     with tcols[1]:
         tf = st.segmented_control("Interval", INTERVALS, default=ss.tf, key="tf_seg", label_visibility="collapsed")
         if tf and tf != ss.tf:
@@ -144,11 +147,13 @@ with st.container(key="toolbar"):
         if pane and pane != ss.inputs["pane"]:
             ss.inputs = {**ss.inputs, "pane": pane}
     with tcols[3]:
-        ss.volume = st.toggle("Vol", value=ss.volume)
-    with tcols[4]:
-        if st.button("Settings", icon=":material/tune:", help="Every input of the script, as the script words it.", width="stretch"):
-            settings_dialog()
+        vol = st.segmented_control("Volume", ["Volume"], selection_mode="multi", default=["Volume"] if ss.volume else [],
+                                   key="vol_seg", label_visibility="collapsed")
+        ss.volume = "Volume" in (vol or [])
     with tcols[5]:
+        if st.button("Settings", icon=":material/tune:", help="Every input of the script, as the script words it."):
+            settings_dialog()
+    with tcols[6]:
         ap = st.segmented_control("Appearance", ["Slate", "Paper"], default=ss.appearance, key="ap_seg", label_visibility="collapsed")
         if ap and ap != ss.appearance:
             ss.appearance = ap
@@ -239,7 +244,7 @@ with rail:
                        up="#089981", down="#F23645", accent="#4C7DF0", active="rgba(76,125,240,0.10)", hover="#151920", bg="#0F1217") if dark_app else
                   dict(ink="#141920", tertiary="#5E6979", quaternary="#6B7482", line="rgba(15,23,42,0.18)", lineFaint="rgba(15,23,42,0.06)",
                        up="#089981", down="#F23645", accent="#2B5FD9", active="rgba(43,95,217,0.07)", hover="#EEF1F5", bg="#FFFFFF"))
-            clicked = K.watchlist(wrows, wt, key="watchlist")
+            clicked = K.watchlist(wrows, wt, cap=WATCH_H, key="watchlist")
             if clicked and clicked.get("nonce") != ss.get("watch_nonce"):
                 ss.watch_nonce = clicked.get("nonce")
                 if clicked.get("symbol") and clicked["symbol"] != name:
@@ -250,25 +255,22 @@ with rail:
     with K.panel("details", "Symbol", context=ticker):
         hi52 = df.high.iloc[-252:].max() if not intraday else df.high.max()
         lo52 = df.low.iloc[-252:].min() if not intraday else df.low.min()
-        K.kv_list([("Exchange", ex_name or "—"), ("Type", (meta.get("instrumentType") or "—").title()),
-                   ("Timezone", meta.get("exchangeTimezoneName") or "—"), ("Min tick", f"{mintick:g}"),
-                   ("Range · day", f"{df.low.iloc[-1]:,.{decimals}f} – {df.high.iloc[-1]:,.{decimals}f}"),
-                   ("Range · " + ("52 wk" if not intraday else "loaded"), f"{lo52:,.{decimals}f} – {hi52:,.{decimals}f}"),
-                   ("Profile intrabars", f"script {ib_info.get('pine_ltf') or '—'} · served {ib_info.get('yf_ltf') or '—'}")])
+        kind = (meta.get("instrumentType") or "").replace("_", " ").title()
+        K.kv_list([("Exchange", " · ".join(x for x in (ex_name, kind) if x) or "—"),
+                   ("Day range", f"{df.low.iloc[-1]:,.{decimals}f} – {df.high.iloc[-1]:,.{decimals}f}"),
+                   ("52-week range" if not intraday else "Loaded range", f"{lo52:,.{decimals}f} – {hi52:,.{decimals}f}")])
 
 # ── bottom panel ───────────────────────────────────────────────────────────
-tabs = st.tabs(["Pine Editor", "Proof", "Ledger", "Record", "Alerts", "Data Window"])
+tabs = st.tabs(["Proof", "Ledger", "Record", "Alerts", "Data Window"])
 with tabs[0]:
-    PN.pine_editor()
-with tabs[1]:
     PN.proof(e, df, tok, dark_app, intraday)
-with tabs[2]:
+with tabs[1]:
     PN.ledger(e)
-with tabs[3]:
+with tabs[2]:
     PN.record(e)
-with tabs[4]:
+with tabs[3]:
     PN.alerts(e, df, name, ss.tf, intraday)
-with tabs[5]:
+with tabs[4]:
     PN.data_window(e, vp, df, decimals, intraday)
 
 if ib_info.get("volume_refilled"):

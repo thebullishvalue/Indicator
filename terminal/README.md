@@ -14,11 +14,11 @@ streamlit run terminal/app.py
 | Area | What it is |
 |---|---|
 | **Command bar** | The instrument, its last price and change, the exchange, interval, bars calculated (at most 5,000, as `calc_bars_count`), the last bar's time, and where the profile's intrabars came from |
-| **Toolbar** | Symbol search (`NSE:TCS`, `AAPL`, `GC=F`, any Yahoo ticker), interval (1m 5m 15m 30m 1h 4h D W M), the Anumaan pane (Surprise or Proof), volume, **Settings**, and Slate / Paper |
+| **Toolbar** | Three groups: what you are looking at (symbol search, which takes `NSE:TCS`, `AAPL`, `GC=F` or any Yahoo ticker, and the interval, 1m 5m 15m 30m 1h 4h D W M), how it is drawn (the Anumaan pane, Surprise or Proof, and volume), and the app's own settings (**Settings** and Slate / Paper) |
 | **Chart** | Candles and volume, the volume profile with its value area, POC, VWAP, Initial Balance, prior-session and naked-POC levels and their tags, the landing band, midline, stop history, proven-state marks, the forward cone with its stops, and the table. Below it, the Anumaan pane: the surprise columns against the landing band, and the four tapes with their labels. The status lines follow the crosshair |
 | **Watchlist** | Click a row to open it |
-| **Symbol** | Exchange, type, timezone, min tick, the day's and 52-week range, and where the profile's intrabars came from |
-| **Bottom panel** | **Pine Editor** (the script, read only) · **Proof** (the strategy report: exposure against buy and hold) · **Ledger** (the nine states) · **Record** (calibration per rung, per risk regime, per trend state) · **Alerts** (every alert condition as it fired) · **Data Window** |
+| **Symbol** | Exchange and type, the day's range and the 52-week range |
+| **Bottom panel** | **Proof** (the strategy report: exposure against buy and hold) · **Ledger** (the nine states) · **Record** (calibration per rung, per risk regime, per trend state) · **Alerts** (every alert condition as it fired) · **Data Window** |
 
 **Settings** reads its inputs from `anumaan.pine` itself: the same labels, defaults, options, limits, groups and tooltips, all 45 of
 them. The **Display** group's **Theme** behaves as in the script: on Auto it follows the terminal's appearance.
@@ -58,14 +58,14 @@ table's eight rows and the Data Window can be checked against the script's table
   from its header. It uses the Graphite and Paper tokens, Inter and JetBrains Mono, and Streamlit pinned to exactly 1.52.2 (see
   `requirements.txt`).
 - **Charts.** [TradingView Lightweight Charts™](https://www.tradingview.com/) 5.2.1, Apache-2.0, vendored in `ui/static` with its
-  licence and notice. The chart shows the library's attribution logo. Anumaan's drawings that the library has no series for, such
+  licence and notice. The licence's link to tradingview.com is in the page footer. Anumaan's drawings that the library has no series for, such
   as profile rows, level lines and tags, the cone and the tapes' labels, are custom primitives positioned in bar indices and
   prices, as the script positions them.
 - **Data.** Yahoo Finance via `yfinance`, delayed.
 - **Watchlist.** A two-way Streamlit component in plain JavaScript (`ui/static/watchlist`), with no build step.
 
 The terminal is laid out like a trading terminal but carries none of TradingView's branding: its name, logo and trademarks are
-TradingView's own. The chart library's attribution is the one exception, and its licence requires it.
+TradingView's own. The chart library's attribution, in the footer, is the one exception, and its licence requires it.
 
 ## Files
 

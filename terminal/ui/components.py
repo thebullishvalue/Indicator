@@ -86,9 +86,10 @@ from pathlib import Path as _Path  # noqa: E402
 _WATCH = _components.declare_component("anumaan_watchlist", path=str(_Path(__file__).parent / "static" / "watchlist"))
 
 
-def watchlist(rows: list[dict], tokens: dict, key: str = "watchlist"):
-    """rows: [{sym, desc, last, chg, pct, dec, active}]. Returns {symbol, nonce} for the row last clicked, or None."""
-    return _WATCH(rows=rows, tokens=tokens, key=key, default=None)
+def watchlist(rows: list[dict], tokens: dict, cap: int = 420, key: str = "watchlist"):
+    """rows: [{sym, desc, last, chg, pct, dec, active}]; cap: the most height it takes before it scrolls.
+    Returns {symbol, nonce} for the row last clicked, or None."""
+    return _WATCH(rows=rows, tokens=tokens, cap=cap, key=key, default=None)
 
 
 def table(df, *, fmt: dict | None = None, tone: dict | None = None, mark: int | None = None, align_left: tuple = ()) -> None:

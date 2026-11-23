@@ -22,7 +22,7 @@
     autoSize: true,
     layout: {
       background: { type: 'solid', color: K.bg }, textColor: K.axis, fontFamily: K.font, fontSize: 11,
-      attributionLogo: true,
+      attributionLogo: false,          // the licence's link to tradingview.com is in the page footer
       panes: { separatorColor: K.separator, separatorHoverColor: K.separatorHover, enableResize: true },
     },
     grid: { vertLines: { color: K.grid }, horzLines: { color: K.grid } },

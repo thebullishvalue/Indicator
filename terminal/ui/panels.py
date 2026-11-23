@@ -1,10 +1,9 @@
-"""The bottom panel: the script's source, its proof (a strategy report), the ledger's nine states, the calibration
+"""The bottom panel: the script's proof (a strategy report), the ledger's nine states, the calibration
 record, the alert log and the data window - everything the script keeps, laid out the way a terminal keeps it."""
 from __future__ import annotations
 
 import html as H
 import math
-from pathlib import Path
 
 import numpy as np
 import pandas as pd
@@ -13,8 +12,6 @@ import streamlit as st
 
 from engine.table import f_pct, fmt
 from ui import components as K
-
-PINE = Path(__file__).resolve().parents[2] / "anumaan.pine"
 
 ALERT_TEXT = {
     "Landing band · close above": "closed above the landing band. A miss, not a signal.",
@@ -37,13 +34,6 @@ def _na(x):
 
 def _stamp(ts, intraday: bool) -> str:
     return ts.strftime("%Y-%m-%d %H:%M" if intraday else "%Y-%m-%d")
-
-
-def pine_editor() -> None:
-    src = PINE.read_text(encoding="utf-8")
-    with K.panel("pine", "anumaan.pine", context=f"Pine Script v6 · {len(src.splitlines()):,} lines · read only",
-                 meta="the script this terminal runs, ported to Python"):
-        st.code(src, language="javascript", line_numbers=True, height=520)
 
 
 def proof(e: dict, df: pd.DataFrame, tok: dict, dark: bool, intraday: bool) -> None:
