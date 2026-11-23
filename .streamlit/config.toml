@@ -1,0 +1,32 @@
+# ── Base Streamlit theme: EXACTLY ONE SECTION ───────────────────────────────
+# ui/theme.css (via ui.theme.inject_css) is the source of truth for almost
+# everything visual. This section exists for the handful of NATIVE controls
+# that read Streamlit's own theme rather than CSS (toggle and radio dots,
+# links, BaseWeb portals such as the date picker) — without it those fall back
+# to Streamlit's stock red (#FF4B4B).
+#
+# This file used to declare [theme.light] and [theme.dark] as well. If EITHER
+# is present, Streamlit builds Light, Dark and a third "Custom Theme Auto" =
+# getSystemThemePreference() === "dark" ? dark : light, and makes that third
+# one active: the native widgets followed THE VIEWER'S OPERATING SYSTEM, while
+# Pramana's appearance comes from its Paper/Slate toggle. On a phone in dark
+# mode viewing Paper, natives such as the date picker's empty cells and the
+# tab strip's overflow fade were painted near-black on a near-white page.
+#
+# With ONE section Streamlit takes the other branch — a single "Custom Theme"
+# for every viewer, whatever their OS — so the native layer is a known, fixed
+# state. It is the dark ramp because ui/theme.css is built Slate-first and
+# ui.theme.LIGHT_TOKENS reclaims the natives for Paper; controls that paint
+# themselves from Streamlit's theme are painted from OUR tokens in theme.css.
+# Same fix as Pragyam, Samhita and Swing. If you add a widget that paints itself
+# from Streamlit's theme, claim it in CSS — do not add a section back here.
+[theme]
+base = "dark"
+primaryColor = "#4C7DF0"
+backgroundColor = "#0A0C10"
+secondaryBackgroundColor = "#0F1217"
+textColor = "#E6EAF1"
+
+[client]
+toolbarMode = "viewer"
+showErrorDetails = true

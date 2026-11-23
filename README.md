@@ -4,6 +4,7 @@
 |---|---|
 | `pramana.pine` | **Pramana** — one self-contained TradingView indicator (Pine v6): calibrated risk, exposure, tapes, self-audit and volume profile. |
 | `pragyam.pine` | The same script under its earlier name, Pragyam. Identical apart from the name; kept so charts that use it keep working. |
+| `terminal/` | **Pramana · Terminal** — a Streamlit chart terminal that runs `pramana.pine` ported to Python bar for bar, drawn on TradingView's open-source Lightweight Charts. See [`terminal/README.md`](terminal/README.md). |
 | `pragati.pine` | **Pragati** — the original multi-timeframe conviction oscillator. Unchanged; it was the direction of thought and the benchmark. |
 | `research/` | The data fetch, the Python reference for Pramana, and the study behind every number below. |
 
