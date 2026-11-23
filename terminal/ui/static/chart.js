@@ -12,7 +12,7 @@
   Object.keys(p.trails).forEach(k => { p.trails[k] = U(p.trails[k]); });
   const LW = LightweightCharts;
   const el = document.getElementById('chart');
-  el.style.height = height + 'px';
+  el.style.height = '100vh';                // the frame's height is set by the page, per screen size
   const dec = p.decimals;
   const fmtPx = (x) => (x === null || x === undefined || Number.isNaN(x)) ? '—' :
     Number(x).toLocaleString('en-US', { minimumFractionDigits: dec, maximumFractionDigits: dec });
@@ -183,9 +183,16 @@
     addLine(p.proofH, p.proofHColor, { pane: P1 });
   }
   const panes = chart.panes();
-  if (panes[1]) panes[1].setHeight(Math.round(height * 0.34));
+  const sizePanes = () => { const ps = chart.panes(); if (ps[1]) ps[1].setHeight(Math.round(window.innerHeight * 0.34)); };
+  sizePanes();
   // keep every scale's end labels inside its pane: the Anumaan pane's ±6 labels sat on the pane's edges and were cut
-  pane1Series.priceScale().applyOptions({ scaleMargins: { top: 0.11, bottom: 0.06 } });
+  if (p.pane === 'Surprise') {
+    const fixed = () => ({ priceRange: { minValue: -6.6, maxValue: 6.9 } });   // +0.3 at the top: the legend's strip
+    chart.panes()[1].getSeries().forEach(sr => sr.applyOptions({ autoscaleInfoProvider: fixed }));
+    pane1Series.priceScale().applyOptions({ scaleMargins: { top: 0.02, bottom: 0.02 } });
+  } else {
+    pane1Series.priceScale().applyOptions({ scaleMargins: { top: 0.12, bottom: 0.06 } });
+  }
 
   // ── watermark ──────────────────────────────────────────────────────────
   try {
@@ -208,7 +215,7 @@
     if (!b) return;
     const ch = b.close - prevClose(i), pc = ch / prevClose(i) * 100;
     const col = b.close >= b.open ? K.candleUp : K.candleDown;
-    const v = (k, x) => `<span class="k">${k}</span><span class="v" style="color:${col}">${fmtPx(x)}</span>`;
+    const v = (k, x) => `<span class="q q${k}"><span class="k">${k}</span><span class="v" style="color:${col}">${fmtPx(x)}</span></span>`;
     row1.innerHTML = `<span class="sym">${title.name}</span><span class="dot">·</span><span class="tf">${title.tf}</span>` +
       `<span class="dot">·</span><span class="ex">${title.exchange}</span>` +
       `<span class="ohlc">${v('O', b.open)}${v('H', b.high)}${v('L', b.low)}${v('C', b.close)}` +
@@ -232,7 +239,7 @@
   });
   paintLegend();
   placePaneLegend();
-  new ResizeObserver(() => placePaneLegend()).observe(el);
+  new ResizeObserver(() => { sizePanes(); placePaneLegend(); }).observe(el);
 
   // ── the table (off by default) ─────────────────────────────────────────
   if (p.tableOn && p.table.length) {
@@ -243,6 +250,13 @@
 
   // first view: the last ~150 bars and the profile beside them
   const n = p.bars.length;
-  chart.timeScale().setVisibleLogicalRange({ from: Math.max(0, n - 150), to: n + 58 });
-  window.addEventListener('dblclick', () => chart.timeScale().setVisibleLogicalRange({ from: Math.max(0, n - 150), to: n + 58 }));
+  const home = () => {
+    const w = el.clientWidth || window.innerWidth;
+    const narrow = w < 640;
+    const shown = narrow ? Math.max(28, Math.round(w / 10)) : Math.max(40, Math.min(220, Math.round(w / 7.5)));  // ~7.5px a bar
+    const right = narrow ? 74 : 58;            // room for the profile and its tags; a phone's bars are narrower than a tag
+    chart.timeScale().setVisibleLogicalRange({ from: Math.max(0, n - shown), to: n + right });
+  };
+  home();
+  window.addEventListener('dblclick', home);
 })();

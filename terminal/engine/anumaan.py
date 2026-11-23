@@ -469,7 +469,7 @@ def run(d: pd.DataFrame, inp: Inputs | None = None) -> dict:
         ladOk=ladOk, ladUp=ladUp, ladDn=ladDn, ladX=ladX, ladN=ladN, st=st, lNe=lNe, lMu=lMu, lEdge=lEdge, lPost=lPost, lZ=lZ,
         proven=proven, provenUp=provenUp, provenDn=provenDn, covRecent=covRecent, upper=upper, lower=lower, stopL=stopL,
         stopS=stopS, coneOk=coneOk, sigStar=sigStar, dialR=dialR, dialT=dialT, dial=dial, E=E, pF=pF, pH=pH, eqF=eqF, eqH=eqH,
-        midL=midL, midSide=midSide, midUp=midUp, midDn=midDn, pM=pM, nF=nF_s, gM=gM_s,
+        midL=midL, midSide=midSide, midUp=midUp, midDn=midDn, pM=pM, nF=nF_s, gM=gM_s, yOut=yOut,
     )
     for i in range(NR):
         series[f"u{i}"], series[f"ok{i}"], series[f"mU{i}"], series[f"mD{i}"] = U[i], OK[i], MU[i], MD[i]

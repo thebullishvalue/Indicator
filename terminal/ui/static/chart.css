@@ -1,4 +1,4 @@
-html, body { margin: 0; padding: 0; background: transparent; overflow: hidden; }
+html, body { margin: 0; padding: 0; background: transparent; overflow: hidden; height: 100%; }
 #wrap { position: relative; width: 100%; }
 #chart { position: relative; width: 100%; }
 .legend { position: absolute; left: 12px; top: 8px; z-index: 5; pointer-events: none;
@@ -10,6 +10,7 @@ html, body { margin: 0; padding: 0; background: transparent; overflow: hidden; }
 .legend .tf, .legend .ex { font: 500 13px/1.4 var(--sans, Inter, system-ui, sans-serif); color: var(--ink, #e6eaf1); }
 .legend .dot { color: var(--axis); }
 .legend .ohlc { display: inline-flex; gap: 6px; margin-left: 8px; }
+.legend .q { display: inline-flex; gap: 1px; }
 .legend .k { color: var(--axis, #8b95a3); margin-right: 1px; }
 .legend .ind { font: 500 12px/1.4 var(--sans, Inter, system-ui, sans-serif); color: var(--ink, #e6eaf1); margin-right: 8px; }
 .legend .v { font-variant-numeric: tabular-nums; }
@@ -20,3 +21,14 @@ html, body { margin: 0; padding: 0; background: transparent; overflow: hidden; }
 .ptable .tk { color: var(--axis); }
 .ptable.bottom-left { left: 10px; bottom: 34%; } .ptable.top-left { left: 10px; top: 52px; }
 .ptable.bottom-right { right: 80px; bottom: 34%; } .ptable.top-right { right: 80px; top: 52px; }
+
+/* narrow frames: the OHLC line may wrap, set a size smaller */
+@media (max-width: 640px) {
+  .legend { font-size: 11px; left: 8px; }
+  .lrow { flex-wrap: wrap; row-gap: 0; max-width: calc(100vw - 90px); }
+  .legend .sym, .legend .tf, .legend .ex { font-size: 12px; }
+  .legend .ohlc { margin-left: 4px; gap: 4px; }
+  .legend .qO, .legend .qH, .legend .qL { display: none; }      /* a phone keeps the close and the change */
+  .lrow { flex-wrap: nowrap; }
+  .ptable { min-width: 0; max-width: calc(100vw - 100px); font-size: 9.5px; }
+}

@@ -27,7 +27,8 @@ def command_bar(*, name: str, description: str, price: float | None, change_pct:
         arrow = "▲" if cls == "up" else "▼" if cls == "down" else "▬"
         quote = (f'<div class="cb-quote"><span class="px">{price:,.{decimals}f}</span>'
                  f'<span class="chg {cls}">{arrow} {abs(chg):.2f}%</span></div>')
-    meta_html = "".join(f'<div class="cb-meta"><span class="k">{H.escape(k)}</span><span class="v">{H.escape(v)}</span></div>'
+    slug = lambda k: "m-" + "".join(ch for ch in k.lower() if ch.isalnum())
+    meta_html = "".join(f'<div class="cb-meta {slug(k)}"><span class="k">{H.escape(k)}</span><span class="v">{H.escape(v)}</span></div>'
                         for k, v in meta if v)
     st.markdown(
         f'<div class="command-bar"><div class="cb-left">'

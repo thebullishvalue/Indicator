@@ -265,17 +265,16 @@ with rail:
                    ("52-week range" if not intraday else "Loaded range", f"{lo52:,.{decimals}f} – {hi52:,.{decimals}f}")])
 
 # ── bottom panel ───────────────────────────────────────────────────────────
-tabs = st.tabs(["Proof", "Ledger", "Record", "Alerts", "Data Window"])
+# Three questions, in the order a trader asks them, and the record of what changed.
+tabs = st.tabs(["Plan", "Forecast", "Audit", "Events"])
 with tabs[0]:
-    PN.proof(e, df, tok, dark_app, intraday)
+    PN.plan(e, vp, df, decimals, meta.get("currency") or "", intraday)
 with tabs[1]:
-    PN.ledger(e)
+    PN.forecast(e, df, tok, decimals)
 with tabs[2]:
-    PN.record(e)
+    PN.audit(e, df, tok)
 with tabs[3]:
-    PN.alerts(e, df, name, ss.tf, intraday)
-with tabs[4]:
-    PN.data_window(e, vp, df, decimals, intraday)
+    PN.events(e, df, intraday, decimals)
 
 refill = (f" · Yahoo has no intraday volume for {ticker}: on {ib_info['volume_refilled']} bars the profile shares each bar's own "
           "volume over its intrabars") if ib_info.get("volume_refilled") else ""

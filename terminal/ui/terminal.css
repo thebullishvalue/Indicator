@@ -83,14 +83,17 @@ html body .st-key-toolbar { background: var(--surface-1); border: 1px solid var(
 /* the chart frame: a panel like the rail's, the chart flush inside it */
 .st-key-chartframe { background: var(--surface-1); border: 1px solid var(--line); border-radius: var(--r-lg);
   padding: 0 !important; gap: 0 !important; overflow: hidden; }
-.st-key-chartframe [data-testid="stElementContainer"] { margin: 0 !important; }
-.st-key-chartframe iframe { display: block; border: 0; }
+/* Streamlit sizes an iframe's container as a flex item of the iframe's original height (flex: 0 0 760px); letting it
+   follow the iframe is what lets the page set the chart's and the watchlist's heights per screen size */
+.st-key-chartframe [data-testid="stElementContainer"] { margin: 0 !important; height: auto !important; flex: 0 0 auto !important; }
+.st-key-workspace [class*="st-key-panel-"] [data-testid="stElementContainer"]:has(> iframe) { height: auto !important; flex: 0 0 auto !important; }
+.st-key-chartframe iframe { display: block; border: 0; height: 760px; }          /* app.py's CHART_H; smaller screens set their own below */
 
 /* rail panels: no outer margin (the column's 12px gap spaces them), a fixed header height so the rail's height is
    exact arithmetic, and their bodies on the same 16px inset as their headers */
 .st-key-workspace [class*="st-key-panel-"] { margin: 0 !important; }
 .st-key-workspace [class*="st-key-panel-"] .panel-hdr { height: 42px; box-sizing: border-box; align-items: center; padding: 0 16px; flex-wrap: nowrap; }
-.st-key-workspace [class*="st-key-panel-"] [data-testid="stMarkdownContainer"]:has(> .panel-hdr) { margin-bottom: 0 !important; }
+[data-testid="stMain"] [class*="st-key-panel-"] [data-testid="stMarkdownContainer"]:has(> .panel-hdr) { margin-bottom: 0 !important; }
 .st-key-workspace [class*="st-key-panel-"] [data-testid="stElementContainer"]:has(> iframe),
 .st-key-workspace [class*="st-key-panel-"] [data-testid="stElementContainer"]:has(> [data-testid="stIFrame"]) { padding-top: 0 !important; }
 .st-key-workspace [class*="st-key-panel-"] iframe { display: block; }
@@ -136,3 +139,68 @@ html body .st-key-toolbar { background: var(--surface-1); border: 1px solid var(
 .t-foot + * { margin: 0; }
 
 .nc { text-transform: none !important; }
+
+/* controls inside a panel sit on its 16px inset */
+.st-key-sizeinputs, .st-key-eventfilter { padding: 12px 16px 8px !important; }
+.st-key-sizeinputs [data-testid="stHorizontalBlock"] { gap: 12px !important; }
+.st-key-sizeinputs [data-testid="stWidgetLabel"] p { font-family: var(--mono); font-size: var(--fs-3xs); letter-spacing: 0.14em; text-transform: uppercase; color: var(--ink-quaternary); }
+.st-key-eventfilter [data-testid="stButtonGroup"] { background: transparent; border: none; padding: 0; flex-wrap: wrap; }
+.st-key-eventfilter [data-testid="stButtonGroup"] button { text-transform: none !important; letter-spacing: 0 !important; font-size: var(--fs-xs) !important;
+  border: 1px solid var(--line) !important; }
+/* tab bodies: KPI strips and two-column rows on the page's 12px rhythm */
+[data-testid="stTabs"] [data-baseweb="tab-panel"] [data-testid="stHorizontalBlock"] { gap: 12px !important; }
+[data-testid="stTabs"] [data-baseweb="tab-panel"] [data-testid="stColumn"] > [data-testid="stVerticalBlock"] { gap: 12px !important; }
+
+/* ═══ Screens ══════════════════════════════════════════════════════════════
+   Desktop (above 1100px): chart and rail side by side, the rail exactly the chart's height.
+   Tablet (1100px and below): the rail moves under the chart, its two panels side by side; the toolbar wraps.
+   Phone (640px and below): one column; the interval strip scrolls sideways; the command bar keeps identity, price and
+   the last bar. The chart and the watchlist fill whatever height their frames are given. */
+@media (max-width: 1100px) {
+  [data-testid="stMain"] .st-key-workspace [data-testid="stHorizontalBlock"]:has(> [data-testid="stColumn"]:nth-child(2):last-child) > [data-testid="stColumn"]:nth-child(1),
+  [data-testid="stMain"] .st-key-workspace [data-testid="stHorizontalBlock"]:has(> [data-testid="stColumn"]:nth-child(2):last-child) > [data-testid="stColumn"]:nth-child(2) {
+    flex: 1 1 100% !important; flex-basis: 100% !important; width: 100% !important; }
+  .st-key-workspace [data-testid="stHorizontalBlock"] { flex-wrap: wrap !important; row-gap: 12px !important; }
+  .st-key-chartframe iframe { height: 640px !important; }
+  /* the rail's two panels share a row under the chart */
+  .st-key-workspace [data-testid="stColumn"]:nth-child(2) > [data-testid="stVerticalBlock"],
+  .st-key-workspace [data-testid="stColumn"]:nth-child(2) [data-testid="stVerticalBlock"]:has(> [data-testid="stLayoutWrapper"] [class*="st-key-panel-watch"]) {
+    flex-direction: row !important; flex-wrap: wrap !important; align-items: flex-start !important; }
+  .st-key-workspace [data-testid="stColumn"]:nth-child(2) [data-testid="stLayoutWrapper"]:has([class*="st-key-panel-"]) { flex: 1 1 320px; min-width: 0; }
+  .st-key-workspace [class*="st-key-panel-watch"] iframe { height: 380px !important; }
+
+  html body .st-key-toolbar [data-testid="stHorizontalBlock"] { flex-wrap: wrap !important; row-gap: 8px !important; }
+  [data-testid="stMain"] .st-key-toolbar [data-testid="stHorizontalBlock"]:has(> [data-testid="stColumn"]:nth-child(7):last-child) > [data-testid="stColumn"]:nth-child(5) { display: none !important; }
+  .st-key-toolbar [data-testid="stColumn"]:nth-child(6) { margin-left: 0 !important; padding-left: 0 !important; border-left: none !important; }
+  .command-bar .m-currency { display: none !important; }
+}
+@media (max-width: 640px) {
+  html body [data-testid="stMain"] .block-container, html body [data-testid="stMain"] [data-testid="stMainBlockContainer"] {
+    padding: 10px 10px 20px !important; }
+  [data-testid="stMain"] [data-testid="stMainBlockContainer"] > [data-testid="stVerticalBlock"] { gap: 10px !important; }
+  .command-bar { padding: 10px 12px !important; gap: 8px 12px !important; }
+  .command-bar .cb-brand { display: none !important; }
+  .command-bar .cb-quote { padding-left: 12px !important; }
+  .command-bar .cb-right { gap: 12px !important; width: 100%; justify-content: flex-start; }
+  .command-bar .m-exchange, .command-bar .m-bars, .command-bar .m-currency { display: none !important; }
+  .command-bar .cb-meta { text-align: left; }
+  .command-bar .cb-meta + .cb-meta { padding-left: 12px; }
+  .command-bar .chip { display: none !important; }
+
+  html body .st-key-toolbar { padding: 8px 10px !important; }
+  [data-testid="stMain"] .st-key-toolbar [data-testid="stHorizontalBlock"]:has(> [data-testid="stColumn"]:nth-child(7):last-child) > [data-testid="stColumn"]:nth-child(1),
+  [data-testid="stMain"] .st-key-toolbar [data-testid="stHorizontalBlock"]:has(> [data-testid="stColumn"]:nth-child(7):last-child) > [data-testid="stColumn"]:nth-child(2) {
+    flex: 1 1 100% !important; flex-basis: 100% !important; margin-left: 0 !important; }
+  .st-key-toolbar [data-testid="stColumn"]:nth-child(2) [data-testid="stButtonGroup"] { width: 100% !important; overflow-x: auto; scrollbar-width: none; }
+  .st-key-toolbar [data-testid="stColumn"]:nth-child(2) [data-testid="stButtonGroup"] > div { justify-content: space-between; min-width: 100%; }
+  .st-key-toolbar [data-testid="stColumn"]:nth-child(3) { margin-left: 0 !important; padding-left: 0 !important; border-left: none !important; }
+  .st-key-toolbar [data-testid="stColumn"]:nth-child(6) { margin-left: 6px !important; padding-left: 0 !important; border-left: none !important; }
+  .st-key-toolbar [data-testid="stButton"] button { width: 32px !important; min-width: 32px; padding: 0 !important; justify-content: center; }
+  .st-key-toolbar [data-testid="stButton"] button p { display: none; }          /* Settings shows its icon alone */
+  .st-key-toolbar [data-testid="stButton"] [data-testid="stIconMaterial"] { margin: 0; }
+
+  .st-key-chartframe iframe { height: 540px !important; }
+  .st-key-workspace [class*="st-key-panel-watch"] iframe { height: 340px !important; }
+  [data-testid="stTabs"] [data-baseweb="tab-list"] { overflow-x: auto; scrollbar-width: none; }
+  .t-table th, .t-table td { padding-left: 10px; padding-right: 10px; }
+}

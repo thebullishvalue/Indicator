@@ -18,10 +18,18 @@ streamlit run terminal/app.py
 | **Chart** | Candles and volume, the volume profile with its value area, POC, VWAP, Initial Balance, prior-session and naked-POC levels and their tags, the landing band, midline, stop history, proven-state marks, the forward cone with its stops, and the table. Below it, the Anumaan pane: the surprise columns against the landing band, and the four tapes with their labels. The status lines follow the crosshair |
 | **Watchlist** | Click a row to open it |
 | **Symbol** | Exchange and type, the day's range and the 52-week range |
-| **Bottom panel** | **Proof** (the strategy report: exposure against buy and hold) · **Ledger** (the nine states) · **Record** (calibration per rung, per risk regime, per trend state) · **Alerts** (every alert condition as it fired) · **Data Window** |
+| **Bottom panel** | Arranged by the questions a trader brings to the chart. **Plan**, what do I do now: exposure, risk, trend, the cone and this chart's record; position size at the script's stops for your equity and risk per trade; and a level ladder of every level the script draws, sorted by price, with its distance from the close in % and in σ. **Forecast**, how far can it go: the four horizons as a fan and a term structure, each with its record here, and what followed the current state against every state. **Audit**, has it been honest here: calibration by horizon, risk regime and trend; every surprise in band widths; the exposure against buy and hold; the ledger. **Events**, what changed and when: every alert condition as it fired, filterable by kind |
 
 **Settings** reads its inputs from `anumaan.pine` itself: the same labels, defaults, options, limits, groups and tooltips, all 45 of
 them. The **Display** group's **Theme** behaves as in the script: on Auto it follows the terminal's appearance.
+
+## Screens
+
+It works on any screen. On a desktop the chart and the rail sit side by side, and the rail is exactly the chart's height. On a
+tablet (1100px and narrower) the rail moves under the chart, with its two panels side by side, and the toolbar wraps. On a phone
+(640px and narrower) everything stacks in one column, the interval strip scrolls sideways, and the command bar keeps the symbol,
+the price and the last bar. The chart and the watchlist fill whatever height their frames get. Tested at 390, 834, 1280, 1440 and
+1920px wide, with no sideways scroll at any of them.
 
 ## How faithful it is
 
