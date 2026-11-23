@@ -184,6 +184,8 @@
   }
   const panes = chart.panes();
   if (panes[1]) panes[1].setHeight(Math.round(height * 0.34));
+  // keep every scale's end labels inside its pane: the Anumaan pane's ±6 labels sat on the pane's edges and were cut
+  pane1Series.priceScale().applyOptions({ scaleMargins: { top: 0.11, bottom: 0.06 } });
 
   // ── watermark ──────────────────────────────────────────────────────────
   try {
@@ -222,7 +224,7 @@
   }
   function placePaneLegend() {
     const ps = chart.panes();
-    if (ps[1]) { const top = ps[0].getHeight() + 1 + 6; leg1.style.top = top + 'px'; }
+    if (ps[1]) { const top = ps[0].getHeight() + 1 + 8; leg1.style.top = top + 'px'; }
   }
   chart.subscribeCrosshairMove((param) => {
     const i = param && param.time !== undefined ? byTime.get(param.time) : undefined;

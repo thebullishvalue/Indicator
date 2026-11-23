@@ -8,6 +8,7 @@ import math
 import numpy as np
 import pandas as pd
 import plotly.graph_objects as go
+from plotly.subplots import make_subplots
 import streamlit as st
 
 from engine.table import f_pct, fmt
@@ -51,19 +52,19 @@ def proof(e: dict, df: pd.DataFrame, tok: dict, dark: bool, intraday: bool) -> N
              tooltip="Long above the midline, flat below, scored as the exposure is. A description, not a signal."),
     ]
     K.kpi_strip(items, key="kpi-proof")
-    with K.panel("proof-chart", "Growth", context="log %, net of costs · exposure against buy and hold"):
+    with K.panel("proof-chart", "Growth", context="log %, net of costs · following exposure against buy and hold · exposure held, beneath"):
         idx = df.index[-len(s["eqF"]):]
-        fig = go.Figure()
-        fig.add_trace(go.Scatter(x=idx, y=100 * np.log(s["eqH"]), name="Buy and hold", line=dict(color=tok["axis"], width=1)))
-        fig.add_trace(go.Scatter(x=idx, y=100 * np.log(s["eqF"]), name="Following exposure", line=dict(color=tok["ink"], width=1.6)))
-        fig.add_trace(go.Scatter(x=idx, y=100 * s["E"], name="Exposure (%)", yaxis="y2", line=dict(color="rgba(76,125,240,0.55)", width=1),
-                                 fill="tozeroy", fillcolor="rgba(76,125,240,0.07)"))
-        fig.update_layout(height=320, margin=dict(l=8, r=8, t=8, b=8), paper_bgcolor=tok["bg"], plot_bgcolor=tok["bg"],
+        fig = make_subplots(rows=2, cols=1, shared_xaxes=True, row_heights=[0.74, 0.26], vertical_spacing=0.04)
+        fig.add_trace(go.Scatter(x=idx, y=100 * np.log(s["eqH"]), name="Buy and hold", line=dict(color=tok["axis"], width=1)), 1, 1)
+        fig.add_trace(go.Scatter(x=idx, y=100 * np.log(s["eqF"]), name="Following exposure", line=dict(color=tok["ink"], width=1.6)), 1, 1)
+        fig.add_trace(go.Scatter(x=idx, y=100 * s["E"], name="Exposure", line=dict(color="rgba(76,125,240,0.85)", width=1, shape="hv"),
+                                 fill="tozeroy", fillcolor="rgba(76,125,240,0.10)"), 2, 1)
+        fig.update_layout(height=340, margin=dict(l=16, r=16, t=8, b=8), paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)",
                           font=dict(family="JetBrains Mono, monospace", size=10, color=tok["axis"]), hovermode="x unified",
-                          legend=dict(orientation="h", y=1.08, x=0, bgcolor="rgba(0,0,0,0)"),
-                          xaxis=dict(gridcolor=tok["grid"], showline=False),
-                          yaxis=dict(gridcolor=tok["grid"], title="log %", side="right"),
-                          yaxis2=dict(overlaying="y", side="left", range=[0, 400], showgrid=False, title="exposure %", tickvals=[0, 50, 100]))
+                          legend=dict(orientation="h", y=1.06, x=0, bgcolor="rgba(0,0,0,0)"))
+        fig.update_xaxes(gridcolor=tok["grid"], showline=False, zeroline=False)
+        fig.update_yaxes(gridcolor=tok["grid"], zeroline=False, side="right", ticksuffix="%", row=1, col=1)
+        fig.update_yaxes(gridcolor=tok["grid"], zeroline=False, side="right", range=[0, 105], tickvals=[0, 50, 100], ticksuffix="%", row=2, col=1)
         st.plotly_chart(fig, width="stretch", config=dict(displayModeBar=False))
 
 

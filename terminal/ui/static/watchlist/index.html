@@ -5,9 +5,10 @@
   html, body { margin: 0; padding: 0; background: transparent; }
   #box { overflow-y: auto; scrollbar-width: thin; }
   table { width: 100%; border-collapse: collapse; table-layout: fixed; font: 11px/1.2 'JetBrains Mono', ui-monospace, monospace; }
-  th { font: 600 9px/1 'JetBrains Mono', monospace; letter-spacing: .12em; text-transform: uppercase; text-align: right; padding: 6px 6px; position: sticky; top: 0; }
+  th { font: 600 9px/1 'JetBrains Mono', monospace; letter-spacing: .12em; text-transform: uppercase; text-align: right; padding: 9px 6px; position: sticky; top: 0; z-index: 1; }
   th:nth-child(1) { width: 34%; } th:nth-child(2) { width: 26%; } th:nth-child(3) { width: 21%; } th:nth-child(4) { width: 19%; }
   th:first-child, td:first-child { text-align: left; }
+  th:first-child, td:first-child { padding-left: 16px !important; } th:last-child, td:last-child { padding-right: 16px !important; }
   td { padding: 6px 6px; text-align: right; overflow: hidden; text-overflow: ellipsis; font-variant-numeric: tabular-nums; white-space: nowrap; }
   tr.row { cursor: pointer; }
   td .sym { font: 600 12px/1.2 Inter, system-ui, sans-serif; }
@@ -20,7 +21,7 @@
   let tk = {};
   function render(args) {
     tk = args.tokens;
-    document.getElementById('box').style.maxHeight = (args.cap || 420) + 'px';
+    document.getElementById('box').style.height = (args.cap || 420) + 'px';
     document.body.style.color = tk.ink;
     const th = document.querySelectorAll('th'); th.forEach(x => { x.style.color = tk.quaternary; x.style.borderBottom = '1px solid ' + tk.line; x.style.background = tk.bg; });
     const tb = document.querySelector('tbody'); tb.innerHTML = '';
@@ -38,7 +39,7 @@
       tr.onclick = () => send('streamlit:setComponentValue', { value: { symbol: r.sym, nonce: Date.now() }, dataType: 'json' });
       tb.appendChild(tr);
     });
-    send('streamlit:setFrameHeight', { height: Math.min(document.getElementById('t').scrollHeight, args.cap || 420) + 2 });
+    send('streamlit:setFrameHeight', { height: args.cap || 420 });
   }
   window.addEventListener('message', (ev) => { if (ev.data && ev.data.type === 'streamlit:render') render(ev.data.args); });
   send('streamlit:componentReady', { apiVersion: 1 });

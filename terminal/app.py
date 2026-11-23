@@ -35,7 +35,11 @@ from ui import chart as C, components as K, inputs as I, panels as PN, theme  # 
 
 INTERVALS = list(D.TIMEFRAMES)
 CHART_H = 760
-WATCH_H = 578                          # the watchlist fills the rail beside the chart, above a three-row Symbol box
+# The rail is exactly as tall as the chart frame (CHART_H + its 1px borders), so the Symbol box's bottom is flush with
+# the chart's. terminal.css fixes the numbers this adds up: a rail panel is 2px of border plus a 42px header, a key/value
+# row is 30px, the rail's gap is 12px.
+GAP, PANEL_CHROME, KV_ROW, SYMBOL_ROWS = 12, 2 + 42, 30, 3
+WATCH_H = (CHART_H + 2) - GAP - (PANEL_CHROME + SYMBOL_ROWS * KV_ROW) - PANEL_CHROME
 
 # ── state ──────────────────────────────────────────────────────────────────
 ss = st.session_state
@@ -224,7 +228,7 @@ with left:
     with st.container(key="chartframe"):
         payload = C.payload(df, e, vp, meta, pal, dark, tok, tfo.sec, decimals, mintick, show_volume=ss.volume, table_rows=rows)
         title = dict(name=name, tf=ss.tf, exchange=ex_name or "", watermark=f"{name}, {ss.tf}")
-        components.html(C.html(payload, tok, title, height=CHART_H), height=CHART_H + 2, scrolling=False)
+        components.html(C.html(payload, tok, title, height=CHART_H), height=CHART_H, scrolling=False)
 
 with rail:
     with K.panel("watch", "Watchlist", meta="1D change · click to open"):
@@ -273,10 +277,9 @@ with tabs[3]:
 with tabs[4]:
     PN.data_window(e, vp, df, decimals, intraday)
 
-if ib_info.get("volume_refilled"):
-    K.note(f"Yahoo reports no intraday volume for {ticker}; on {ib_info['volume_refilled']} bars the profile shares each bar's own "
-           "volume evenly over its intrabars.")
+refill = (f" · Yahoo has no intraday volume for {ticker}: on {ib_info['volume_refilled']} bars the profile shares each bar's own "
+          "volume over its intrabars") if ib_info.get("volume_refilled") else ""
 st.markdown(
-    '<div class="t-foot">Anumaan · anumaan.pine ported to Python bar for bar · data: Yahoo Finance (delayed) · charts by '
+    '<div class="t-foot">Anumaan · anumaan.pine ported to Python bar for bar · data: Yahoo Finance (delayed)' + refill + ' · charts by '
     '<a href="https://www.tradingview.com/" target="_blank" rel="noopener">TradingView Lightweight Charts™</a>, Apache-2.0</div>',
     unsafe_allow_html=True)

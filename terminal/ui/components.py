@@ -8,6 +8,11 @@ from contextlib import contextmanager
 import streamlit as st
 
 
+def _x(text: str) -> str:
+    """Escape for HTML, keeping σ lowercase where a header is set in capitals (uppercase turns σ into Σ, another symbol)."""
+    return H.escape(text).replace("σ", '<span class="nc">σ</span>')
+
+
 def chip(label: str, tone: str = "neutral") -> str:
     return f'<span class="chip chip-{H.escape(tone)}">{H.escape(label)}</span>'
 
@@ -36,8 +41,8 @@ def command_bar(*, name: str, description: str, price: float | None, change_pct:
 def panel_header(title: str = "", *, context: str = "", meta: str = "", chip_: tuple[str, str] | None = None) -> None:
     if not (title or context or meta or chip_):
         return
-    left = (f'<span class="ph-title">{H.escape(title)}</span>' if title else "") + (
-        f'<span class="ph-context">{H.escape(context)}</span>' if context else "")
+    left = (f'<span class="ph-title">{_x(title)}</span>' if title else "") + (
+        f'<span class="ph-context">{_x(context)}</span>' if context else "")
     right = (f"<span>{H.escape(meta)}</span>" if meta else "") + (chip(*chip_) if chip_ else "")
     st.markdown(f'<div class="panel-hdr"><div class="ph-left">{left}</div><div class="ph-right">{right}</div></div>',
                 unsafe_allow_html=True)
@@ -98,7 +103,7 @@ def table(df, *, fmt: dict | None = None, tone: dict | None = None, mark: int | 
     fmt: {column: callable(value) -> str}. tone: {column: callable(value) -> css colour or None}. mark: row to highlight."""
     fmt, tone = fmt or {}, tone or {}
     cols = list(df.columns)
-    head = "".join(f'<th class="{"l" if c in align_left else ""}">{H.escape(str(c))}</th>' for c in cols)
+    head = "".join(f'<th class="{"l" if c in align_left else ""}">{_x(str(c))}</th>' for c in cols)
     body = []
     for i, row in enumerate(df.itertuples(index=False)):
         cells = []
