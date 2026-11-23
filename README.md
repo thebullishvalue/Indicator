@@ -210,6 +210,7 @@ Gold always means risk, never up or down.
 
 ### Status
 
+- **v2.6.1** runs faster with identical output, for TradingView's execution-time limit: the volume profile's value area is walked only where it is drawn, rows are found with one search per span, and label text is built on the last bar only. A new opt-in, *Recent sessions only*, skips the profile on old bars; it is not exact (a naked POC's line can rarely start one session apart).
 - **v2.6** is the interface above, after the second audit round; **v2.5** was the first round; **v2.4** renamed the script to Pragyam and first set the palette by meaning; **v2.3** closed the presentation (status line, line weights, column colours, compact table) and tests two more observations; **v2.2** added the midline and its record; **v2.1** added the volume profile. No engine number changed from v2.0. The preview image does not show the profile.
 - A later experiment ("Maryada": touch probabilities on profile levels, unified tapes, Pragati's palette) was set aside; it remains in the git history at commit `7c5340a`.
 - The Pine script has **not been compiled in TradingView**. No Pine compiler is available here; it was checked by hand against the reference implementation. Expect to fix a syntax detail or two on first load.
