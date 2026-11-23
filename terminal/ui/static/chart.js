@@ -1,8 +1,8 @@
-/* Pramana on Lightweight Charts. Reads window.PRAMANA = {p, tokens, title, height}.
-   Pane 0: candles, volume, the script's overlays and its drawings. Pane 1: the Pramana pane.
+/* Anumaan on Lightweight Charts. Reads window.ANUMAAN = {p, tokens, title, height}.
+   Pane 0: candles, volume, the script's overlays and its drawings. Pane 1: the Anumaan pane.
    Drawings are primitives positioned in bar indices (logical) and prices, as the Pine script positions them. */
 (function () {
-  const { p, tokens: K, title, height } = window.PRAMANA;
+  const { p, tokens: K, title, height } = window.ANUMAAN;
   // unpack the compact payload: per-bar series are {v, c} aligned with p.times, colours indices into p.colours
   const U = (o) => p.times.map((t, i) => (o.v[i] === null || o.v[i] === undefined) ? { time: t } :
     (o.c ? { time: t, value: o.v[i], color: p.colours[o.c[i]] } : { time: t, value: o.v[i] }));
@@ -146,7 +146,7 @@
   }
   ['bottom', 'normal', 'top'].forEach(z => candles.attachPrimitive(new Drawing({ profile: p.profile, cone: p.cone }, z)));
 
-  // ── pane 1: Pramana ───────────────────────────────────────────────────
+  // ── pane 1: Anumaan ───────────────────────────────────────────────────
   const P1 = 1;
   let pane1Series;
   if (p.pane === 'Surprise') {
@@ -215,7 +215,7 @@
     const c = p.cols[i];
     const val = p.pane === 'Surprise' ? (c && c.value !== undefined ? c.value : null) : null;
     const raw = p.pane === 'Surprise' ? p.uRaw[i] : val;
-    leg1.innerHTML = `<span class="ind">Pramana</span>` + (p.pane === 'Surprise'
+    leg1.innerHTML = `<span class="ind">Anumaan</span>` + (p.pane === 'Surprise'
       ? `<span class="v" style="color:${(c && c.color) || K.axis}">${raw === null || raw === undefined ? '∅' : Number(raw).toFixed(2)}</span>`
       : `<span class="v">${p.proofF[i].value !== undefined ? p.proofF[i].value.toFixed(1) : '∅'}</span>` +
         `<span class="v muted">${p.proofH[i].value !== undefined ? p.proofH[i].value.toFixed(1) : '∅'}</span>`);

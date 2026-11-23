@@ -1,9 +1,9 @@
-"""Does starting pramana.pine's volume profile at the gate change the naked-POC list on the last bar?
+"""Does starting anumaan.pine's volume profile at the gate change the naked-POC list on the last bar?
 Replays the Pine bookkeeping bar for bar (bar-range spread, ATR rows frozen at session start, strict POC,
 touch removal, de-duplication within 0.1 ATR, cap, age) from the first bar and from the gate, and compares
 the lists at many end points."""
 import sys, math
-import numpy as np, pandas as pd
+import numpy as np
 sys.path.insert(0, __import__("os").path.join(__import__("os").path.dirname(__import__("os").path.abspath(__file__)), ".."))
 from lib import load
 from multiprocessing import Pool

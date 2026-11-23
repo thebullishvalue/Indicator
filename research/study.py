@@ -1,6 +1,6 @@
-"""Every number quoted in the README and in pramana.pine's header.  Run:  python3 fetch.py && python3 study.py > results.txt"""
+"""Every number quoted in the README and in anumaan.pine's header.  Run:  python3 fetch.py && python3 study.py > results.txt"""
 from lib import *
-from pramana import run
+from anumaan import run
 import warnings; warnings.filterwarnings("ignore")
 pd.set_option("display.width", 250)
 D = load()
@@ -49,7 +49,7 @@ print("\nQLIKE by class (OOS)"); print(pd.DataFrame({k: te.groupby("cls").apply(
 # ---------- 1. calibration: conformal vs fixed Gaussian --------------------------------------------------------------
 rows = []
 for s, (cls, d) in D.items():
-    for nm, kw in (("pramana (regime + trend)", {}), ("regime only", dict(trendf=False)), ("one width", dict(regimes=False, trendf=False)), ("fixed normal", dict(conformal=False))):
+    for nm, kw in (("anumaan (regime + trend)", {}), ("regime only", dict(trendf=False)), ("one width", dict(regimes=False, trendf=False)), ("fixed normal", dict(conformal=False))):
         R = run(d, **kw); R = R[R.nF == 1]; R["era"] = era_of(R.index)
         for e, Q in R.groupby("era", observed=True):
             if len(Q) > 300: rows.append(dict(sym=s, cls=cls, kind=nm, era=e, cover=1 - Q.mU.mean() - Q.mD.mean(), up=Q.mU.mean(), dn=Q.mD.mean(), stopL=Q.mS.mean(), stopS=Q.mR.mean()))
@@ -65,7 +65,7 @@ print("\nspread across instruments (std of realised coverage):"); print(C.groupb
 rows = []; rows2 = []
 for s, (cls, d) in D.items():
     REG = run(d, trendf=False).reg                                                                   # the regime at forecast time, the same for every variant
-    for nm, kw in (("fixed normal", dict(conformal=False)), ("one width", dict(regimes=False, trendf=False)), ("regime only", dict(trendf=False)), ("pramana (regime + trend)", {}), ("pramana, eta .01", dict(eta=.01)), ("pramana, eta .05", dict(eta=.05))):
+    for nm, kw in (("fixed normal", dict(conformal=False)), ("one width", dict(regimes=False, trendf=False)), ("regime only", dict(trendf=False)), ("anumaan (regime + trend)", {}), ("anumaan, eta .01", dict(eta=.01)), ("anumaan, eta .05", dict(eta=.05))):
         R = run(d, **kw); Q = R[R.nF == 1].copy(); Q["rg"] = REG.shift(10).reindex(Q.index); Q["era"] = pd.cut(Q.index.year, [1999, 2012, 2019, 2030], labels=["03-12", "13-19", "20-26"])
         for rg, q in Q.groupby("rg"): rows.append(dict(sym=s, kind=nm, reg=["calm", "normal", "stressed"][int(rg)], cover=1 - q.mU.mean() - q.mD.mean(), stopL=q.mS.mean(), stopS=q.mR.mean()))
         for e, q in Q.groupby("era", observed=True):

@@ -1,4 +1,4 @@
-# Pramana terminal — dependencies
+# Anumaan terminal — dependencies
 # Streamlit is PINNED EXACTLY, as in Pragyam, Tattva and Arthagati: ui/theme.css is the shared design system, keyed to
 # Streamlit 1.52.2's DOM (data-testid hooks, st-key-* classes). See those repos' requirements.txt for the full reasoning
 # (React Aria migration from 1.53, the Starlette GZipResponder crash, pyarrow cp314 wheels).

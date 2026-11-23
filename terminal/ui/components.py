@@ -1,4 +1,4 @@
-"""Pramana terminal components: the design system's command bar, panel chrome, chips and metric cards (the markup
+"""Anumaan terminal components: the design system's command bar, panel chrome, chips and metric cards (the markup
 Tattva, Pragyam and Arthagati share, so theme.css styles them unchanged), plus the terminal's own blocks."""
 from __future__ import annotations
 
@@ -26,7 +26,7 @@ def command_bar(*, name: str, description: str, price: float | None, change_pct:
                         for k, v in meta if v)
     st.markdown(
         f'<div class="command-bar"><div class="cb-left">'
-        f'<div class="cb-brand"><span class="mark">PRA<span class="accent-ink">MANA</span></span><span class="sub">प्रमाण · terminal</span></div>'
+        f'<div class="cb-brand"><span class="mark">ANU<span class="accent-ink">MAAN</span></span><span class="sub">अनुमान · terminal</span></div>'
         f'<div class="cb-instrument"><span class="eyebrow">{H.escape(description)}</span><span class="sym">{H.escape(name)}</span></div>'
         f'{quote}</div><div class="cb-right">{meta_html}{chip(*status) if status else ""}</div></div>',
         unsafe_allow_html=True,
@@ -90,7 +90,7 @@ def note(text: str) -> None:
 import streamlit.components.v1 as _components  # noqa: E402
 from pathlib import Path as _Path  # noqa: E402
 
-_WATCH = _components.declare_component("pramana_watchlist", path=str(_Path(__file__).parent / "static" / "watchlist"))
+_WATCH = _components.declare_component("anumaan_watchlist", path=str(_Path(__file__).parent / "static" / "watchlist"))
 
 
 def watchlist(rows: list[dict], tokens: dict, key: str = "watchlist"):

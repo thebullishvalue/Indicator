@@ -12,7 +12,7 @@
 Every engine line - risk forecast, trend, cone, stops, ledger, exposure, proof, pane, tapes, table, alerts - is
 v2.6's, apart from two that cannot change a value: the cone's starting widths are worked out once on the first
 bar (they depend on inputs only), and the words for labels and the table are built on the last bar only (the
-only bar that draws them). `pramana.pine` is `pragyam.pine` renamed; nothing else differs.
+only bar that draws them). `anumaan.pine` is `pragyam.pine` renamed; nothing else differs.
 
 | Change | Effect on output |
 |---|---|

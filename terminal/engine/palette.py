@@ -1,4 +1,4 @@
-"""pramana.pine's palette and transparency ladder. Pine's color.new(c, t) is the colour at (100 - t)% opacity."""
+"""anumaan.pine's palette and transparency ladder. Pine's color.new(c, t) is the colour at (100 - t)% opacity."""
 from __future__ import annotations
 
 A_SOLID, A_FIRM, A_QUIET, A_FAINT, A_WARM = 0, 40, 65, 80, 90

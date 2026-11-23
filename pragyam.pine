@@ -162,7 +162,7 @@
 //              σ, against this chart's own mean, shrunk toward "no edge". A
 //              state is called PROVEN only past two posterior σ.
 //
-//  ═══ MEASURED (research/results.txt · the Python port is research/pramana.py)
+//  ═══ MEASURED (research/results.txt · the Python port is research/anumaan.py)
 //    CALIBRATION   cone 80%: realised 80.0%; within 3 points of target in 99%
 //                  of instrument-eras (a fixed normal band: 61%). Stops 20%:
 //                  realised 20.0%, within 3 points in 99%. A 2 × ATR(14) stop

@@ -9,7 +9,7 @@
 # is present, Streamlit builds Light, Dark and a third "Custom Theme Auto" =
 # getSystemThemePreference() === "dark" ? dark : light, and makes that third
 # one active: the native widgets followed THE VIEWER'S OPERATING SYSTEM, while
-# Pramana's appearance comes from its Paper/Slate toggle. On a phone in dark
+# Anumaan's appearance comes from its Paper/Slate toggle. On a phone in dark
 # mode viewing Paper, natives such as the date picker's empty cells and the
 # tab strip's overflow fade were painted near-black on a near-white page.
 #

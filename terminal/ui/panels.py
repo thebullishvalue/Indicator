@@ -14,7 +14,7 @@ import streamlit as st
 from engine.table import f_pct, fmt
 from ui import components as K
 
-PINE = Path(__file__).resolve().parents[2] / "pramana.pine"
+PINE = Path(__file__).resolve().parents[2] / "anumaan.pine"
 
 ALERT_TEXT = {
     "Landing band · close above": "closed above the landing band. A miss, not a signal.",
@@ -41,7 +41,7 @@ def _stamp(ts, intraday: bool) -> str:
 
 def pine_editor() -> None:
     src = PINE.read_text(encoding="utf-8")
-    with K.panel("pine", "pramana.pine", context=f"Pine Script v6 · {len(src.splitlines()):,} lines · read only",
+    with K.panel("pine", "anumaan.pine", context=f"Pine Script v6 · {len(src.splitlines()):,} lines · read only",
                  meta="the script this terminal runs, ported to Python"):
         st.code(src, language="javascript", line_numbers=True, height=520)
 

@@ -1,6 +1,6 @@
-"""pramana.pine's binary search under Pine v6 division ((lo+hi)/2 is fractional), with array indices truncated.
+"""anumaan.pine's binary search under Pine v6 division ((lo+hi)/2 is fractional), with array indices truncated.
 Does inserting keys with it keep them sorted, and does it find keys that are there?"""
-import random, math
+import random
 
 def locate_v6(keys, k):
     lo, hi, pos, found = 0, len(keys) - 1, 0, False

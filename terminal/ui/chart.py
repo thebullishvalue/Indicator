@@ -1,7 +1,7 @@
-"""The chart: Pramana drawn on TradingView's open-source Lightweight Charts library (Apache-2.0).
+"""The chart: Anumaan drawn on TradingView's open-source Lightweight Charts library (Apache-2.0).
 
 `payload()` turns the engine's output into what the chart draws - every plot, colour, marker and drawing of
-pramana.pine, in its own z-order - and `html()` returns the self-contained component. Drawings the library has no
+anumaan.pine, in its own z-order - and `html()` returns the self-contained component. Drawings the library has no
 series for (profile rows, level lines and their tags, the forward cone, the tapes' labels) are custom primitives
 positioned in bar indices and prices, exactly as the script positions them.
 """
@@ -210,7 +210,7 @@ def html(p: dict, tokens: dict, title: dict, height: int = 760) -> str:
              "href='https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap'>")
     return (f"<!doctype html><html><head><meta charset='utf-8'>{fonts}<style>{root}{css}</style></head><body>"
             f"<div id='wrap'><div id='chart'></div></div>"
-            f"<script>{js}</script><script>window.PRAMANA={data};</script><script>{app}</script></body></html>")
+            f"<script>{js}</script><script>window.ANUMAAN={data};</script><script>{app}</script></body></html>")
 
 
 def _clean(o):

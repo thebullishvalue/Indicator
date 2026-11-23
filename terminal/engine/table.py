@@ -1,4 +1,4 @@
-"""Section 9 of pramana.pine - the table - and the tapes' words, with the script's own text and number formats.
+"""Section 9 of anumaan.pine - the table - and the tapes' words, with the script's own text and number formats.
 
 Pine formats numbers with DecimalFormat-style patterns: "#" (no decimals), "#.0" (one, no leading zero),
 "0.00", "+0.00;-0.00". `fmt()` follows them for the patterns the script uses.
@@ -77,7 +77,7 @@ def rows(e: dict, close: float, decimals: int) -> list[dict]:
     hTxt = f"{H} bars"
     sig = s["sig"][t]
     if _na(sig):
-        return [dict(key="PRAMANA", value=f"warming {t + 1}/{252 + H}", tone="NEUT",
+        return [dict(key="ANUMAAN", value=f"warming {t + 1}/{252 + H}", tone="NEUT",
                      tip="The risk forecast needs a year of bars before its first reading.")]
     stopL, stopS, upper, lower = s["stopL"][t], s["stopS"][t], s["upper"][t], s["lower"][t]
     dL = 1.0 - stopL / close

@@ -1,8 +1,8 @@
-"""How far does calc_bars_count = 5000 move Pramana's engine? research/pramana.py run() on each daily instrument's
+"""How far does calc_bars_count = 5000 move Anumaan's engine? research/anumaan.py run() on each daily instrument's
 full history against its last 5,000 bars; compares the bars both runs share, at the end of the chart."""
 import sys; sys.path.insert(0, ".")
 import numpy as np, pandas as pd
-import pramana as P
+import anumaan as P
 from lib import load
 from multiprocessing import Pool
 

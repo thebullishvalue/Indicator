@@ -1,8 +1,8 @@
-# Pramana hyperparameter optimisation: results
+# Anumaan hyperparameter optimisation: results
 
 **Verdict: every default stays.** Three parts were tuned under the protocol in `PROTOCOL.md`: the risk
 forecast, the cone and stops, and the exposure rule. None produced a change that both cleared the materiality
-bar out of sample and kept Pramana's calibration promises. The one candidate that passed validation did worse
+bar out of sample and kept Anumaan's calibration promises. The one candidate that passed validation did worse
 on the sealed universe: its stops drift in trends and its hourly regime coverage slips outside tolerance. It
 is reported here and does not ship.
 
@@ -56,7 +56,7 @@ tolerance. **Verdict: reported only.**
   - In uptrends, the long stop is touched 22 to 24% of the time.
   - With trend adaptation on, every side in every trend state stays within 1 point of target.
 
-  The pooled interval score cannot see this. Pramana's stops are its product, so the trend term stays.
+  The pooled interval score cannot see this. Anumaan's stops are its product, so the trend term stays.
 - **A slower η scores better, but warms up too slowly.** η ≤ 0.015 has a better interval score but breaks
   regime calibration on the tuning split (3.5 to 5 points). Among configs calibrated in every trend state,
   η = 0.015 gains less than 1% on validation.

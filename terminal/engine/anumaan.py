@@ -1,4 +1,4 @@
-"""Pramana's engine, ported from pramana.pine section by section, bar for bar.
+"""Anumaan's engine, ported from anumaan.pine section by section, bar for bar.
 
 Every series the script draws, every number its table prints and every alert it raises is computed here,
 in the order the script computes it. Pine's semantics are kept where they decide a value:
@@ -28,7 +28,7 @@ NAN = float("nan")
 
 @dataclass
 class Inputs:
-    """Every input of pramana.pine, with the script's defaults. Names follow the script."""
+    """Every input of anumaan.pine, with the script's defaults. Names follow the script."""
     # 1 · Display
     pane: str = "Surprise"              # "Surprise" | "Proof"
     tapes: bool = True

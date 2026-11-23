@@ -1,4 +1,4 @@
-"""Section 7 of pramana.pine - the volume profile and market-structure overlay - ported bar for bar.
+"""Section 7 of anumaan.pine - the volume profile and market-structure overlay - ported bar for bar.
 
 Sessions are D on intraday charts, W on daily, M above. Row size is ATR(20) / rows-per-ATR, frozen at the
 session's first bar. Each bar's volume goes to the rows its intrabars traded in (lower-timeframe data where
@@ -18,7 +18,7 @@ import numpy as np
 import pandas as pd
 
 from .palette import rgba
-from .pramana import Inputs, pine_atr
+from .anumaan import Inputs, pine_atr
 
 NAN = float("nan")
 

@@ -1,11 +1,11 @@
-"""The script's inputs, read from pramana.pine itself - labels, defaults, options, limits, groups and tooltips - so the
+"""The script's inputs, read from anumaan.pine itself - labels, defaults, options, limits, groups and tooltips - so the
 settings dialog says exactly what the script's settings say."""
 from __future__ import annotations
 
 import re
 from pathlib import Path
 
-PINE = Path(__file__).resolve().parents[2] / "pramana.pine"
+PINE = Path(__file__).resolve().parents[2] / "anumaan.pine"
 
 FIELD = {
     "inpPane": "pane", "inpTapes": "tapes", "inpCone": "cone", "inpLand": "land", "inpMid": "mid", "inpMidMk": "mid_marks",

@@ -1,4 +1,4 @@
-"""Pramana terminal - the design system's CSS (Graphite / Paper, from Tattva, shared with Pragyam and Arthagati).
+"""Anumaan terminal - the design system's CSS (Graphite / Paper, from Tattva, shared with Pragyam and Arthagati).
 
 theme.css is the shared stylesheet, unchanged apart from its header: the dark token block, every component rule
 reading var(--token). Paper is a second, smaller :root injected after it. terminal.css adds the terminal's own
@@ -12,7 +12,7 @@ import streamlit as st
 
 HERE = Path(__file__).parent
 VERSION = "1.0.0"
-PRODUCT = "Pramana"
+PRODUCT = "Anumaan"
 
 LIGHT_TOKENS = """
 :root {

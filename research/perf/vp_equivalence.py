@@ -1,4 +1,4 @@
-"""Old vs new pramana.pine profile code, ported line for line: per-row search and a value-area walk on every
+"""Old vs new anumaan.pine profile code, ported line for line: per-row search and a value-area walk on every
 bar (old) against one search per span with a neighbour hint and the walk only where it is read (new).
 Random sessions, intrabars, gaps and volumes; every bar in turn is taken as the last bar."""
 import math, random, bisect

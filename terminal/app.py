@@ -1,10 +1,10 @@
 """
-Pramana - a terminal for pramana.pine.
-प्रमाण (Pramāṇa) - "proof; a valid means of knowing"
+Anumaan - a terminal for anumaan.pine.
+अनुमान (Anumāna) - "inference: knowing what cannot be seen from what can"
 
 A chart terminal laid out the way a trading terminal is - symbol and interval on the toolbar, the chart with its
 indicator pane, a watchlist and the indicator's readout in the rail, the script's source, its proof, ledger,
-calibration record, alert log and data window in the bottom panel - running pramana.pine ported to Python bar for
+calibration record, alert log and data window in the bottom panel - running anumaan.pine ported to Python bar for
 bar, drawn on TradingView's open-source Lightweight Charts library.
 
     streamlit run terminal/app.py
@@ -27,9 +27,9 @@ sys.path.insert(0, str(ROOT))
 warnings.filterwarnings("ignore", category=FutureWarning)
 warnings.filterwarnings("ignore", category=RuntimeWarning)
 
-st.set_page_config(page_title="Pramana · Terminal", page_icon="◈", layout="wide", initial_sidebar_state="collapsed")
+st.set_page_config(page_title="Anumaan · Terminal", page_icon="◈", layout="wide", initial_sidebar_state="collapsed")
 
-from engine import data as D, pramana as P, profile as PR, table as TB  # noqa: E402
+from engine import data as D, anumaan as P, profile as PR, table as TB  # noqa: E402
 from engine.palette import palette  # noqa: E402
 from ui import chart as C, components as K, inputs as I, panels as PN, theme  # noqa: E402
 
@@ -81,7 +81,7 @@ def load_quotes(tickers: tuple[str, ...]):
 
 
 # ── settings: every input of the script, as the script words it ────────────
-@st.dialog("Pramana · Settings", width="large")
+@st.dialog("Anumaan · Settings", width="large")
 def settings_dialog():
     specs = I.load()
     cur = ss.inputs
@@ -247,7 +247,7 @@ with rail:
                     st.rerun()
         else:
             K.note("Quotes unavailable right now.")
-    with K.panel("readout", "Pramana", context=f"{name} · {ss.tf}", meta="the script's table"):
+    with K.panel("readout", "Anumaan", context=f"{name} · {ss.tf}", meta="the script's table"):
         K.readout(rows)
     with K.panel("details", "Symbol", context=ticker):
         hi52 = df.high.iloc[-252:].max() if not intraday else df.high.max()
@@ -277,6 +277,6 @@ if ib_info.get("volume_refilled"):
     K.note(f"Yahoo reports no intraday volume for {ticker}; on {ib_info['volume_refilled']} bars the profile shares each bar's own "
            "volume evenly over its intrabars.")
 st.markdown(
-    '<div class="t-foot">Pramana · pramana.pine ported to Python bar for bar · data: Yahoo Finance (delayed) · charts by '
+    '<div class="t-foot">Anumaan · anumaan.pine ported to Python bar for bar · data: Yahoo Finance (delayed) · charts by '
     '<a href="https://www.tradingview.com/" target="_blank" rel="noopener">TradingView Lightweight Charts™</a>, Apache-2.0</div>',
     unsafe_allow_html=True)

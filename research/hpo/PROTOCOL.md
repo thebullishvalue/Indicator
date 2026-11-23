@@ -1,11 +1,11 @@
-# Pramana hyperparameter optimisation: protocol, declared before any trial
+# Anumaan hyperparameter optimisation: protocol, declared before any trial
 
 This file fixes, before any trial runs, what is tuned, what each part is judged by, how the data
 is split, and when a change is accepted.
 
 ## What is tuned, and what is not
 
-Every trial runs Pramana's reference implementation (`research/pramana.py`, the bar-for-bar
+Every trial runs Anumaan's reference implementation (`research/anumaan.py`, the bar-for-bar
 port), extended only so the hard-coded constants can be varied. With default settings it must
 reproduce `run()` exactly; `hpo_core.py` asserts this.
 

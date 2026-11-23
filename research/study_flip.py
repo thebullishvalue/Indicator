@@ -9,7 +9,7 @@ Definitions (all on closed bars, as the pane draws them):
 Outcome: the next 10 bars from the next open, in forecast sigma, signed by the flip's direction, minus the
 instrument group's mean for that era - so a long flip in a rising market gets no credit for the drift."""
 from lib import *
-from pramana import run
+from anumaan import run
 import warnings; warnings.filterwarnings("ignore")
 pd.set_option("display.width", 250)
 H = 10

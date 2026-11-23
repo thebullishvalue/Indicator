@@ -3,13 +3,14 @@
 
 //@version=6
 // ═══════════════════════════════════════════════════════════════════════════
-//  PRAMANA  ·  CALIBRATED RISK, EXPOSURE AND SELF-AUDIT                      v2.7
+//  ANUMAAN  ·  CALIBRATED RISK, EXPOSURE AND SELF-AUDIT                      v2.7
 //  "How far can it go, how much should I hold - and has that been true here?"
 //
-//  Pramana, from pramāṇa - proof, a valid means of knowing. This script
-//  forecasts only what the data says can be forecast, states every forecast
-//  as a probability, and then tests itself on the chart: every number it
-//  shows comes with its own record of having been true here.
+//  Anumaan, from anumāna (अनुमान) - inference: knowing what cannot be seen
+//  from what can, as smoke tells of fire. This script infers only what the
+//  data says can be inferred, states every inference as a probability, and
+//  then tests itself on the chart: every number it shows comes with its own
+//  record of having been true here.
 //  (Developed as Kasauti through v2.3 and as Pragyam through v2.7; the engine
 //  is unchanged.)
 //
@@ -69,8 +70,8 @@
 //  WORDS    one name each: exposure, landing band, surprise (the number), miss
 //           (a close outside the band). Settings run Display, Forecast,
 //           Exposure, Advanced, Volume profile.
-//  (v2.4 renamed the script from Kasauti; v2.7 renamed it from Pragyam to Pramana.
-//  v2.5 was the first audit round.)
+//  (v2.4 renamed the script from Kasauti; v2.7 from Pragyam, to Pramana and then
+//  Anumaan. v2.5 was the first audit round.)
 //
 //  v2.3 · PRESENTATION CLOSED, TWO MORE OBSERVATIONS TESTED. No engine number
 //  changed.
@@ -165,7 +166,7 @@
 //              σ, against this chart's own mean, shrunk toward "no edge". A
 //              state is called PROVEN only past two posterior σ.
 //
-//  ═══ MEASURED (research/results.txt · the Python port is research/pramana.py)
+//  ═══ MEASURED (research/results.txt · the Python port is research/anumaan.py)
 //    CALIBRATION   cone 80%: realised 80.0%; within 3 points of target in 99%
 //                  of instrument-eras (a fixed normal band: 61%). Stops 20%:
 //                  realised 20.0%, within 3 points in 99%. A 2 × ATR(14) stop
@@ -199,7 +200,7 @@
 // intraday charts were already capped near this by the plan. 5,000 bars is
 // twenty years of daily data: the risk forecast needs 252 to warm up, the risk
 // rank 752, and the learned widths settle within a few hundred.
-indicator("Pramana · Calibrated Risk, Exposure and Self-Audit", shorttitle = "Pramana", overlay = false,
+indicator("Anumaan · Calibrated Risk, Exposure and Self-Audit", shorttitle = "Anumaan", overlay = false,
      max_lines_count = 500, max_labels_count = 100, max_boxes_count = 500, calc_bars_count = 5000)
 
 // ───────────────────────────────────────────────────────────────────────────
@@ -652,13 +653,13 @@ float shM = sdM > 0.0 ? sM / nP / sdM * math.sqrt(bpy) : na
 //  ------------------------------------------------------------------------------
 //  A PRICE-CHART overlay: session volume profile (histogram + POC/VAH/VAL value
 //  area), plus session VWAP, Initial Balance, naked POCs, HVN/LVN nodes,
-//  prior-session levels and developing-level trails. Pramana is a pane script,
+//  prior-session levels and developing-level trails. Anumaan is a pane script,
 //  so every element is drawn with force_overlay = true.
 //
 //  DISPLAY-ONLY AND FULLY DETACHED. It touches NOTHING - not the risk forecast,
 //  the cone, the stops, the dial or the ledger. Everything is namespaced
 //  vp*/C_* so it cannot collide with the engine's own state. Removing this
-//  whole block leaves Pramana intact.
+//  whole block leaves Anumaan intact.
 //
 //  CARRIED IN from Pragati, and it looks and sits as it did there: its own
 //  colours and weights, right beside the last bar, its level lines running to
@@ -1442,7 +1443,7 @@ if inpTbl and barstate.islast
              frame_color = color.new(C_NEUT, 75), frame_width = 1, border_width = 0, force_overlay = true)
     string hTxt = str.tostring(inpH) + " bars"
     if na(sig)
-        f_cell(tb, 0, "PRAMANA", "warming " + str.tostring(bar_index + 1) + "/" + str.tostring(WARM + inpH), C_NEUT,
+        f_cell(tb, 0, "ANUMAAN", "warming " + str.tostring(bar_index + 1) + "/" + str.tostring(WARM + inpH), C_NEUT,
              "The risk forecast needs a year of bars before its first reading.")
     else
         float dL  = 1.0 - stopL / close

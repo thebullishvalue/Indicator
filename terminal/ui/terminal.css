@@ -1,5 +1,5 @@
 /* ═══════════════════════════════════════════════════════════════════════════
-   PRAMANA TERMINAL — the terminal's own layout, on the shared tokens.
+   ANUMAAN TERMINAL — the terminal's own layout, on the shared tokens.
    A trading terminal is dense: the chart is the page, chrome is a thin frame
    around it. Everything here reads var(--token), so Paper is still a swap.
    ═══════════════════════════════════════════════════════════════════════════ */
