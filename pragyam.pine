@@ -19,7 +19,7 @@
 //    · TIME LIMIT. The profile is built only over the stretch it draws from:
 //      two naked-POC ages and three sessions back from the last bar. Intrabars
 //      are about sixteen to a chart bar (a fixed 5 minutes put 288 into a daily
-//      crypto bar), requested only for that stretch. The value area is walked
+//      crypto bar), and only bars in that stretch read them. The value area is walked
 //      where it is read, not on every bar; rows are found with one search per
 //      span. Label text is built on the last bar only.
 //    · A row with volume is never drawn zero bars wide.
@@ -833,23 +833,17 @@ var bool  vpIntraOk = false
 // About sixteen intrabars to a chart bar: enough to place volume within the
 // rows (a row is a quarter of an ATR, and an intrabar of a sixteenth of a bar
 // spans about one), and a fixed cost per bar whatever the timeframe. A fixed
-// "5" minutes put 288 intrabars into every bar of a daily crypto chart.
-// The request is bounded to the stretch the profile is built over.
-// Written as plain conditional expressions on inputs and the chart's timeframe,
-// with no function and no `and`, so the request's arguments stay "simple", as
-// request.security_lower_tf() requires.
-int    vpLtfT      = int(vpTfSec / 16)
-int    vpLtfS      = vpLtfT >= 86400 ? 86400 : vpLtfT >= 14400 ? 14400 : vpLtfT >= 7200 ? 7200 : vpLtfT >= 3600 ? 3600 : vpLtfT >= 1800 ? 1800 :
-     vpLtfT >= 900 ? 900 : vpLtfT >= 600 ? 600 : vpLtfT >= 300 ? 300 : vpLtfT >= 180 ? 180 : vpLtfT >= 120 ? 120 : 60
-string vpLtfAuto   = vpLtfS == 86400 ? "D" : vpLtfS == 14400 ? "240" : vpLtfS == 7200 ? "120" : vpLtfS == 3600 ? "60" : vpLtfS == 1800 ? "30" :
-     vpLtfS == 900 ? "15" : vpLtfS == 600 ? "10" : vpLtfS == 300 ? "5" : vpLtfS == 180 ? "3" : vpLtfS == 120 ? "2" : "1"
-string vpLtf       = inpVpIntrabar ? (vpTfSec > 60 ? vpLtfAuto : timeframe.period) : timeframe.period
-bool   vpIntraUse  = vpCtxOn and inpVpIntrabar and vpTfSec > 60
-int    vpAnchorSec = vpIsIntra ? 86400 : timeframe.isdaily ? 604800 : 2678400
-int    vpSessBars  = math.max(1, int(math.ceil(float(vpAnchorSec) / math.max(vpTfSec, 1))))
-int    vpReach     = 2 * inpVpNakedAge + 3 * vpSessBars
-int    vpIbCount   = math.min(100000, (vpReach + vpSessBars + 10) * math.max(1, int(math.ceil(float(vpTfSec) / vpLtfS))))
-[vpIbHi, vpIbLo, vpIbVol, vpIbClose] = request.security_lower_tf(syminfo.tickerid, vpLtf, [high, low, volume, close], calc_bars_count = vpIbCount)
+// "5" minutes put 288 intrabars into every bar of a daily crypto chart. The
+// intrabar timeframe is the largest standard one at or under a sixteenth of
+// the chart's, chosen in one expression on the chart's timeframe so that it
+// stays "simple", as the request requires. Only bars inside the profile's
+// stretch (below) ever read the intrabars.
+string vpLtfAuto  = vpTfSec >= 16 * 86400 ? "D"   : vpTfSec >= 16 * 14400 ? "240" : vpTfSec >= 16 * 7200 ? "120" : vpTfSec >= 16 * 3600 ? "60" :
+     vpTfSec >= 16 * 1800 ? "30" : vpTfSec >= 16 * 900 ? "15" : vpTfSec >= 16 * 600 ? "10" : vpTfSec >= 16 * 300 ? "5" : vpTfSec >= 16 * 180 ? "3" :
+     vpTfSec >= 16 * 120 ? "2" : "1"
+string vpLtf      = vpTfSec > 60 ? vpLtfAuto : timeframe.period
+bool   vpIntraUse = vpCtxOn and inpVpIntrabar and vpTfSec > 60
+[vpIbHi, vpIbLo, vpIbVol, vpIbClose] = request.security_lower_tf(syminfo.tickerid, vpLtf, [high, low, volume, close])
 
 // inferred delta (DISPLAY ONLY) — gap-aware close-location share to buyers
 float vpTrHi  = math.max(high, nz(close[1], high))
@@ -954,9 +948,12 @@ f_vpVA(float sTot, int sKey, float poc0, float vah0, float val0) =>
 // the current session, the one before it, and the naked POCs - and a naked POC
 // is dropped once it is inpVpNakedAge bars old. So the profile starts at the
 // first session that opens within two naked ages and three sessions of the last
-// bar (vpReach, above), and a naked POC is judged against the naked POCs of that
+// bar (vpReach), and a naked POC is judged against the naked POCs of that
 // stretch. Bars before it do no profile work at all. With trails on, every bar's
 // levels are drawn, so it starts at the first bar.
+int  vpAnchorSec = vpIsIntra ? 86400 : timeframe.isdaily ? 604800 : 2678400
+int  vpSessBars  = math.max(1, int(math.ceil(float(vpAnchorSec) / math.max(vpTfSec, 1))))
+int  vpReach     = 2 * inpVpNakedAge + 3 * vpSessBars
 var bool vpLive  = false
 if not vpLive and vpNewSess and (inpVpTrail or bar_index >= last_bar_index - vpReach)
     vpLive := true
