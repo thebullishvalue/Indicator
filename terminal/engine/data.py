@@ -44,25 +44,30 @@ _LTF_YF = {60: ("1m", "7d", None), 120: ("2m", "60d", None), 180: ("2m", "60d", 
 _PINE_LTF_NAME = {60: "1", 120: "2", 180: "3", 300: "5", 600: "10", 900: "15", 1800: "30", 3600: "60", 7200: "120",
                   14400: "240", 86400: "D"}
 
-# A starting watchlist: (display, Yahoo ticker, exchange, description)
+# The watchlist, in the sections and order of the user's TradingView list:
+# (display, Yahoo ticker, exchange, description, section, decimals shown).
+# Yahoo serves no GIFT Nifty (NIFTY1!), no MCX contracts (GOLD1!, SILVER1!) and no spot gold or silver, so those are
+# left out and COMEX's front-month futures stand in for TradingView's spot GOLD and SILVER.
 WATCHLIST = [
-    ("NIFTY", "^NSEI", "NSE", "Nifty 50 Index"),
-    ("BANKNIFTY", "^NSEBANK", "NSE", "Nifty Bank Index"),
-    ("SPX", "^GSPC", "SP", "S&P 500 Index"),
-    ("NDX", "^NDX", "NASDAQ", "Nasdaq 100 Index"),
-    ("DXY", "DX-Y.NYB", "ICE", "US Dollar Index"),
-    ("GOLD", "GC=F", "COMEX", "Gold Futures"),
-    ("SILVER", "SI=F", "COMEX", "Silver Futures"),
-    ("CRUDE", "CL=F", "NYMEX", "Crude Oil Futures"),
-    ("BTCUSD", "BTC-USD", "CRYPTO", "Bitcoin / US Dollar"),
-    ("ETHUSD", "ETH-USD", "CRYPTO", "Ethereum / US Dollar"),
-    ("EURUSD", "EURUSD=X", "FX", "Euro / US Dollar"),
-    ("USDINR", "INR=X", "FX", "US Dollar / Indian Rupee"),
-    ("RELIANCE", "RELIANCE.NS", "NSE", "Reliance Industries"),
-    ("HDFCBANK", "HDFCBANK.NS", "NSE", "HDFC Bank"),
-    ("AAPL", "AAPL", "NASDAQ", "Apple Inc."),
-    ("NVDA", "NVDA", "NASDAQ", "NVIDIA Corporation"),
+    ("NIFTY", "^NSEI", "NSE", "Nifty 50 Index", "India", 2),
+    ("SENSEX", "^BSESN", "BSE", "S&P BSE Sensex Index", "India", 2),
+    ("BANKNIFTY", "^NSEBANK", "NSE", "Nifty Bank Index", "India", 2),
+    ("CNXMIDCAP", "NIFTY_MIDCAP_100.NS", "NSE", "Nifty Midcap 100 Index", "India", 2),
+    ("CNXSMALLCAP", "^CNXSC", "NSE", "Nifty Smallcap 100 Index", "India", 2),
+    ("NIFTY_MICROCAP250", "NIFTY_MICROCAP250.NS", "NSE", "Nifty Microcap 250 Index", "India", 2),
+    ("INDIAVIX", "^INDIAVIX", "NSE", "India VIX Index", "India", 4),
+    ("USDINR", "INR=X", "FX", "U.S. Dollar / Indian Rupee", "India", 4),
+    ("ES1!", "ES=F", "CME", "E-mini S&P 500 Futures", "United States", 2),
+    ("US10Y", "^TNX", "TVC", "US Government Bonds 10 YR Yield", "United States", 3),
+    ("DXY", "DX-Y.NYB", "ICE", "U.S. Dollar Index", "United States", 3),
+    ("CT2!", "CT=F", "ICE", "Cotton No. 2 Futures", "Commodities", 2),
+    ("GOLD", "GC=F", "COMEX", "Gold · COMEX futures", "Commodities", 2),
+    ("SILVER", "SI=F", "COMEX", "Silver · COMEX futures", "Commodities", 3),
+    ("USOIL", "CL=F", "NYMEX", "WTI Crude Oil · NYMEX futures", "Commodities", 2),
+    ("UKOIL", "BZ=F", "ICE", "Brent Crude Oil · ICE futures", "Commodities", 2),
+    ("BTCUSD", "BTC-USD", "CRYPTO", "Bitcoin / U.S. Dollar", "Crypto", 2),
 ]
+SECTIONS = ["India", "United States", "Commodities", "Crypto"]
 
 
 def resolve(symbol: str) -> tuple[str, str, str, str]:
@@ -70,7 +75,7 @@ def resolve(symbol: str) -> tuple[str, str, str, str]:
     s = symbol.strip()
     for row in WATCHLIST:
         if s.upper() in (row[0], row[1].upper()):
-            return row
+            return row[:4]
     if ":" in s:
         ex, tk = s.split(":", 1)
         ex, tk = ex.upper(), tk.upper()
@@ -91,7 +96,40 @@ def fetch(ticker: str, tf: Timeframe) -> tuple[pd.DataFrame, dict]:
     df = _clean(df)
     if tf.resample and len(df):
         df = _resample(df, tf.resample)
+    if tf.yf in ("1d", "1wk", "1mo") and len(df) < 60:
+        # Some NSE indices (Midcap 100, Smallcap 100, Microcap 250) carry a single daily bar on Yahoo but about three
+        # years of hourly bars. Their daily, weekly and monthly bars are built from those: the closes match Yahoo's own daily
+        # closes exactly, highs and lows to a few hundredths of a percent.
+        hourly = _clean(t.history(period="730d", interval="60m", auto_adjust=False, actions=False))
+        built = _from_hourly(hourly, tf.yf)
+        if len(built) > len(df):
+            df, meta["builtFrom"] = built, "60m"
     return df, meta
+
+
+def _from_hourly(h: pd.DataFrame, interval: str) -> pd.DataFrame:
+    """Daily, weekly (Monday) or monthly bars from hourly ones, on the exchange's calendar."""
+    if not len(h):
+        return h
+    day = h.index.normalize()
+    key = day if interval == "1d" else day - pd.to_timedelta(day.weekday, "D") if interval == "1wk" else day - pd.to_timedelta(day.day - 1, "D")
+    g = h.groupby(key)
+    out = pd.DataFrame(dict(open=g.open.first(), high=g.high.max(), low=g.low.min(), close=g.close.last(), volume=g.volume.sum()))
+    out.index.name = None
+    return out.dropna(subset=["close"])
+
+
+def quote(ticker: str) -> tuple[float, float, float] | None:
+    """(last, change, change %) from hourly bars, for symbols whose daily history Yahoo cuts to one bar."""
+    import yfinance as yf
+    try:
+        d = _from_hourly(_clean(yf.Ticker(ticker).history(period="5d", interval="60m", auto_adjust=False, actions=False)), "1d")
+    except Exception:
+        return None
+    if len(d) < 2:
+        return None
+    c = d.close
+    return float(c.iloc[-1]), float(c.iloc[-1] - c.iloc[-2]), float(c.iloc[-1] / c.iloc[-2] - 1) * 100
 
 
 def fetch_intrabars(ticker: str, tf: Timeframe, chart: pd.DataFrame, inp_naked_age: int) -> tuple[dict, dict]:
@@ -149,7 +187,14 @@ def _clean(df: pd.DataFrame) -> pd.DataFrame:
     if df is None or not len(df):
         return pd.DataFrame(columns=["open", "high", "low", "close", "volume"])
     df = df.rename(columns=str.lower)[["open", "high", "low", "close", "volume"]].astype(float)
-    df = df[(df.close > 0) & (df.high >= df.low)]
+    df = df[df.close > 0]
+    # Yahoo carries the odd zero open, high or low (CT=F, the week of 25 May 2020, has a low of 0), whose log is minus
+    # infinity and would end the risk forecast for good. A zero price is a missing one: open falls back to the close,
+    # high and low to the larger and smaller of open and close.
+    df = df.assign(open=df.open.where(df.open > 0, df.close))
+    df = df.assign(high=df.high.where(df.high > 0, df[["open", "close"]].max(axis=1)),
+                   low=df.low.where(df.low > 0, df[["open", "close"]].min(axis=1)))
+    df = df[df.high >= df.low]
     df = df[~df.index.duplicated(keep="last")].sort_index()
     return df
 

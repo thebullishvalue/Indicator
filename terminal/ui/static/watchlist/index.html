@@ -6,13 +6,18 @@
   html, body { height: 100%; }
   #box { overflow-y: auto; scrollbar-width: thin; height: 100vh; }
   table { width: 100%; border-collapse: collapse; table-layout: fixed; font: 11px/1.2 'JetBrains Mono', ui-monospace, monospace; }
-  th { font: 600 9px/1 'JetBrains Mono', monospace; letter-spacing: .12em; text-transform: uppercase; text-align: right; padding: 9px 6px; position: sticky; top: 0; z-index: 1; }
-  th:nth-child(1) { width: 34%; } th:nth-child(2) { width: 26%; } th:nth-child(3) { width: 21%; } th:nth-child(4) { width: 19%; }
+  th { font: 600 9px/1 'JetBrains Mono', monospace; letter-spacing: .12em; text-transform: uppercase; text-align: right; padding: 9px 4px; position: sticky; top: 0; z-index: 1; }
+  th:nth-child(1) { width: 37%; } th:nth-child(2) { width: 24%; } th:nth-child(3) { width: 21%; } th:nth-child(4) { width: 18%; }
   th:first-child, td:first-child { text-align: left; }
   th:first-child, td:first-child { padding-left: 16px !important; } th:last-child, td:last-child { padding-right: 16px !important; }
-  td { padding: 6px 6px; text-align: right; overflow: hidden; text-overflow: ellipsis; font-variant-numeric: tabular-nums; white-space: nowrap; }
+  td { padding: 6px 4px; text-align: right; overflow: hidden; text-overflow: ellipsis; font-variant-numeric: tabular-nums; white-space: nowrap; }
   tr.row { cursor: pointer; }
-  td .sym { font: 600 12px/1.2 Inter, system-ui, sans-serif; }
+  td .sym { display: block; font: 600 12px/1.2 Inter, system-ui, sans-serif; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  tr.sec td { font: 600 9px/1 'JetBrains Mono', monospace; letter-spacing: .12em; text-transform: uppercase; padding: 10px 6px 7px; cursor: pointer; user-select: none; }
+  tr.sec td .car { display: inline-block; width: 5px; height: 5px; border: solid currentColor; border-width: 0 1.5px 1.5px 0;
+                   transform: translateY(-2px) rotate(45deg); margin: 0 9px 0 1px; transition: transform .12s; }
+  tr.sec.shut td .car { transform: translateY(0) rotate(-45deg); }
+  tr.sec td .n { float: right; font-weight: 400; letter-spacing: .04em; }
   td .desc { display: block; font: 10px/1.3 'JetBrains Mono', monospace; margin-top: 2px; overflow: hidden; text-overflow: ellipsis; max-width: 100%; white-space: nowrap; }
 </style></head>
 <body><div id="box"><table id="t"><thead><tr><th>Symbol</th><th>Last</th><th>Chg</th><th>Chg%</th></tr></thead><tbody></tbody></table></div>
@@ -20,18 +25,32 @@
   // A Streamlit component in plain JavaScript: the bidirectional protocol, with no build step.
   const send = (type, data) => window.parent.postMessage(Object.assign({ isStreamlitMessage: true, type }, data), '*');
   let tk = {};
+  const shut = new Set();   // sections folded by the viewer; kept while the page lives
   function render(args) {
     tk = args.tokens;
     document.body.style.color = tk.ink;
     const th = document.querySelectorAll('th'); th.forEach(x => { x.style.color = tk.quaternary; x.style.borderBottom = '1px solid ' + tk.line; x.style.background = tk.bg; });
     const tb = document.querySelector('tbody'); tb.innerHTML = '';
+    const count = {}; args.rows.forEach(r => { count[r.section] = (count[r.section] || 0) + 1; });
+    let sec = null;
     args.rows.forEach(r => {
+      if (r.section && r.section !== sec) {
+        sec = r.section;
+        const h = document.createElement('tr'); h.className = 'sec' + (shut.has(sec) ? ' shut' : '');
+        h.innerHTML = `<td colspan="4"><span class="car"></span>${sec}<span class="n">${count[sec]}</span></td>`;
+        h.firstChild.style.color = tk.tertiary; h.firstChild.style.borderBottom = '1px solid ' + tk.line;
+        const name = sec;
+        h.onclick = () => { shut.has(name) ? shut.delete(name) : shut.add(name); render(args); };
+        tb.appendChild(h);
+      }
+      if (shut.has(sec)) return;
       const tr = document.createElement('tr'); tr.className = 'row';
       const col = r.pct > 0.005 ? tk.up : r.pct < -0.005 ? tk.down : tk.tertiary;
       const f = (x) => x === null ? '—' : Number(x).toLocaleString('en-US', { minimumFractionDigits: r.dec, maximumFractionDigits: r.dec });
       tr.innerHTML = `<td><span class="sym">${r.sym}</span><span class="desc" style="color:${tk.quaternary}">${r.desc}</span></td>` +
         `<td style="color:${tk.ink}">${f(r.last)}</td><td style="color:${col}">${r.chg === null ? '—' : (r.chg >= 0 ? '+' : '') + f(r.chg)}</td>` +
         `<td style="color:${col}">${r.pct === null ? '—' : (r.pct >= 0 ? '+' : '') + r.pct.toFixed(2) + '%'}</td>`;
+      tr.title = r.sym + ' · ' + r.desc;
       tr.style.borderBottom = '1px solid ' + tk.lineFaint;
       if (r.active) { tr.style.background = tk.active; tr.style.boxShadow = 'inset 2px 0 0 ' + tk.accent; }
       tr.onmouseenter = () => { if (!r.active) tr.style.background = tk.hover; };
@@ -39,6 +58,8 @@
       tr.onclick = () => send('streamlit:setComponentValue', { value: { symbol: r.sym, nonce: Date.now() }, dataType: 'json' });
       tb.appendChild(tr);
     });
+    // A long symbol (NIFTY_MICROCAP250) steps its type down to fit its column before it is cut.
+    document.querySelectorAll('td .sym').forEach(el => { let px = 12; while (el.scrollWidth > el.clientWidth && px > 9.5) { px -= 0.5; el.style.fontSize = px + 'px'; } });
     send('streamlit:setFrameHeight', { height: args.cap || 420 });
   }
   window.addEventListener('message', (ev) => { if (ev.data && ev.data.type === 'streamlit:render') render(ev.data.args); });

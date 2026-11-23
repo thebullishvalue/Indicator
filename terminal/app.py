@@ -58,7 +58,7 @@ theme.inject_css("light" if ss.appearance == "Paper" else "dark")
 def load_bars(ticker: str, tfk: str):
     df, meta = D.fetch(ticker, D.TIMEFRAMES[tfk])
     return df.iloc[-P.CALC_BARS:], {k: meta.get(k) for k in ("priceHint", "exchangeName", "fullExchangeName", "longName",
-                                                                 "shortName", "currency", "exchangeTimezoneName", "instrumentType")}
+                                                                 "shortName", "currency", "exchangeTimezoneName", "instrumentType", "builtFrom")}
 
 
 @st.cache_data(ttl=300, show_spinner=False)
@@ -82,6 +82,11 @@ def load_quotes(tickers: tuple[str, ...]):
                 out[tk] = (float(c.iloc[-1]), float(c.iloc[-1] - c.iloc[-2]), float(c.iloc[-1] / c.iloc[-2] - 1) * 100)
         except Exception:
             pass
+    for tk in tickers:
+        if tk not in out:
+            fb = D.quote(tk)
+            if fb:
+                out[tk] = fb
     return out
 
 
@@ -239,10 +244,9 @@ with rail:
         for tk in tickers:
             if tk not in q:
                 continue
-            w = info.get(tk, (tk, tk, "", tk))
             lastq, chg, pct = q[tk]
-            dq = 2 if lastq >= 10 else 4
-            wrows.append(dict(sym=w[0], desc=w[3], last=lastq, chg=chg, pct=pct, dec=dq, active=(tk == ticker)))
+            w = info.get(tk, (tk, tk, "", tk, "Recent", 2 if lastq >= 10 else 4))
+            wrows.append(dict(sym=w[0], desc=w[3], last=lastq, chg=chg, pct=pct, dec=w[5], section=w[4], active=(tk == ticker)))
         if wrows:
             wt = (dict(ink="#E6EAF1", tertiary="#8B95A6", quaternary="#737D8E", line="rgba(255,255,255,0.13)", lineFaint="rgba(255,255,255,0.05)",
                        up="#089981", down="#F23645", accent="#4C7DF0", active="rgba(76,125,240,0.10)", hover="#151920", bg="#0F1217") if dark_app else
@@ -278,6 +282,8 @@ with tabs[3]:
 
 refill = (f" · Yahoo has no intraday volume for {ticker}: on {ib_info['volume_refilled']} bars the profile shares each bar's own "
           "volume over its intrabars") if ib_info.get("volume_refilled") else ""
+if meta.get("builtFrom") and not intraday:
+    refill += f" · Yahoo keeps one daily bar for {ticker}: its {ss.tf} bars are built from its hourly bars, which start {df.index[0]:%d %b %Y}"
 st.markdown(
     '<div class="t-foot">Anumaan · anumaan.pine ported to Python bar for bar · data: Yahoo Finance (delayed)' + refill + ' · charts by '
     '<a href="https://www.tradingview.com/" target="_blank" rel="noopener">TradingView Lightweight Charts™</a>, Apache-2.0</div>',

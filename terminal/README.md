@@ -16,7 +16,7 @@ streamlit run terminal/app.py
 | **Command bar** | The instrument, its last price and change, the exchange, interval, bars calculated (at most 5,000, as `calc_bars_count`), the last bar's time, and where the profile's intrabars came from |
 | **Toolbar** | Three groups: what you are looking at (symbol search, which takes `NSE:TCS`, `AAPL`, `GC=F` or any Yahoo ticker, and the interval, 1m 5m 15m 30m 1h 4h D W M), how it is drawn (the Anumaan pane, Surprise or Proof, and volume), and the app's own settings (**Settings** and Slate / Paper) |
 | **Chart** | Candles and volume, the volume profile with its value area, POC, VWAP, Initial Balance, prior-session and naked-POC levels and their tags, the landing band, midline, stop history, proven-state marks, the forward cone with its stops, and the table. Below it, the Anumaan pane: the surprise columns against the landing band, and the four tapes with their labels. The status lines follow the crosshair |
-| **Watchlist** | Click a row to open it |
+| **Watchlist** | The TradingView list in its own sections: India, United States, Commodities, Crypto, plus Recent for symbols you search. Click a row to open it; click a section's header to fold it |
 | **Symbol** | Exchange and type, the day's range and the 52-week range |
 | **Bottom panel** | Arranged by the questions a trader brings to the chart. **Plan**, what do I do now: exposure, risk, trend, the cone and this chart's record; position size at the script's stops for your equity and risk per trade; and a level ladder of every level the script draws, sorted by price, with its distance from the close in % and in σ. **Forecast**, how far can it go: the four horizons as a fan and a term structure, each with its record here, and what followed the current state against every state. **Audit**, has it been honest here: calibration by horizon, risk regime and trend; every surprise in band widths; the exposure against buy and hold; the ledger. **Events**, what changed and when: every alert condition as it fired, filterable by kind |
 
@@ -70,7 +70,22 @@ table's eight rows and the Data Window can be checked against the script's table
   as profile rows, level lines and tags, the cone and the tapes' labels, are custom primitives positioned in bar indices and
   prices, as the script positions them.
 - **Data.** Yahoo Finance via `yfinance`, delayed.
-- **Watchlist.** A two-way Streamlit component in plain JavaScript (`ui/static/watchlist`), with no build step.
+- **Watchlist.** A two-way Streamlit component in plain JavaScript (`ui/static/watchlist`), with no build step. The list
+  lives in `engine/data.py` (`WATCHLIST`) as TradingView names mapped to Yahoo tickers:
+
+  | Section | TradingView | Yahoo | Note |
+  |---|---|---|---|
+  | India | NIFTY, SENSEX, BANKNIFTY | `^NSEI`, `^BSESN`, `^NSEBANK` | |
+  | | CNXMIDCAP, CNXSMALLCAP, NIFTY_MICROCAP250 | `NIFTY_MIDCAP_100.NS`, `^CNXSC`, `NIFTY_MICROCAP250.NS` | Yahoo keeps one daily bar; D, W and M are built from the hourly bars (from Dec 2023), whose closes match Yahoo's daily closes |
+  | | INDIAVIX, USDINR | `^INDIAVIX`, `INR=X` | |
+  | United States | ES1!, US10Y, DXY | `ES=F`, `^TNX`, `DX-Y.NYB` | |
+  | Commodities | CT2!, USOIL, UKOIL | `CT=F`, `CL=F`, `BZ=F` | |
+  | | GOLD, SILVER | `GC=F`, `SI=F` | COMEX front-month futures stand in for spot, which Yahoo does not carry |
+  | Crypto | BTCUSD | `BTC-USD` | |
+
+  Not on Yahoo, so not in the list: NIFTY1! (GIFT Nifty) and the MCX contracts GOLD1! and SILVER1!.
+- **Bad prints.** Yahoo has the odd zero open, high or low (CT=F, the week of 25 May 2020, has a low of 0). Its log is minus
+  infinity and would end the risk forecast for good, so a zero price is read as missing when the bars are cleaned.
 
 The terminal is laid out like a trading terminal but carries none of TradingView's branding: its name, logo and trademarks are
 TradingView's own. The chart library's attribution, in the footer, is the one exception, and its licence requires it.

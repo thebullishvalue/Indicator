@@ -98,7 +98,8 @@ _WATCH = _components.declare_component("anumaan_watchlist", path=str(_Path(__fil
 
 
 def watchlist(rows: list[dict], tokens: dict, cap: int = 420, key: str = "watchlist"):
-    """rows: [{sym, desc, last, chg, pct, dec, active}]; cap: the most height it takes before it scrolls.
+    """rows: [{sym, desc, last, chg, pct, dec, section, active}], grouped by section in order; cap: the most height it
+    takes before it scrolls. A section's header folds it.
     Returns {symbol, nonce} for the row last clicked, or None."""
     return _WATCH(rows=rows, tokens=tokens, cap=cap, key=key, default=None)
 
