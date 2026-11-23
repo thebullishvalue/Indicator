@@ -23,6 +23,9 @@
 //      where it is read, not on every bar; rows are found with one search per
 //      span. Label text is built on the last bar only.
 //    · A row with volume is never drawn zero bars wide.
+//    · The script runs on the last 5,000 bars (calc_bars_count). Daily charts
+//      with decades of history - DXY, gold and silver on TVC and ICE - ran
+//      past the time limit; weekly, intraday and MCX daily did not.
 //
 //  v2.6 · THE UI AUDIT, AS IT ENDED. Two rounds. The first weighted the chart
 //  by evidence and made the cone its loudest element; the owner's direction
@@ -187,8 +190,14 @@
 //  bars. The volume profile's developing session is the one disclosed
 //  exception, as in Pragati.
 // ═══════════════════════════════════════════════════════════════════════════
+// calc_bars_count: the script runs on the last 5,000 bars. Daily charts load a
+// symbol's whole history - 13,000 bars and more for DXY, or gold and silver on
+// TVC and ICE - and the work of every bar counts against the plan's time limit;
+// intraday charts were already capped near this by the plan. 5,000 bars is
+// twenty years of daily data: the risk forecast needs 252 to warm up, the risk
+// rank 752, and the learned widths settle within a few hundred.
 indicator("Pragyam · Calibrated Risk, Exposure and Self-Audit", shorttitle = "Pragyam", overlay = false,
-     max_lines_count = 500, max_labels_count = 100, max_boxes_count = 500)
+     max_lines_count = 500, max_labels_count = 100, max_boxes_count = 500, calc_bars_count = 5000)
 
 // ───────────────────────────────────────────────────────────────────────────
 //  INPUTS
