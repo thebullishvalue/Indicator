@@ -15,7 +15,7 @@
   el.style.height = '100vh';                // the frame's height is set by the page, per screen size
   const dec = p.decimals;
   const fmtPx = (x) => (x === null || x === undefined || Number.isNaN(x)) ? '—' :
-    Number(x).toLocaleString('en-US', { minimumFractionDigits: dec, maximumFractionDigits: dec });
+    Number(x).toLocaleString('en-US', { minimumFractionDigits: dec, maximumFractionDigits: dec }).replace('-', '\u2212');   // the family's minus
   const fmtVol = (v) => v >= 1e9 ? (v / 1e9).toFixed(2) + 'B' : v >= 1e6 ? (v / 1e6).toFixed(2) + 'M' : v >= 1e3 ? (v / 1e3).toFixed(2) + 'K' : v.toFixed(0);
 
   const chart = LW.createChart(el, {
@@ -219,15 +219,15 @@
     row1.innerHTML = `<span class="sym">${title.name}</span><span class="dot">·</span><span class="tf">${title.tf}</span>` +
       `<span class="dot">·</span><span class="ex">${title.exchange}</span>` +
       `<span class="ohlc">${v('O', b.open)}${v('H', b.high)}${v('L', b.low)}${v('C', b.close)}` +
-      `<span class="v" style="color:${col}">${ch >= 0 ? '+' : ''}${fmtPx(ch)} (${pc >= 0 ? '+' : ''}${pc.toFixed(2)}%)</span></span>`;
+      `<span class="v" style="color:${col}">${ch >= 0 ? '+' : ''}${fmtPx(ch)} (${pc >= 0 ? '+' : ''}${pc.toFixed(2).replace('-', '\u2212')}%)</span></span>`;
     row2.innerHTML = p.showVolume ? `<span class="ind">Vol</span><span class="v" style="color:${col}">${fmtVol(p.vols[i].value)}</span>` : '';
     const c = p.cols[i];
     const val = p.pane === 'Surprise' ? (c && c.value !== undefined ? c.value : null) : null;
     const raw = p.pane === 'Surprise' ? p.uRaw[i] : val;
     leg1.innerHTML = `<span class="ind">Anumaan</span>` + (p.pane === 'Surprise'
-      ? `<span class="v" style="color:${(c && c.color) || K.axis}">${raw === null || raw === undefined ? '∅' : Number(raw).toFixed(2)}</span>`
-      : `<span class="v">${p.proofF[i].value !== undefined ? p.proofF[i].value.toFixed(1) : '∅'}</span>` +
-        `<span class="v muted">${p.proofH[i].value !== undefined ? p.proofH[i].value.toFixed(1) : '∅'}</span>`);
+      ? `<span class="v" style="color:${(c && c.color) || K.axis}">${raw === null || raw === undefined ? '∅' : Number(raw).toFixed(2).replace('-', '\u2212')}</span>`
+      : `<span class="v">${p.proofF[i].value !== undefined ? p.proofF[i].value.toFixed(1).replace('-', '\u2212') : '∅'}</span>` +
+        `<span class="v muted">${p.proofH[i].value !== undefined ? p.proofH[i].value.toFixed(1).replace('-', '\u2212') : '∅'}</span>`);
   }
   function placePaneLegend() {
     const ps = chart.panes();

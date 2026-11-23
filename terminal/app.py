@@ -33,6 +33,14 @@ st.set_page_config(page_title="Anumaan · Terminal", page_icon="◈", layout="wi
 from engine import data as D, anumaan as P, profile as PR, table as TB  # noqa: E402
 from engine.palette import palette  # noqa: E402
 from ui import chart as C, components as K, inputs as I, panels as PN, theme  # noqa: E402
+from logger_config import capture_library_output, console  # noqa: E402
+
+# The family console: third-party output (yfinance's HTTP notes, Python warnings) routed into the run as one dimmed
+# line each, and the masthead once per process.
+capture_library_output()
+console.banner(theme.PRODUCT.upper(), f"v{theme.VERSION}", "Terminal · Calibrated Risk · Exposure · Self-Audit",
+               {"Maintainer": "@thebullishvalue", "Script": "anumaan.pine v2.7, ported bar for bar",
+                "Data": "Yahoo Finance (delayed)"})
 
 INTERVALS = list(D.TIMEFRAMES)
 CHART_H = 760
@@ -46,7 +54,7 @@ WATCH_H = (CHART_H + 2) - GAP - (PANEL_CHROME + SYMBOL_ROWS * KV_ROW) - PANEL_CH
 ss = st.session_state
 ss.setdefault("symbol", "NIFTY")
 ss.setdefault("tf", "D")
-ss.setdefault("appearance", "Slate")
+ss.setdefault("appearance", "Paper")     # Paper leads, as in every member of the family
 ss.setdefault("volume", True)
 ss.setdefault("inputs", P.Inputs().as_dict())
 ss.setdefault("recent", [])
@@ -157,21 +165,74 @@ def refresh_data() -> None:
     for f in (load_bars, load_avail, load_quotes, load_intrabars):
         f.clear()
     ss.refreshed = True          # told at the end of the run, once the new data is in, not as the reload starts
+    ss.refresh_n = ss.get("refresh_n", 0) + 1
+
+
+class ChartRun:
+    """One chart build as a family-console run, and the family's progress card.
+
+    A rerun that draws the chart it has already traced (a toggle, the volume switch, a click that changes nothing)
+    is a replay: no card and no trace, so the terminal prints a run when a chart is built and only then. A run that
+    stops early (a fallback to D, a symbol Yahoo lacks, a failure) closes its step and says why; the next run traces
+    the chart it falls back to.
+    """
+
+    def __init__(self) -> None:
+        self.on, self.slot, self.fp = False, None, None
+
+    def start(self, slot, fp, request: dict) -> None:
+        self.slot, self.fp, self.on = slot, fp, ss.get("traced") != fp
+        if self.on:
+            console.header(f"{theme.PRODUCT.upper()} · Chart", f"v{theme.VERSION}")
+            console.main_header("Request", request)
+
+    def step(self, pct: int, label: str, detail: str = "") -> None:
+        if self.on:
+            theme.progress_bar(self.slot, pct, label, detail)
+            console.begin_step(label, detail)
+
+    def stop(self, why: str, status: str = "warn") -> None:
+        if self.on:
+            console.end_step(why, status)
+            console.end_run("STOPPED" if status == "warn" else "FAILED")
+            self.slot.empty()
+            self.on = False
+
+    def finish(self, card: dict, notes: list) -> None:
+        if not self.on:
+            return
+        console.end_step()
+        console.summary("Result", card)
+        for kind, text in notes:
+            (console.warning if kind == "warn" else console.info)(text)
+        console.end_run()
+        self.slot.empty()
+        ss.traced, self.on = self.fp, False
+
+
+run = ChartRun()
 
 
 # ── symbol and what Yahoo has for it, before the toolbar draws ──────────────
 # The interval control dims the intervals Yahoo has no bars for, so the symbol is checked first. A symbol with no
 # data at all goes back to the last one that loaded, with a note saying why.
 name, ticker, exchange, description = D.resolve(ss.symbol)
-with st.spinner(f"Looking up {name}…"):
-    try:
-        avail = load_avail(ticker)
-    except Exception:
-        avail = {k: "" for k in INTERVALS}          # cannot tell: let the bars request decide
+top = st.empty()                      # the command bar, filled once the data is in: identity comes first on the page
+progress_slot = st.empty()            # the progress card while a chart is built
+changed = sum(v != P.Inputs().as_dict().get(k) for k, v in ss.inputs.items())
+run.start(progress_slot, (ticker, ss.tf, tuple(sorted(ss.inputs.items())), ss.get("refresh_n", 0)),
+          {"Symbol": f"{name} · {ticker}", "Interval": ss.tf,
+           "Inputs": "the script's defaults" if not changed else f"{changed} changed from the script's defaults"})
+run.step(5, "Looking Up the Symbol", f"{name} · {ticker} · which intervals Yahoo has")
+try:
+    avail = load_avail(ticker)
+except Exception:
+    avail = {k: "" for k in INTERVALS}          # cannot tell: let the bars request decide
 if all(avail.values()):
     if ss.last_good and D.resolve(ss.last_good)[1] != ticker:
         known = ss.symbol.strip().upper().split(":")[-1] in D.UNAVAILABLE
         notify(f"{ss.symbol}: {D.hint(ss.symbol)}" if known else f"No data for {ss.symbol} on Yahoo. {D.hint(ss.symbol)}", "error")
+        run.stop(f"no data for {ss.symbol} on Yahoo; back to {ss.last_good}")
         ss.symbol = ss.last_good
         st.rerun()
 if avail.get(ss.tf) and not avail.get("D"):
@@ -181,8 +242,6 @@ ss.avail = avail
 # Widget state follows the app's state, set before the widgets draw: a click on the selected segment no longer
 # leaves the control with nothing selected, and a fallback to D shows on the control at once.
 ss.tf_seg, ss.pane_seg, ss.ap_seg = ss.tf, ss.inputs["pane"], ss.appearance
-
-top = st.empty()                      # the command bar, filled once the data is in: identity comes first on the page
 
 # ── toolbar ────────────────────────────────────────────────────────────────
 def _set_symbol():
@@ -239,7 +298,7 @@ with st.container(key="toolbar"):
             if st.button("Settings", icon=":material/tune:", key="tb_settings", help="Every input of the script, as the script words it."):
                 settings_dialog()
     with tcols[6]:
-        st.segmented_control("Appearance", ["Slate", "Paper"], key="ap_seg", label_visibility="collapsed", on_change=_set_appearance)
+        st.segmented_control("Appearance", ["Paper", "Slate"], key="ap_seg", label_visibility="collapsed", on_change=_set_appearance)
 
 # ── compute ────────────────────────────────────────────────────────────────
 tfo = D.TIMEFRAMES[ss.tf]
@@ -247,22 +306,24 @@ inp = P.Inputs(**ss.inputs)
 dark_app = ss.appearance == "Slate"
 dark = inp.theme == "Dark" or (inp.theme == "Auto" and dark_app)
 
-with st.spinner(f"Loading {name} · {ss.tf}…"):
-    try:
-        df, meta = load_bars(ticker, ss.tf)
-        err = ""
-    except Exception as exc:  # network, or Yahoo refusing the request
-        df, meta, err = pd.DataFrame(), {}, f"{type(exc).__name__}: {exc}"
+run.step(15, "Loading Bars", f"{name} · {ss.tf} · up to {P.CALC_BARS:,} bars from Yahoo")
+try:
+    df, meta = load_bars(ticker, ss.tf)
+    err = ""
+except Exception as exc:  # network, or Yahoo refusing the request
+    df, meta, err = pd.DataFrame(), {}, f"{type(exc).__name__}: {exc}"
 
 if df is None or len(df) < 30:
     n_got = 0 if df is None else len(df)
     if ss.tf != "D" and not err:
         # Too few bars on this interval (a short intraday history): fall back to the daily chart, and say so.
         notify(f"{name} has {n_got} bars on {ss.tf} at Yahoo; the script needs 30. Showing D.", "warn")
+        run.stop(f"{n_got} bars on {ss.tf}, the script needs 30; showing D")
         ss.tf = "D"
         st.rerun()
     if ss.last_good and D.resolve(ss.last_good)[1] != ticker and not err:
         notify(f"{name} has {n_got} daily bars at Yahoo; the script needs 30. Back to {ss.last_good}.", "error")
+        run.stop(f"{n_got} daily bars, the script needs 30; back to {ss.last_good}")
         ss.symbol = ss.last_good
         st.rerun()
     with top.container():
@@ -275,6 +336,7 @@ if df is None or len(df) < 30:
                        + f"{D.hint(ss.symbol)} ")
                     + "Yahoo serves 1m for 7 days, 5m-30m for 60 days and 1h for 730 days.</div>", unsafe_allow_html=True)
         st.button("Try again", icon=":material/refresh:", on_click=refresh_data, key="retry")
+    run.stop(err[:120] if err else f"{n_got} bars for {ss.symbol}; no chart", "fail")
     flush_notes()
     st.stop()
 
@@ -292,6 +354,7 @@ def engine_failed(stage: str, exc: Exception) -> None:
     """The script could not run on these bars: say so and step back (to D, else to the last symbol that ran) instead of
     leaving a traceback where the chart should be."""
     msg = f"Anumaan could not {stage} on {name} · {ss.tf}: {type(exc).__name__}: {str(exc)[:140]}"
+    run.stop(f"{type(exc).__name__}: {str(exc)[:120]}", "fail")
     if ss.tf != "D":
         notify(msg + ". Showing D.", "error")
         ss.tf = "D"
@@ -308,6 +371,7 @@ def engine_failed(stage: str, exc: Exception) -> None:
     st.stop()
 
 
+run.step(35, "Running Anumaan", "risk forecast · cone · stops · exposure · tapes · alerts")
 try:
     e = P.run(df, inp)
 except Exception as exc:
@@ -315,6 +379,7 @@ except Exception as exc:
 ib, ib_info = ({}, dict(pine_ltf=None, yf_ltf=None, bars_with_intrabars=0, volume_refilled=0))
 ib_failed = False
 no_intraday = all(avail.get(k) for k in ("1m", "5m", "1h"))     # a fund: daily bars only
+run.step(65, "Building the Volume Profile", "intrabars · POC · value area · VWAP · levels · the table")
 if inp.vp and inp.vp_intrabar and not no_intraday:
     try:
         ib, ib_info = load_intrabars(ticker, ss.tf, inp.vp_naked_age, len(df), int(df.index[-1].value))
@@ -414,6 +479,7 @@ with left:
 
 with rail:
     tickers = tuple(dict.fromkeys([w[1] for w in D.WATCHLIST] + ss.recent))
+    run.step(90, "Quoting the Watchlist", f"{len(tickers)} symbols · last price and 1D change")
     q = load_quotes(tickers)
     unquoted = sum(tk not in q for tk in tickers)
     with K.panel("watch", "Watchlist", meta="1D change · click to open" + (f" · {unquoted} unquoted" if 0 < unquoted < len(tickers) else "")):
@@ -471,6 +537,25 @@ st.markdown(
     '<div class="t-foot">Anumaan · anumaan.pine ported to Python bar for bar · data: Yahoo Finance (delayed)' + refill + ' · charts by '
     '<a href="https://www.tradingview.com/" target="_blank" rel="noopener">TradingView Lightweight Charts™</a>, Apache-2.0</div>',
     unsafe_allow_html=True)
+# The family footer, last on the page as in every member.
+now_ist = pd.Timestamp.now(tz="Asia/Kolkata")
+st.markdown(f'<div class="app-footer"><div class="content">© {now_ist.year} <strong>{theme.PRODUCT}</strong> &nbsp;·&nbsp; '
+            f'@thebullishvalue &nbsp;·&nbsp; v{theme.VERSION} &nbsp;·&nbsp; {now_ist:%Y-%m-%d %H:%M:%S} IST</div></div>',
+            unsafe_allow_html=True)
+
+# The run's record in the terminal: what was built, and what the page says about it.
+s_, t_ = e["series"], e["n"] - 1
+warm = s_["sig"][t_] != s_["sig"][t_]
+run.finish({
+    "Symbol": f"{name} · {ex_name or exchange or '—'} · {ss.tf}",
+    "Last": f"{last:,.{decimals}f} ({(last / prev - 1) * 100:+.2f}%)",
+    "Bars": f"{len(df):,} of {P.CALC_BARS:,} · last {df.index[-1]:%d %b %Y}",
+    "Exposure": "warming up" if warm else f"{100 * s_['E'][t_]:.0f}%",
+    "Risk": "warming up" if warm else f"±{100 * s_['sH'][t_]:.1f}% over {inp.H} bars",
+    "Cone": "warming up" if warm else f"{s_['lower'][t_]:,.{decimals}f} – {s_['upper'][t_]:,.{decimals}f}",
+    "Profile": profile_txt or "off",
+    "Watchlist": f"{len(tickers) - unquoted} of {len(tickers)} quoted",
+}, notices)
 if ss.pop("refreshed", False):
     notify(f"Data refreshed from Yahoo · {pd.Timestamp.now(tz=tz):%H:%M:%S %Z}.", "ok")
 flush_notes()

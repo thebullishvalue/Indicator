@@ -161,6 +161,9 @@ html body [data-testid="stToastContainer"] { top: auto !important; bottom: 16px 
 .t-table tr.mark td { background: var(--accent-fill); color: var(--ink); }
 .t-table tr.mark td:first-child { box-shadow: inset 2px 0 0 var(--accent); }
 .t-table tbody tr:hover td { background: var(--surface-2); }
+/* Streamlit's markdown table rules every row from its static dark base (a near-white line on Paper); the cells carry
+   the only rules */
+.t-table tr { border: none !important; background: transparent !important; }
 
 [class*="st-key-panel-"] [data-testid="stMarkdownContainer"]:has(> .t-table),
 [class*="st-key-panel-"] [data-testid="stElementContainer"]:has(.t-table) { margin: 0 !important; padding: 0 !important; }
@@ -190,6 +193,21 @@ html body [data-testid="stToastContainer"] { top: auto !important; bottom: 16px 
 .st-key-eventfilter [data-testid="stButtonGroup"] { background: transparent; border: none; padding: 0; flex-wrap: wrap; }
 .st-key-eventfilter [data-testid="stButtonGroup"] button { text-transform: none !important; letter-spacing: 0 !important; font-size: var(--fs-xs) !important;
   border: 1px solid var(--line) !important; }
+/* The number input is one well (Nivesa's): the container carries the border, the field and the steppers sit inside
+   it, the steppers ruled off by a hairline and achromatic. Streamlit painted the steppers from its static dark base,
+   near-black on Paper. Panel and settings dialog alike. */
+html body [data-testid="stNumberInputContainer"] { background: var(--bg) !important; border: 1px solid var(--line-strong) !important;
+  border-radius: var(--r-md) !important; overflow: hidden; }
+html body [data-testid="stNumberInputContainer"]:focus-within { border-color: var(--accent) !important; }
+html body .stNumberInput [data-testid="stNumberInputContainer"] input { background: transparent !important; border: none !important;
+  border-radius: 0 !important; font-family: var(--mono) !important; font-variant-numeric: tabular-nums; color: var(--ink) !important; }
+html body .stNumberInput [data-testid="stNumberInputContainer"] [data-baseweb="input"],
+html body .stNumberInput [data-testid="stNumberInputContainer"] [data-baseweb="base-input"] { background: transparent !important; border: none !important; }
+html body .stNumberInput [data-testid="stNumberInputContainer"] button { background: transparent !important; color: var(--ink-tertiary) !important;
+  border: none !important; border-left: 1px solid var(--line) !important; border-radius: 0 !important; }
+html body .stNumberInput [data-testid="stNumberInputContainer"] button:hover:not(:disabled) { background: var(--surface-2) !important; color: var(--ink) !important; }
+html body .stNumberInput [data-testid="stNumberInputContainer"] button:disabled { color: var(--ink-quaternary) !important; opacity: 0.5; }
+
 /* tab bodies: KPI strips and two-column rows on the page's 12px rhythm */
 [data-testid="stTabs"] [data-baseweb="tab-panel"] [data-testid="stHorizontalBlock"] { gap: 12px !important; }
 [data-testid="stTabs"] [data-baseweb="tab-panel"] [data-testid="stColumn"] > [data-testid="stVerticalBlock"] { gap: 12px !important; }

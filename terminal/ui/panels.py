@@ -58,14 +58,49 @@ def _px(x, dec):
     return "—" if _na(x) else f"{x:,.{dec}f}"
 
 
+def _sg(x, spec: str = ".2f") -> str:
+    """A signed number as the family prints one: +1.23 or −0.64 (a typographic minus); zero carries no sign."""
+    if _na(x):
+        return "—"
+    out = format(x, "+" + spec)
+    return out[1:] if float(out.rstrip("%")) == 0 else out.replace("-", "−")
+
+
 def _signed_pct(x, dec: int = 2) -> str:
-    return "—" if _na(x) else f"{100 * x:+.{dec}f}%"
+    return "—" if _na(x) else _sg(100 * x, f".{dec}f") + "%"
 
 
 def _fig(tok: dict, height: int) -> dict:
+    # The hover is the family's: the panel's own surface, the data face, every series' name in full (Plotly cut
+    # "Following exposure" to "Following ex..."), and the numbers formatted here in Python (see _bins).
     return dict(height=height, margin=dict(l=16, r=16, t=8, b=8), paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)",
                 font=dict(family="JetBrains Mono, monospace", size=10, color=tok["axis"]), hovermode="x unified",
+                hoverlabel=dict(bgcolor=tok["bg"], bordercolor=tok["border"], align="left", namelength=-1,
+                                font=dict(family="JetBrains Mono, monospace", size=11, color=tok["ink"])),
                 legend=dict(orientation="h", y=1.08, x=0, bgcolor="rgba(0,0,0,0)"))
+
+
+def _edge(v: float) -> str:
+    """A bin edge in σ or band widths: as few places as it needs, signed."""
+    out = _sg(v, ".3f")
+    return out.rstrip("0").rstrip(".") if "." in out else out
+
+
+def _bins(v: np.ndarray, start: float, end: float, size: float):
+    """A probability histogram drawn as bars, so its hover can say what a bin is ("−1 to −0.5σ") rather than Plotly's
+    "−1 - −0.501": centres, shares of all the values, counts, and each bin's (lo, hi)."""
+    edges = np.arange(start, end + size / 2, size)
+    n, _ = np.histogram(v, bins=edges)
+    share = n / len(v) if len(v) else n.astype(float)
+    return (edges[:-1] + edges[1:]) / 2, share, n, list(zip(edges[:-1], edges[1:]))
+
+
+def _date_fmt(intraday: bool) -> str:
+    return "%d %b %Y %H:%M" if intraday else "%d %b %Y"
+
+
+def _is_intraday(idx) -> bool:
+    return len(idx) > 1 and (idx[-1] - idx[-2]).total_seconds() < 86400
 
 
 def _chart(fig) -> None:
@@ -167,13 +202,13 @@ def plan(e: dict, vp: dict, df: pd.DataFrame, decimals: int, currency: str, intr
             idx = df.index[-n:]
             fig = make_subplots(rows=2, cols=1, shared_xaxes=True, row_heights=[0.55, 0.45], vertical_spacing=0.08)
             fig.add_trace(go.Scatter(x=idx, y=s["prk"][-n:], name="Risk rank", line=dict(color="rgba(215,154,60,0.95)", width=1),
-                                     fill="tozeroy", fillcolor="rgba(215,154,60,0.10)"), 1, 1)
+                                     fill="tozeroy", fillcolor="rgba(215,154,60,0.10)", hovertemplate="%{y:.0f} of 100"), 1, 1)
             for v in (100 / 3, 200 / 3):
                 fig.add_hline(y=v, line=dict(color=tok_axis(), width=1, dash="dot"), row=1, col=1)
             fig.add_trace(go.Scatter(x=idx, y=100 * s["E"][-n:], name="Exposure", line=dict(color="rgba(76,125,240,0.9)", width=1, shape="hv"),
-                                     fill="tozeroy", fillcolor="rgba(76,125,240,0.10)"), 2, 1)
+                                     fill="tozeroy", fillcolor="rgba(76,125,240,0.10)", hovertemplate="%{y:.0f}%"), 2, 1)
             fig.update_layout(**_fig(_TOK, chart_h))
-            fig.update_xaxes(gridcolor=_TOK["grid"], zeroline=False)
+            fig.update_xaxes(gridcolor=_TOK["grid"], zeroline=False, hoverformat=_date_fmt(intraday))
             fig.update_yaxes(gridcolor=_TOK["grid"], zeroline=False, side="right", range=[0, 100], tickvals=[0, 33, 67, 100], row=1, col=1)
             fig.update_yaxes(gridcolor=_TOK["grid"], zeroline=False, side="right", range=[0, 105], tickvals=[0, 50, 100], ticksuffix="%", row=2, col=1)
             _chart(fig)
@@ -214,13 +249,22 @@ def forecast(e: dict, df: pd.DataFrame, tok: dict, decimals: int) -> None:
             xs = [0] + hs
             fig.add_trace(go.Scatter(x=xs + xs[::-1], y=[c] + ups + dns[::-1] + [c], fill="toself", fillcolor="rgba(76,125,240,0.10)",
                                      line=dict(width=0), hoverinfo="skip", showlegend=False))
+            tip = "%{customdata}<extra></extra>"
+            cone = lambda side, vals: [f"Close · now<br>{_px(c, decimals)}"] + [
+                f"{side} · in {h} bars<br>{_px(v, decimals)} ({_signed_pct(v / c - 1)})" for h, v in zip(hs, vals)]
             fig.add_trace(go.Scatter(x=xs, y=[c] + ups, mode="lines+markers", name="Cone", line=dict(color="rgba(76,125,240,0.85)", width=1),
-                                     marker=dict(size=5)))
+                                     marker=dict(size=5), customdata=cone("High", ups), hovertemplate=tip))
             fig.add_trace(go.Scatter(x=xs, y=[c] + dns, mode="lines+markers", name="Cone", showlegend=False,
-                                     line=dict(color="rgba(76,125,240,0.85)", width=1), marker=dict(size=5)))
-            fig.add_trace(go.Scatter(x=list(range(-back + 1, 1)), y=hist, name="Close", line=dict(color=tok["ink"], width=1.3)))
-            fig.add_trace(go.Scatter(x=[0, H], y=[s["stopS"][t]] * 2, mode="lines", name="Short stop", line=dict(color=tok["candleUp"], width=1, dash="dash")))
-            fig.add_trace(go.Scatter(x=[0, H], y=[s["stopL"][t]] * 2, mode="lines", name="Long stop", line=dict(color=tok["candleDown"], width=1, dash="dash")))
+                                     line=dict(color="rgba(76,125,240,0.85)", width=1), marker=dict(size=5),
+                                     customdata=cone("Low", dns), hovertemplate=tip))
+            days = df.index[-back:]
+            fig.add_trace(go.Scatter(x=list(range(-back + 1, 1)), y=hist, name="Close", line=dict(color=tok["ink"], width=1.3),
+                                     customdata=[f"Close · {d.strftime(_date_fmt(_is_intraday(days)))}<br>{_px(v, decimals)}" for d, v in zip(days, hist)],
+                                     hovertemplate=tip))
+            for nm, px_, col in (("Short stop", s["stopS"][t], tok["candleUp"]), ("Long stop", s["stopL"][t], tok["candleDown"])):
+                lab = f"{nm} · held {H} bars<br>{_px(px_, decimals)} ({_signed_pct(px_ / c - 1)})"
+                fig.add_trace(go.Scatter(x=[0, H], y=[px_] * 2, mode="lines", name=nm, line=dict(color=col, width=1, dash="dash"),
+                                         customdata=[lab, lab], hovertemplate=tip))
             for h, u_ in zip(hs, ups):
                 fig.add_annotation(x=h, y=u_, text=f"{h}", showarrow=False, yshift=10, font=dict(size=9, color=tok["axis"]))
             fig.update_layout(**dict(_fig(tok, fan_h), hovermode="closest"))
@@ -274,16 +318,19 @@ def forecast(e: dict, df: pd.DataFrame, tok: dict, decimals: int) -> None:
                      help="The distribution of what followed every past visit to today's state, against every state's. Pooled across "
                           "151 instruments no state had a reliable edge: read a difference here as this chart's history, not a forecast."):
             fig = go.Figure()
-            bins = dict(start=-6, end=6, size=0.5)
-            fig.add_trace(go.Histogram(x=allv, xbins=bins, histnorm="probability", name=f"Every state · {len(allv):,}",
-                                       marker=dict(color="rgba(139,149,166,0.35)")))
-            if len(this):
-                fig.add_trace(go.Histogram(x=this, xbins=bins, histnorm="probability", name=f"This state · {len(this):,}",
-                                           marker=dict(color="rgba(76,125,240,0.65)")))
+            xc, p_all, _, rng = _bins(allv, -6, 6, 0.5)
+            p_this = _bins(this, -6, 6, 0.5)[1] if len(this) else None
+            tips = [f"{_edge(lo)} to {_edge(hi)}σ<br>" + (f"This state {pt:.1%} · " if p_this is not None else "") + f"Every state {pa:.1%}"
+                    for (lo, hi), pa, pt in zip(rng, p_all, p_this if p_this is not None else p_all)]
+            fig.add_trace(go.Bar(x=xc, y=p_all, width=0.5, name=f"Every state · {len(allv):,}", marker=dict(color="rgba(139,149,166,0.35)", line=dict(width=0)),
+                                 customdata=tips, hovertemplate="%{customdata}<extra></extra>"))
+            if p_this is not None:
+                fig.add_trace(go.Bar(x=xc, y=p_this, width=0.5, name=f"This state · {len(this):,}", marker=dict(color="rgba(76,125,240,0.65)", line=dict(width=0)),
+                                     customdata=tips, hovertemplate="%{customdata}<extra></extra>"))
                 fig.add_vline(x=float(np.mean(this)), line=dict(color="rgba(76,125,240,0.9)", width=1, dash="dot"))
             if len(allv):
                 fig.add_vline(x=float(np.mean(allv)), line=dict(color=tok["axis"], width=1, dash="dot"))
-            fig.update_layout(**dict(_fig(tok, hist_h), barmode="overlay", hovermode="x"))
+            fig.update_layout(**dict(_fig(tok, hist_h), barmode="overlay", hovermode="closest"))
             fig.update_xaxes(gridcolor=tok["grid"], title=dict(text=f"next {H} bars, σ", font=dict(size=9)))
             fig.update_yaxes(gridcolor=tok["grid"], tickformat=".0%")
             _chart(fig)
@@ -293,8 +340,8 @@ def forecast(e: dict, df: pd.DataFrame, tok: dict, decimals: int) -> None:
         stat = lambda f, v: "—" if len(v) == 0 else f(v)
         rows = [{"": "Samples", "This state": f"{len(this):,}", "Every state": f"{len(allv):,}"},
                 {"": "Independent", "This state": fmt(s["lNe"][t], "#"), "Every state": "—"},
-                {"": "Mean (σ)", "This state": stat(lambda v: f"{np.mean(v):+.2f}", this), "Every state": stat(lambda v: f"{np.mean(v):+.2f}", allv)},
-                {"": "Median (σ)", "This state": stat(lambda v: f"{np.median(v):+.2f}", this), "Every state": stat(lambda v: f"{np.median(v):+.2f}", allv)},
+                {"": "Mean (σ)", "This state": stat(lambda v: _sg(np.mean(v)), this), "Every state": stat(lambda v: _sg(np.mean(v)), allv)},
+                {"": "Median (σ)", "This state": stat(lambda v: _sg(np.median(v)), this), "Every state": stat(lambda v: _sg(np.median(v)), allv)},
                 {"": "Ended higher", "This state": stat(lambda v: f"{100 * np.mean(v > 0):.0f}%", this), "Every state": stat(lambda v: f"{100 * np.mean(v > 0):.0f}%", allv)},
                 {"": "Spread (σ)", "This state": stat(lambda v: f"{np.std(v):.2f}", this), "Every state": stat(lambda v: f"{np.std(v):.2f}", allv)},
                 {"": "Verdict", "This state": verdict, "Every state": "—"}]
@@ -363,11 +410,14 @@ def audit(e: dict, df: pd.DataFrame, tok: dict) -> None:
                              f"{f_pct(float((x < -1).mean()) if len(x) else float('nan'), '#.0')} · target {fmt((100 - inp.cover) / 2, '#')}% each",
                      help=f"Each {inp.H}-bar surprise over the band it was judged against: beyond ±1 is a miss. Bunched near 0, the "
                           "forecasts were too wide; piled past ±1, too narrow."):
-            fig = go.Figure(go.Histogram(x=np.clip(x, -3, 3), xbins=dict(start=-3, end=3.0001, size=0.125), histnorm="probability",
-                                         marker=dict(color="rgba(139,149,166,0.45)")))
+            xc, share, cnt, rng = _bins(np.clip(x, -3, 3), -3, 3, 0.125)
+            lab = lambda lo, hi: (f"below {_edge(hi)}" if lo <= -3 else f"above {_edge(lo)}" if hi >= 3 else f"{_edge(lo)} to {_edge(hi)}")
+            fig = go.Figure(go.Bar(x=xc, y=share, width=0.125, marker=dict(color="rgba(139,149,166,0.45)", line=dict(width=0)),
+                                   customdata=[f"{lab(lo, hi)} band widths<br>{p_:.1%} of surprises · {k:,}" for (lo, hi), p_, k in zip(rng, share, cnt)],
+                                   hovertemplate="%{customdata}<extra></extra>"))
             for v in (-1, 1):
                 fig.add_vline(x=v, line=dict(color="rgba(215,154,60,0.9)", width=1, dash="dot"))
-            fig.update_layout(**dict(_fig(tok, 300), hovermode="x", showlegend=False))
+            fig.update_layout(**dict(_fig(tok, 300), hovermode="closest", showlegend=False))
             fig.update_xaxes(gridcolor=tok["grid"], tickvals=[-3, -2, -1, 0, 1, 2, 3])
             fig.update_yaxes(gridcolor=tok["grid"], tickformat=".0%", side="right")
             _chart(fig)
@@ -378,12 +428,15 @@ def audit(e: dict, df: pd.DataFrame, tok: dict) -> None:
                           "Exposure held is beneath. The dial's job is the drawdown, not the return."):
             idx = df.index[-len(s["eqF"]):]
             fig = make_subplots(rows=2, cols=1, shared_xaxes=True, row_heights=[0.72, 0.28], vertical_spacing=0.06)
-            fig.add_trace(go.Scatter(x=idx, y=100 * np.log(s["eqH"]), name="Buy and hold", line=dict(color=tok["axis"], width=1)), 1, 1)
-            fig.add_trace(go.Scatter(x=idx, y=100 * np.log(s["eqF"]), name="Following exposure", line=dict(color=tok["ink"], width=1.5)), 1, 1)
+            lh, lf = 100 * np.log(s["eqH"]), 100 * np.log(s["eqF"])
+            fig.add_trace(go.Scatter(x=idx, y=lh, name="Buy and hold", line=dict(color=tok["axis"], width=1),
+                                     customdata=[_sg(v, ".1f") + "%" for v in lh], hovertemplate="%{customdata}"), 1, 1)
+            fig.add_trace(go.Scatter(x=idx, y=lf, name="Following exposure", line=dict(color=tok["ink"], width=1.5),
+                                     customdata=[_sg(v, ".1f") + "%" for v in lf], hovertemplate="%{customdata}"), 1, 1)
             fig.add_trace(go.Scatter(x=idx, y=100 * s["E"], name="Exposure", line=dict(color="rgba(76,125,240,0.85)", width=1, shape="hv"),
-                                     fill="tozeroy", fillcolor="rgba(76,125,240,0.10)"), 2, 1)
+                                     fill="tozeroy", fillcolor="rgba(76,125,240,0.10)", hovertemplate="%{y:.0f}%"), 2, 1)
             fig.update_layout(**_fig(tok, 300))
-            fig.update_xaxes(gridcolor=tok["grid"], zeroline=False)
+            fig.update_xaxes(gridcolor=tok["grid"], zeroline=False, hoverformat=_date_fmt(_is_intraday(idx)))
             fig.update_yaxes(gridcolor=tok["grid"], zeroline=False, side="right", ticksuffix="%", row=1, col=1)
             fig.update_yaxes(gridcolor=tok["grid"], zeroline=False, side="right", range=[0, 105], tickvals=[0, 50, 100], ticksuffix="%", row=2, col=1)
             _chart(fig)
@@ -412,7 +465,7 @@ def _ledger(e: dict) -> None:
                  meta=f"believable edge τ = {inp.tau}",
                  help="A state is proven when its shrunk edge is at least 2 standard errors from the chart's usual outcome. Samples count "
                       "as independent only when their signal bars are at least one horizon apart. The marked row is the state now."):
-        num = lambda x: "—" if _na(x) else f"{x:+.2f}"
+        num = lambda x: _sg(x)
         vtone = lambda v: "var(--long)" if v == "proven positive" else "var(--short)" if v == "proven negative" else None
         K.table(df, fmt={c: num for c in df.columns if "σ" in c or c == "z"}, tone={"Verdict": vtone},
                 mark=cur if cur >= 0 else None, align_left=("Trend", "Close", "Verdict"))

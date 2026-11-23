@@ -1,5 +1,7 @@
 # Anumaan · Terminal
 
+*Part of [Anumaan](../README.md), in the Pragyam family.*
+
 A chart terminal for `anumaan.pine`, laid out the way a trading terminal is. The script runs in it, ported to Python bar
 for bar, and is drawn on TradingView's open-source charting library.
 
@@ -14,14 +16,27 @@ streamlit run terminal/app.py
 | Area | What it is |
 |---|---|
 | **Command bar** | The instrument, its last price and its change on the previous session's close (on every interval, as a terminal shows it), the exchange, interval, bars calculated (at most 5,000, as `calc_bars_count`), the last bar's time, when Yahoo last priced it (As of), where the profile's intrabars came from, and whether the market is open |
-| **Toolbar** | Three groups: what you are looking at (symbol search, which takes `NSE:TCS`, `AAPL`, `GC=F` or any Yahoo ticker, and the interval, 1m 5m 15m 30m 1h 4h D W M), how it is drawn (the Anumaan pane, Surprise or Proof, and volume), and the app's own controls (refresh, **Settings** and Slate / Paper). Intervals Yahoo has no bars for on this symbol are dimmed and struck through |
+| **Toolbar** | Three groups: what you are looking at (symbol search, which takes `NSE:TCS`, `AAPL`, `GC=F` or any Yahoo ticker, and the interval, 1m 5m 15m 30m 1h 4h D W M), how it is drawn (the Anumaan pane, Surprise or Proof, and volume), and the app's own controls (refresh, **Settings** and Paper / Slate). Intervals Yahoo has no bars for on this symbol are dimmed and struck through |
 | **Chart** | Candles and volume, the volume profile with its value area, POC, VWAP, Initial Balance, prior-session and naked-POC levels and their tags, the landing band, midline, stop history, proven-state marks, the forward cone with its stops, and the table. Below it, the Anumaan pane: the surprise columns against the landing band, and the four tapes with their labels. The status lines follow the crosshair |
 | **Watchlist** | The TradingView list in its own sections: India, United States, Commodities, Crypto, plus Recent for symbols you search. Click a row to open it; click a section's header to fold it |
 | **Symbol** | Exchange and type, the day's range and the 52-week range |
 | **Bottom panel** | Arranged by the questions a trader brings to the chart. **Plan**, what do I do now: exposure, risk, trend, the cone and this chart's record; position size at the script's stops for your equity and risk per trade; and a level ladder of every level the script draws, sorted by price, with its distance from the close in % and in σ. **Forecast**, how far can it go: the four horizons as a fan and a term structure, each with its record here, and what followed the current state against every state. **Audit**, has it been honest here: calibration by horizon, risk regime and trend; every surprise in band widths; the exposure against buy and hold; the ledger. **Events**, what changed and when: every alert condition as it fired, filterable by kind |
 
 **Settings** reads its inputs from `anumaan.pine` itself: the same labels, defaults, options, limits, groups and tooltips, all 45 of
-them. The **Display** group's **Theme** behaves as in the script: on Auto it follows the terminal's appearance.
+them. The **Display** group's **Theme** behaves as in the script: on Auto it follows the terminal's appearance, which opens on
+Paper, as every member of the family does.
+
+A chart loads under the family's progress card, four phases (Symbol & Bars, Anumaan Engine, Volume Profile, Watchlist) with
+each step named as it runs, and the page closes on the family footer: the year, Anumaan, @thebullishvalue, the version and the
+time in IST.
+
+## In the terminal it runs from
+
+Each chart it builds writes a trace to the console, in the family's format (`logger_config.py`, shared byte for byte with
+every member): the request (symbol, interval, the script's inputs), five numbered and timed steps, a result card (symbol, last
+price and change, bars, exposure, risk, the cone, the profile, the watchlist), the chart's notices, and a closing line with
+the time, warnings and errors. A rerun that draws a chart already traced (a tab, a toggle) prints nothing; a refresh traces
+again. Yahoo's own output (rate limits, retries) and Python warnings appear as dimmed lines inside the run.
 
 ## When something does not go as asked
 
@@ -94,9 +109,11 @@ table's eight rows and the Data Window can be checked against the script's table
 
 ## Built on
 
-- **Design system.** It comes from Tattva and is shared with Pragyam and Arthagati: `ui/theme.css` is Tattva's, unchanged apart
-  from its header. It uses the Graphite and Paper tokens, Inter and JetBrains Mono, and Streamlit pinned to exactly 1.52.2 (see
-  `requirements.txt`).
+- **Design system.** The Pragyam family's: `ui/theme.css` is the stylesheet every member shares, with its fidelity block, and
+  `ui/terminal.css` is the terminal's own layout on the same tokens. It uses the Graphite and Paper tokens, Inter and
+  JetBrains Mono, and Streamlit pinned to exactly 1.52.2 (see `requirements.txt`). Numbers read as in every member: tabular,
+  right-aligned, signed changes with a typographic minus (−2.71).
+- **Console.** The family's (`logger_config.py`), byte for byte.
 - **Charts.** [TradingView Lightweight Charts™](https://www.tradingview.com/) 5.2.1, Apache-2.0, vendored in `ui/static` with its
   licence and notice. The licence's link to tradingview.com is in the page footer. Anumaan's drawings that the library has no series for, such
   as profile rows, level lines and tags, the cone and the tapes' labels, are custom primitives positioned in bar indices and
@@ -126,7 +143,8 @@ TradingView's own. The chart library's attribution, in the footer, is the one ex
 
 | File | What it is |
 |---|---|
-| `app.py` | The page: command bar, toolbar, chart and rail, bottom panel |
+| `app.py` | The page: command bar, toolbar, chart and rail, bottom panel, footer, and the run's trace and progress card |
+| `logger_config.py` | The family console |
 | `engine/anumaan.py` | The script's engine, sections 1 to 6b, and its alerts |
 | `engine/profile.py` | Section 7, the volume profile |
 | `engine/table.py` | Section 9, the table, and the tapes' words |
@@ -135,7 +153,7 @@ TradingView's own. The chart library's attribution, in the footer, is the one ex
 | `ui/chart.py`, `ui/static/chart.js` | The chart payload and its renderer |
 | `ui/inputs.py` | The settings, read from `anumaan.pine` |
 | `ui/panels.py` | The bottom panel |
-| `ui/theme.css`, `ui/theme.py`, `ui/terminal.css`, `ui/components.py` | The design system and the terminal's layout |
+| `ui/theme.css`, `ui/theme.py`, `ui/terminal.css`, `ui/components.py` | The design system, the progress card, and the terminal's layout |
 
 To deploy on Streamlit Community Cloud, set the main file to `terminal/app.py`. Its `requirements.txt` sits beside it, and the
 theme config is in `.streamlit/` at the repository root.

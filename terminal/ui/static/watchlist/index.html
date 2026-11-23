@@ -50,10 +50,10 @@
       if (shut.has(sec)) return;
       const tr = document.createElement('tr'); tr.className = 'row';
       const col = r.pct > 0.005 ? tk.up : r.pct < -0.005 ? tk.down : tk.tertiary;
-      const f = (x) => x === null ? '—' : Number(x).toLocaleString('en-US', { minimumFractionDigits: r.dec, maximumFractionDigits: r.dec });
+      const f = (x) => x === null ? '—' : Number(x).toLocaleString('en-US', { minimumFractionDigits: r.dec, maximumFractionDigits: r.dec }).replace('-', '\u2212');
       tr.innerHTML = `<td><span class="sym">${r.sym}</span><span class="desc" style="color:${tk.quaternary}">${r.desc}</span></td>` +
         `<td style="color:${tk.ink}">${f(r.last)}</td><td style="color:${col}">${r.chg === null ? '—' : (r.chg >= 0 ? '+' : '') + f(r.chg)}</td>` +
-        `<td style="color:${col}">${r.pct === null ? '—' : (r.pct >= 0 ? '+' : '') + r.pct.toFixed(2) + '%'}</td>`;
+        `<td style="color:${col}">${r.pct === null ? '—' : (r.pct >= 0 ? '+' : '') + r.pct.toFixed(2).replace('-', '\u2212') + '%'}</td>`;
       tr.title = r.sym + ' · ' + r.desc;
       tr.style.borderBottom = '1px solid ' + tk.lineFaint;
       if (r.active) { tr.style.background = tk.active; tr.style.boxShadow = 'inset 2px 0 0 ' + tk.accent; }
