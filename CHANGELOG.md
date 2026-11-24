@@ -12,7 +12,19 @@ a chart or a number looks.
 
 ---
 
-## [Terminal 1.1.3] — 2026-11-24 — *The help icon, shared*
+## [Terminal 1.1.4] — 2026-11-24 — *The status line stops at the axis*
+### Fixed
+- **The chart's status line no longer runs over the price axis.** On a phone the symbol line (NIFTY_MICROCAP250 · D ·
+  NSE, then the close and the change) was one unbroken row: the narrow-screen rule even turned wrapping off, under a
+  width guessed from the screen, so the quote ran across the axis labels. The line is now capped at the plot's edge,
+  measured from the price scale's own width as it draws (and again after a resize or a zoom widens its labels), and
+  wraps between its parts, never inside one: on a phone the close and change sit under the symbol as one block. A
+  table placed at the right clears the scale the same way. Checked at 320, 390, 834, 1024 and 1440px with the longest
+  watchlist name: no text crosses the axis; from 834px up the line is still one row.
+
+---
+
+ — 2026-11-24 — *The help icon, shared*
 ### Changed
 - **The help-icon rule moves into the family's fidelity block.** 1.1.2 fixed the (?) icons in Settings in the
   terminal's own stylesheet; the same leak was in Vyāpti's, Pragyam's, Arthagati's and Nivesa's hints, so the

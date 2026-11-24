@@ -237,9 +237,22 @@
     const i = param && param.time !== undefined ? byTime.get(param.time) : undefined;
     paintLegend(i);
   });
+  // The status lines stop at the plot's edge. The price scale's width is measured, not guessed from the screen: on a
+  // phone the quote (close and change) wraps under the symbol as one block instead of running across the axis labels,
+  // and a right-hand table clears the scale whatever its labels' width.
+  function fitLegend() {
+    let psw = 0;
+    try { psw = chart.priceScale('right').width(); } catch (e) { /* older builds */ }
+    if (!psw) return;
+    wrapEl.style.setProperty('--psw', psw + 'px');
+    const room = Math.max(140, el.clientWidth - psw - leg0.offsetLeft - 8);
+    leg0.style.maxWidth = room + 'px'; leg1.style.maxWidth = room + 'px';
+  }
   paintLegend();
   placePaneLegend();
-  new ResizeObserver(() => { sizePanes(); placePaneLegend(); }).observe(el);
+  requestAnimationFrame(fitLegend);
+  chart.timeScale().subscribeVisibleLogicalRangeChange(fitLegend);     // a zoom can widen the scale's labels
+  new ResizeObserver(() => { sizePanes(); placePaneLegend(); fitLegend(); }).observe(el);
 
   // ── the table (off by default) ─────────────────────────────────────────
   if (p.tableOn && p.table.length) {
