@@ -274,13 +274,17 @@
 
   // ── the price scale: Auto and Log, and its menu, as on TradingView ──────
   // A (auto) fits the scale to the bars in view; dragging the scale turns it off, A or Reset turns it back on.
-  // L (log) spaces prices by ratio, so a 10% move is the same height anywhere on the chart; it is remembered in this
-  // browser. The menu opens on a right-click anywhere on the chart, or a long press on the price scale on a touch screen.
+  // L (log, on by default) spaces prices by ratio, so a 10% move is the same height anywhere on the chart; turning it
+  // off is remembered in this browser. The menu opens on a right-click anywhere on the chart, or a long press on the price scale on a touch screen.
   const MODE = LW.PriceScaleMode;
   const ps0 = () => chart.priceScale('right', 0);
   const isLog = () => ps0().options().mode === MODE.Logarithmic;
-  const LOG_KEY = 'anumaan.chart.log';
-  try { if (localStorage.getItem(LOG_KEY) === '1') ps0().applyOptions({ mode: MODE.Logarithmic }); } catch (e) { /* storage blocked */ }
+  // Log is the default, with Auto; turning it off is remembered. (The key is new in 1.2.1: a choice saved under 1.2.0's,
+  // when Regular was the default, does not carry over - everyone starts on log once.)
+  const LOG_KEY = 'anumaan.chart.log.v2';
+  let startLog = true;
+  try { startLog = localStorage.getItem(LOG_KEY) !== '0'; } catch (e) { /* storage blocked: the default */ }
+  ps0().applyOptions({ mode: startLog ? MODE.Logarithmic : MODE.Normal, autoScale: true });
   const corner = mk('scale-corner', wrapEl);
   corner.innerHTML = '<button type="button" title="Auto: fit the scale to the bars in view">A</button>' +
                      '<button type="button" title="Logarithmic scale · Alt+L">L</button>';

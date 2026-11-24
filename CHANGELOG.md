@@ -12,6 +12,15 @@ a chart or a number looks.
 
 ---
 
+## [Terminal 1.2.1] — 2026-11-24 — *Log by default*
+### Changed
+- **The price scale opens logarithmic, with Auto on** - L and A both lit. A long history (BTC from 2014, NIFTY from
+  2007) reads in proportion: a 10% move is the same height at any price. Turning L off is remembered in the browser
+  as before; the setting moved to a new key, so a choice saved under 1.2.0 (when Regular was the default) does not
+  carry over and everyone starts on log once.
+
+---
+
 ## [Terminal 1.2.0] — 2026-11-24 — *Log and auto price scale*
 ### Added
 - **A and L under the price scale, as on TradingView.** **L** makes the scale logarithmic, so a move of the same
