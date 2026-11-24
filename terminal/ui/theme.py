@@ -6,12 +6,13 @@ layout: the toolbar, the chart frame, the rail and the bottom panel.
 """
 from __future__ import annotations
 
+import html
 from pathlib import Path
 
 import streamlit as st
 
 HERE = Path(__file__).parent
-VERSION = "1.0.0"
+VERSION = "1.1.4"
 PRODUCT = "Anumaan"
 
 LIGHT_TOKENS = """
@@ -163,3 +164,41 @@ def inject_css(theme: str = "dark") -> None:
     if theme == "light":
         css += LIGHT_TOKENS
     st.markdown(f"<style>{css}</style>", unsafe_allow_html=True)
+
+
+# ── The progress card ─────────────────────────────────────────────────────────
+# The family's one loading surface, in place of Streamlit's spinner: a card with the phase, the step, what it is
+# working on and a bar that only moves forward. A chart is built in four phases; the percentage picks the phase.
+RUN_PHASES = (
+    (1, 0, 29, "Symbol & Bars"),
+    (2, 30, 59, "Anumaan Engine"),
+    (3, 60, 84, "Volume Profile"),
+    (4, 85, 100, "Watchlist"),
+)
+
+
+def _phase_of(pct: int) -> "tuple[int, int, str]":
+    """Which phase a percentage falls in, as ``(n, total, name)``."""
+    for n, lo, hi, name in RUN_PHASES:
+        if lo <= pct <= hi:
+            return n, len(RUN_PHASES), name
+    return len(RUN_PHASES), len(RUN_PHASES), RUN_PHASES[-1][3]
+
+
+def progress_bar(slot, pct: int, label: str, sub: str = "") -> None:
+    """Render the progress card into an ``st.empty()`` slot (the family's markup; theme.css styles it)."""
+    state = " complete" if pct >= 100 else ""
+    n, total, phase = _phase_of(pct)
+    slot.markdown(
+        f'<div class="progress-card{state}">'
+        f'<div class="progress-phase">Phase {n} of {total}'
+        f'<span class="pp-name">{html.escape(phase)}</span></div>'
+        f'<div class="progress-label">'
+        f'<span class="pulse-dot"></span>{html.escape(label)}'
+        f'<span class="progress-pct">{int(pct)}%</span>'
+        f'</div>'
+        + (f'<div class="progress-sub">{html.escape(sub)}</div>' if sub else "")
+        + f'<div class="progress-track"><i style="width:{int(pct)}%"></i></div>'
+        f'</div>',
+        unsafe_allow_html=True,
+    )

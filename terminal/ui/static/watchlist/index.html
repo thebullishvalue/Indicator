@@ -19,6 +19,12 @@
   tr.sec.shut td .car { transform: translateY(0) rotate(-45deg); }
   tr.sec td .n { float: right; font-weight: 400; letter-spacing: .04em; }
   td .desc { display: block; font: 10px/1.3 'JetBrains Mono', monospace; margin-top: 2px; overflow: hidden; text-overflow: ellipsis; max-width: 100%; white-space: nowrap; }
+  /* The narrowest phones (a 320px screen gives this frame 298px): four columns cut the prices ("25,349…") and the
+     changes. The absolute change steps aside; Chg% carries the move, in its colour. */
+  @media (max-width: 340px) {
+    th:nth-child(3), td:nth-child(3) { display: none; }
+    th:nth-child(1) { width: 42%; } th:nth-child(2) { width: 32%; } th:nth-child(4) { width: 26%; }
+  }
 </style></head>
 <body><div id="box"><table id="t"><thead><tr><th>Symbol</th><th>Last</th><th>Chg</th><th>Chg%</th></tr></thead><tbody></tbody></table></div>
 <script>
@@ -50,10 +56,10 @@
       if (shut.has(sec)) return;
       const tr = document.createElement('tr'); tr.className = 'row';
       const col = r.pct > 0.005 ? tk.up : r.pct < -0.005 ? tk.down : tk.tertiary;
-      const f = (x) => x === null ? '—' : Number(x).toLocaleString('en-US', { minimumFractionDigits: r.dec, maximumFractionDigits: r.dec });
+      const f = (x) => x === null ? '—' : Number(x).toLocaleString('en-US', { minimumFractionDigits: r.dec, maximumFractionDigits: r.dec }).replace('-', '\u2212');
       tr.innerHTML = `<td><span class="sym">${r.sym}</span><span class="desc" style="color:${tk.quaternary}">${r.desc}</span></td>` +
         `<td style="color:${tk.ink}">${f(r.last)}</td><td style="color:${col}">${r.chg === null ? '—' : (r.chg >= 0 ? '+' : '') + f(r.chg)}</td>` +
-        `<td style="color:${col}">${r.pct === null ? '—' : (r.pct >= 0 ? '+' : '') + r.pct.toFixed(2) + '%'}</td>`;
+        `<td style="color:${col}">${r.pct === null ? '—' : (r.pct >= 0 ? '+' : '') + r.pct.toFixed(2).replace('-', '\u2212') + '%'}</td>`;
       tr.title = r.sym + ' · ' + r.desc;
       tr.style.borderBottom = '1px solid ' + tk.lineFaint;
       if (r.active) { tr.style.background = tk.active; tr.style.boxShadow = 'inset 2px 0 0 ' + tk.accent; }

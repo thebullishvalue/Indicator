@@ -161,6 +161,9 @@ html body [data-testid="stToastContainer"] { top: auto !important; bottom: 16px 
 .t-table tr.mark td { background: var(--accent-fill); color: var(--ink); }
 .t-table tr.mark td:first-child { box-shadow: inset 2px 0 0 var(--accent); }
 .t-table tbody tr:hover td { background: var(--surface-2); }
+/* Streamlit's markdown table rules every row from its static dark base (a near-white line on Paper); the cells carry
+   the only rules */
+.t-table tr { border: none !important; background: transparent !important; }
 
 [class*="st-key-panel-"] [data-testid="stMarkdownContainer"]:has(> .t-table),
 [class*="st-key-panel-"] [data-testid="stElementContainer"]:has(.t-table) { margin: 0 !important; padding: 0 !important; }
@@ -190,6 +193,43 @@ html body [data-testid="stToastContainer"] { top: auto !important; bottom: 16px 
 .st-key-eventfilter [data-testid="stButtonGroup"] { background: transparent; border: none; padding: 0; flex-wrap: wrap; }
 .st-key-eventfilter [data-testid="stButtonGroup"] button { text-transform: none !important; letter-spacing: 0 !important; font-size: var(--fs-xs) !important;
   border: 1px solid var(--line) !important; }
+/* The number input is one well (Nivesa's): the container carries the border, the field and the steppers sit inside
+   it, the steppers ruled off by a hairline and achromatic. Streamlit painted the steppers from its static dark base,
+   near-black on Paper. Panel and settings dialog alike. */
+html body [data-testid="stNumberInputContainer"] { background: var(--bg) !important; border: 1px solid var(--line-strong) !important;
+  border-radius: var(--r-md) !important; overflow: hidden; }
+html body [data-testid="stNumberInputContainer"]:focus-within { border-color: var(--accent) !important; }
+html body .stNumberInput [data-testid="stNumberInputContainer"] input { background: transparent !important; border: none !important;
+  border-radius: 0 !important; font-family: var(--mono) !important; font-variant-numeric: tabular-nums; color: var(--ink) !important; }
+html body .stNumberInput [data-testid="stNumberInputContainer"] [data-baseweb="input"],
+html body .stNumberInput [data-testid="stNumberInputContainer"] [data-baseweb="base-input"] { background: transparent !important; border: none !important; }
+html body .stNumberInput [data-testid="stNumberInputContainer"] button { background: transparent !important; color: var(--ink-tertiary) !important;
+  border: none !important; border-left: 1px solid var(--line) !important; border-radius: 0 !important; }
+html body .stNumberInput [data-testid="stNumberInputContainer"] button:hover:not(:disabled) { background: var(--surface-2) !important; color: var(--ink) !important; }
+html body .stNumberInput [data-testid="stNumberInputContainer"] button:disabled { color: var(--ink-quaternary) !important; opacity: 0.5; }
+
+/* ── The Settings dialog ─────────────────────────────────────────────────────
+   No other member of the family opens a dialog, so nothing painted one: Streamlit drew it from its static dark base,
+   near-black on Paper, with near-white help icons and close button, native-dark unchecked boxes, and the tab strip's
+   overflow fade running from black to the page's white. It is a panel of the app's own, in both appearances. */
+html body [data-testid="stDialog"] [role="dialog"] { background: var(--surface-1) !important; color: var(--ink) !important;
+  border: 1px solid var(--line) !important; border-radius: var(--r-xl) !important; box-shadow: var(--shadow-pop) !important; }
+html body [data-testid="stDialog"] [role="dialog"] > div:first-child { font-family: var(--sans) !important; font-size: var(--fs-xl) !important;
+  font-weight: 600 !important; letter-spacing: -0.01em; color: var(--ink) !important; }
+[data-testid="stDialog"] button[aria-label="Close"] { color: var(--ink-tertiary) !important; background: transparent !important; border-radius: var(--r-md); }
+[data-testid="stDialog"] button[aria-label="Close"]:hover { color: var(--ink) !important; background: var(--surface-2) !important; }
+/* help icons: the family block in theme.css ("A help icon follows its colour") */
+[data-testid="stDialog"] [data-baseweb="tab-list"] { border-bottom: 1px solid var(--line) !important; }
+[data-testid="stDialog"] [data-baseweb="tab-border"] { background: var(--line) !important; }
+[data-testid="stDialog"] .stTabs::after { background-image: linear-gradient(to right, transparent, var(--surface-1)) !important; }
+/* a checkbox's label is the option itself: sentence case in the reading face, as Nivesa's, not a widget's caption */
+[data-testid="stCheckbox"] [data-testid="stWidgetLabel"] p { font-family: var(--sans) !important; font-size: var(--fs-sm) !important;
+  font-weight: 500 !important; text-transform: none !important; letter-spacing: 0 !important; color: var(--ink-secondary) !important; }
+[data-testid="stCheckbox"] label[data-baseweb="checkbox"]:not(:has(input:checked)) > span:first-child {
+  background: var(--bg) !important; border-color: var(--line-strong) !important; }
+[data-testid="stCheckbox"] label[data-baseweb="checkbox"]:has(input:checked) > span:first-child {
+  background-color: var(--accent) !important; border-color: var(--accent) !important; }
+
 /* tab bodies: KPI strips and two-column rows on the page's 12px rhythm */
 [data-testid="stTabs"] [data-baseweb="tab-panel"] [data-testid="stHorizontalBlock"] { gap: 12px !important; }
 [data-testid="stTabs"] [data-baseweb="tab-panel"] [data-testid="stColumn"] > [data-testid="stVerticalBlock"] { gap: 12px !important; }

@@ -1,7 +1,8 @@
 """Section 9 of anumaan.pine - the table - and the tapes' words, with the script's own text and number formats.
 
 Pine formats numbers with DecimalFormat-style patterns: "#" (no decimals), "#.0" (one, no leading zero),
-"0.00", "+0.00;-0.00". `fmt()` follows them for the patterns the script uses.
+"0.00", "+0.00;-0.00". `fmt()` follows them for the patterns the script uses, writing a negative with the family's
+typographic minus (−) where Pine writes a hyphen.
 """
 from __future__ import annotations
 
@@ -19,7 +20,7 @@ def fmt(x: float, pattern: str) -> str:
         return "—"
     if ";" in pattern:
         pos, neg = pattern.split(";")
-        return fmt(x, pos) if x >= 0 else "-" + fmt(-x, neg.lstrip("-"))
+        return fmt(x, pos) if x >= 0 else "−" + fmt(-x, neg.lstrip("-"))
     sign = ""
     if pattern.startswith("+"):
         pattern = pattern[1:]
@@ -30,7 +31,7 @@ def fmt(x: float, pattern: str) -> str:
         s = s[1:]
     if s in ("", "-0"):
         s = "0"
-    return ("-" if x < 0 and float(s) != 0 else sign) + s
+    return ("−" if x < 0 and float(s) != 0 else sign) + s
 
 
 def f_pct(x, pattern):
