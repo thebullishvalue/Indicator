@@ -59,6 +59,13 @@ On a touch screen the toolbar's controls are 40px high instead of 32. Spacing is
 a desktop or tablet, 10px on a phone, 8px between toolbar lines. Tested at 320 (iPhone SE, Galaxy S9+), 390, 768, 834,
 1194, 1280, 1440 and 1920px wide, with no sideways scroll at any of them.
 
+**Price scale.** As on TradingView: **A** and **L** sit in the corner under the price scale. **A** (auto) fits the scale to
+the bars in view; dragging the scale turns it off, and A, a double-click on the scale or **Reset price scale** turns it back
+on. **L** makes the scale logarithmic, so a move of the same percentage is the same height anywhere on the chart; the
+volume profile, levels, cone and stops follow it, and the choice is remembered in the browser. The scale's menu opens on a
+right-click (desktop) or a long press on the price scale (touch): Reset price scale, Auto, Regular / Logarithmic, Reset chart
+view. Alt+L toggles log, Alt+R resets the chart view.
+
 **Keys and memory.** `/` jumps to the symbol search from anywhere, Escape leaves it. Folded watchlist sections are remembered
 in the browser. A tab that fails to draw says so in its place while the others draw; if the script itself fails on a chart,
 the terminal steps back to D, else to the last symbol that ran, and says why.

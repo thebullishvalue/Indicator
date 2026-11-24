@@ -205,7 +205,9 @@ def html(p: dict, tokens: dict, title: dict, height: int = 760) -> str:
     css = (STATIC / "chart.css").read_text(encoding="utf-8")
     data = json.dumps(_clean(dict(p=p, tokens=tokens, title=title, height=height)), allow_nan=False, default=_json_default)
     root = (f":root{{--axis:{tokens['axis']};--ink:{tokens['ink']};--mono:{tokens['monoFont']};--sans:{tokens['font']};"
-            f"--panel:{tokens['panel']};--panel-edge:{tokens['panelEdge']};}} body{{background:{tokens['bg']};}}")
+            f"--panel:{tokens['panel']};--panel-edge:{tokens['panelEdge']};--accent:{tokens['accent']};"
+            f"--accent-fill:{tokens['accentFill']};--hover:{tokens['hover']};--menu-bg:{tokens['menuBg']};}}"
+            f" body{{background:{tokens['bg']};}}")
     fonts = ("<link rel='preconnect' href='https://fonts.googleapis.com'><link rel='stylesheet' "
              "href='https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap'>")
     return (f"<!doctype html><html><head><meta charset='utf-8'>{fonts}<style>{root}{css}</style></head><body>"
@@ -246,10 +248,12 @@ def tokens(dark: bool) -> dict:
                     candle_up="#089981", candle_down="#F23645", candleUp="#089981", candleDown="#F23645",
                     vol_up="rgba(8,153,129,0.45)", vol_down="rgba(242,54,69,0.45)", watermark="rgba(230,234,241,0.045)",
                     panel="rgba(13,18,21,0.92)", panelEdge="rgba(255,255,255,0.10)",
+                    accent="#4C7DF0", accentFill="rgba(76,125,240,0.14)", hover="rgba(255,255,255,0.06)", menuBg="#161A21",
                     font="Inter, -apple-system, 'Segoe UI', system-ui, sans-serif", monoFont="'JetBrains Mono', ui-monospace, Menlo, monospace")
     return dict(bg="#FFFFFF", grid="rgba(15,23,42,0.055)", axis="#5E6979", ink="#141920", border="rgba(15,23,42,0.12)",
                 crosshair="#6B7482", crosshairLabel="#3D4756", separator="#DCE1E8", separatorHover="rgba(43,95,217,0.25)",
                 candle_up="#089981", candle_down="#F23645", candleUp="#089981", candleDown="#F23645",
                 vol_up="rgba(8,153,129,0.40)", vol_down="rgba(242,54,69,0.40)", watermark="rgba(20,25,32,0.05)",
                 panel="rgba(255,255,255,0.94)", panelEdge="rgba(15,23,42,0.12)",
+                accent="#2B5FD9", accentFill="rgba(43,95,217,0.10)", hover="rgba(15,23,42,0.05)", menuBg="#FFFFFF",
                 font="Inter, -apple-system, 'Segoe UI', system-ui, sans-serif", monoFont="'JetBrains Mono', ui-monospace, Menlo, monospace")

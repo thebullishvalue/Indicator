@@ -258,7 +258,97 @@
     chart.timeScale().setVisibleLogicalRange({ from: Math.max(0, n - shown), to: n + right });
   };
   home();
-  window.addEventListener('dblclick', home);
+
+  // ── the price scale: Auto and Log, and its menu, as on TradingView ──────
+  // A (auto) fits the scale to the bars in view; dragging the scale turns it off, A or Reset turns it back on.
+  // L (log) spaces prices by ratio, so a 10% move is the same height anywhere on the chart; it is remembered in this
+  // browser. The menu opens on a right-click anywhere on the chart, or a long press on the price scale on a touch screen.
+  const MODE = LW.PriceScaleMode;
+  const ps0 = () => chart.priceScale('right', 0);
+  const isLog = () => ps0().options().mode === MODE.Logarithmic;
+  const LOG_KEY = 'anumaan.chart.log';
+  try { if (localStorage.getItem(LOG_KEY) === '1') ps0().applyOptions({ mode: MODE.Logarithmic }); } catch (e) { /* storage blocked */ }
+  const corner = mk('scale-corner', wrapEl);
+  corner.innerHTML = '<button type="button" title="Auto: fit the scale to the bars in view">A</button>' +
+                     '<button type="button" title="Logarithmic scale · Alt+L">L</button>';
+  const [bA, bL] = corner.querySelectorAll('button');
+  const sync = () => {
+    bA.classList.toggle('on', !!ps0().options().autoScale);
+    bL.classList.toggle('on', isLog());
+    corner.style.width = ps0().width() + 'px';
+    corner.style.height = chart.timeScale().height() + 'px';
+  };
+  const later = () => requestAnimationFrame(() => requestAnimationFrame(sync));     // after the chart has laid out
+  const setLog = (on) => {
+    ps0().applyOptions({ mode: on ? MODE.Logarithmic : MODE.Normal, autoScale: true });
+    try { localStorage.setItem(LOG_KEY, on ? '1' : '0'); } catch (e) { /* storage blocked */ }
+    later();
+  };
+  const setAuto = (on) => { ps0().applyOptions({ autoScale: on }); later(); };
+  const resetScale = () => { chart.panes().forEach((_, i) => chart.priceScale('right', i).applyOptions({ autoScale: true })); later(); };
+  const resetView = () => { resetScale(); home(); };
+  bA.addEventListener('click', () => setAuto(!ps0().options().autoScale));
+  bL.addEventListener('click', () => setLog(!isLog()));
+  ['pointerup', 'touchend', 'dblclick'].forEach(k => el.addEventListener(k, later));
+  el.addEventListener('wheel', () => setTimeout(sync, 60), { passive: true });
+  new ResizeObserver(later).observe(el);
+  later();
+
+  const onScale = (x) => x >= el.getBoundingClientRect().right - ps0().width();
+  // a double-click on the plot brings back the first view; on the scale the library resets the scale itself
+  window.addEventListener('dblclick', (ev) => { if (!onScale(ev.clientX)) home(); });
+
+  const menu = mk('scale-menu', document.body);
+  menu.hidden = true;
+  const hideMenu = () => { menu.hidden = true; };
+  function openMenu(x, y) {
+    const auto = !!ps0().options().autoScale, log = isLog();
+    const row = (a, mark, label, kb) => `<button type="button" data-a="${a}"><span class="ck">${mark}</span><span class="lb">${label}</span>` +
+      (kb ? `<span class="kb">${kb}</span>` : '') + '</button>';
+    menu.innerHTML = row('reset', '', 'Reset price scale', 'Double-click') + '<div class="sep"></div>' +
+      row('auto', auto ? '✓' : '', 'Auto (fits data to screen)') + '<div class="sep"></div>' +
+      row('regular', log ? '' : '●', 'Regular') + row('log', log ? '●' : '', 'Logarithmic', 'Alt+L') + '<div class="sep"></div>' +
+      row('view', '', 'Reset chart view', 'Alt+R');
+    menu.hidden = false;
+    const w = menu.offsetWidth, h = menu.offsetHeight;
+    menu.style.left = Math.max(6, Math.min(x, window.innerWidth - w - 6)) + 'px';
+    menu.style.top = Math.max(6, Math.min(y, window.innerHeight - h - 6)) + 'px';
+  }
+  menu.addEventListener('click', (ev) => {
+    const b = ev.target.closest('button');
+    if (!b) return;
+    ({ reset: resetScale, auto: () => setAuto(!ps0().options().autoScale), regular: () => setLog(false),
+       log: () => setLog(true), view: resetView })[b.dataset.a]();
+    hideMenu();
+  });
+  document.addEventListener('pointerdown', (ev) => { if (!menu.hidden && !menu.contains(ev.target)) hideMenu(); }, true);
+  window.addEventListener('blur', hideMenu);
+  window.addEventListener('keydown', (ev) => { if (ev.key === 'Escape') hideMenu(); });
+
+  // A long press on the price scale (touch). Touching the scale starts the library's scale drag, which turns Auto off
+  // even when the finger never moves; a press that did not move gives Auto back as it was.
+  let pressT = null, pressAt = null, pressed = false, autoAtPress = true;
+  el.addEventListener('touchstart', (ev) => {
+    pressed = false;
+    if (ev.touches.length !== 1 || !onScale(ev.touches[0].clientX)) return;
+    const t = ev.touches[0];
+    pressAt = [t.clientX, t.clientY];
+    autoAtPress = !!ps0().options().autoScale;
+    pressT = setTimeout(() => {
+      pressT = null; pressed = true;
+      if (autoAtPress) ps0().applyOptions({ autoScale: true });
+      openMenu(pressAt[0], pressAt[1]);
+      if (navigator.vibrate) navigator.vibrate(8);
+    }, 500);
+  }, { passive: true, capture: true });
+  el.addEventListener('touchmove', (ev) => {
+    if (pressT && Math.hypot(ev.touches[0].clientX - pressAt[0], ev.touches[0].clientY - pressAt[1]) > 8) { clearTimeout(pressT); pressT = null; }
+  }, { passive: true, capture: true });
+  el.addEventListener('touchend', (ev) => {
+    if (pressT) { clearTimeout(pressT); pressT = null; }
+    if (pressed) { ev.preventDefault(); if (autoAtPress) setTimeout(() => setAuto(true), 0); }
+  }, { capture: true });
+  el.addEventListener('contextmenu', (ev) => { ev.preventDefault(); if (!pressed) openMenu(ev.clientX, ev.clientY); }, true);
 
   // "/" jumps to the symbol search from anywhere, as in a terminal; Escape leaves it. The handler lives on the page, and
   // each render of the chart replaces the last one's, so there is only ever one.
@@ -270,6 +360,8 @@
         const box = P.document.querySelector('.st-key-toolbar input');
         if (box) { ev.preventDefault(); box.focus(); box.select(); }
       } else if (ev.key === 'Escape' && typing && t.closest && t.closest('.st-key-toolbar')) { t.blur(); }
+      else if (ev.altKey && !typing && ev.code === 'KeyL') { ev.preventDefault(); setLog(!isLog()); }      // TradingView's keys
+      else if (ev.altKey && !typing && ev.code === 'KeyR') { ev.preventDefault(); resetView(); }
     };
     if (P.__anumaanKeys) P.document.removeEventListener('keydown', P.__anumaanKeys);
     P.__anumaanKeys = onKey;

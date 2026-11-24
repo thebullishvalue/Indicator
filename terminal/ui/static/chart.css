@@ -32,3 +32,25 @@ html, body { margin: 0; padding: 0; background: transparent; overflow: hidden; h
   .lrow { flex-wrap: nowrap; }
   .ptable { min-width: 0; max-width: calc(100vw - 100px); font-size: 9.5px; }
 }
+
+/* the price scale's corner (A, L) and its menu */
+.scale-corner { position: absolute; right: 0; bottom: 0; z-index: 6; display: flex; align-items: center; justify-content: center;
+  gap: 3px; box-sizing: border-box; }
+.scale-corner button { font: 600 10.5px/1 var(--mono); color: var(--axis); background: transparent; border: 1px solid transparent;
+  border-radius: 4px; width: 22px; height: 20px; padding: 0; cursor: pointer; }
+.scale-corner button:hover { color: var(--ink); background: var(--hover); }
+.scale-corner button.on { color: var(--accent); background: var(--accent-fill); }
+.scale-menu { position: fixed; z-index: 20; min-width: 236px; padding: 4px; box-sizing: border-box; background: var(--menu-bg);
+  border: 1px solid var(--panel-edge); border-radius: 8px; box-shadow: 0 10px 28px rgba(0, 0, 0, 0.28); }
+.scale-menu[hidden] { display: none; }
+.scale-menu button { display: flex; align-items: center; gap: 8px; width: 100%; padding: 0 10px; height: 32px; background: none; border: 0;
+  border-radius: 5px; color: var(--ink); font: 500 12.5px/1 var(--sans); text-align: left; cursor: pointer; }
+.scale-menu button:hover { background: var(--hover); }
+.scale-menu .ck { width: 12px; color: var(--accent); font-size: 11px; text-align: center; }
+.scale-menu .kb { margin-left: auto; padding-left: 16px; color: var(--axis); font: 400 11px/1 var(--mono); }
+.scale-menu .sep { height: 1px; margin: 4px 2px; background: var(--panel-edge); }
+@media (pointer: coarse) {
+  .scale-corner button { width: 24px; height: 22px; }
+  .scale-menu button { height: 42px; font-size: 14px; }
+  .scale-menu .kb { display: none; }          /* keys and double-clicks mean nothing to a finger */
+}
