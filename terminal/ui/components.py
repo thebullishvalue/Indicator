@@ -30,7 +30,7 @@ def command_bar(*, name: str, description: str, price: float | None, change_pct:
     slug = lambda k: "m-" + "".join(ch for ch in k.lower() if ch.isalnum())
     meta_html = "".join(f'<div class="cb-meta {slug(k)}"><span class="k">{H.escape(k)}</span><span class="v">{H.escape(v)}</span></div>'
                         for k, v in meta if v)
-    brand = '<div class="cb-brand"><span class="mark">ANU<span class="accent-ink">MAAN</span></span><span class="sub">अनुमान · terminal</span></div>'
+    brand = '<div class="cb-brand"><span class="mark">ANU<span class="accent-ink">MAAN</span></span><span class="sub">अनुमान</span></div>'
     # cb-top: on tablets and phones the mark and the market's state get their own line above the instrument (hidden on a
     # desktop, where both sit in the one line).
     st.markdown(

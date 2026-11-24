@@ -12,6 +12,16 @@ a chart or a number looks.
 
 ---
 
+## [Terminal 1.1.1] — 2026-11-24 — *The family's mark and tab*
+### Fixed
+- **The browser tab reads like every member's.** It said "Anumaan · Terminal" beside a "◈" glyph;
+  it now says "ANUMAAN | Chart Terminal", the family's "NAME | Descriptor", beside Tattva's cobalt
+  ring-and-line icon, in the same bytes as every member's.
+- **The mark is the family's.** Under ANU**MAAN** the command bar wrote "अनुमान · terminal"; every
+  member's mark carries its name in Devanagari alone, so it now reads "अनुमान".
+
+---
+
 ## [Terminal 1.1.0] — 2026-11-23 — *Into the family*
 ### Added
 - **The family console.** `terminal/logger_config.py` is the console every member of the Pragyam family

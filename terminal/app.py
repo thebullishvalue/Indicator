@@ -28,7 +28,15 @@ sys.path.insert(0, str(ROOT))
 warnings.filterwarnings("ignore", category=FutureWarning)
 warnings.filterwarnings("ignore", category=RuntimeWarning)
 
-st.set_page_config(page_title="Anumaan · Terminal", page_icon="◈", layout="wide", initial_sidebar_state="collapsed")
+_FAVICON = (  # Tattva's exact tab icon (its cobalt ring-and-line mark), the same bytes as every member's, so the
+              # family's tabs match
+    "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9Ij"
+    "AgMCAyNCAyNCI+PGNpcmNsZSBjeD0iMTIiIGN5PSIxMiIgcj0iMTAiIGZpbGw9Im5vbmUiIHN0cm9rZT0iIzNENkZFOC"
+    "Igc3Ryb2tlLXdpZHRoPSIyIi8+PHBhdGggZD0iTTggMTRsMy01IDIgMyAzLTQiIGZpbGw9Im5vbmUiIHN0cm9rZT0iIz"
+    "NENkZFOCIgc3Ryb2tlLXdpZHRoPSIyIiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bm"
+    "QiLz48L3N2Zz4="
+)
+st.set_page_config(page_title="ANUMAAN | Chart Terminal", page_icon=_FAVICON, layout="wide", initial_sidebar_state="collapsed")
 
 from engine import data as D, anumaan as P, profile as PR, table as TB  # noqa: E402
 from engine.palette import palette  # noqa: E402
