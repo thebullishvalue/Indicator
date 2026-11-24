@@ -208,6 +208,31 @@ html body .stNumberInput [data-testid="stNumberInputContainer"] button { backgro
 html body .stNumberInput [data-testid="stNumberInputContainer"] button:hover:not(:disabled) { background: var(--surface-2) !important; color: var(--ink) !important; }
 html body .stNumberInput [data-testid="stNumberInputContainer"] button:disabled { color: var(--ink-quaternary) !important; opacity: 0.5; }
 
+/* ── The Settings dialog ─────────────────────────────────────────────────────
+   No other member of the family opens a dialog, so nothing painted one: Streamlit drew it from its static dark base,
+   near-black on Paper, with near-white help icons and close button, native-dark unchecked boxes, and the tab strip's
+   overflow fade running from black to the page's white. It is a panel of the app's own, in both appearances. */
+html body [data-testid="stDialog"] [role="dialog"] { background: var(--surface-1) !important; color: var(--ink) !important;
+  border: 1px solid var(--line) !important; border-radius: var(--r-xl) !important; box-shadow: var(--shadow-pop) !important; }
+html body [data-testid="stDialog"] [role="dialog"] > div:first-child { font-family: var(--sans) !important; font-size: var(--fs-xl) !important;
+  font-weight: 600 !important; letter-spacing: -0.01em; color: var(--ink) !important; }
+[data-testid="stDialog"] button[aria-label="Close"] { color: var(--ink-tertiary) !important; background: transparent !important; border-radius: var(--r-md); }
+[data-testid="stDialog"] button[aria-label="Close"]:hover { color: var(--ink) !important; background: var(--surface-2) !important; }
+/* A help icon's ring is drawn with Streamlit's own stroke, near-white at 60% (230, 234, 241), not its colour: on Paper
+   it all but vanished. The stroke follows the colour, and the colour is the family's quiet ink. */
+[data-testid="stTooltipIcon"] svg { stroke: currentColor !important; color: var(--ink-quaternary) !important; }
+[data-testid="stTooltipIcon"]:hover svg { color: var(--ink-secondary) !important; }
+[data-testid="stDialog"] [data-baseweb="tab-list"] { border-bottom: 1px solid var(--line) !important; }
+[data-testid="stDialog"] [data-baseweb="tab-border"] { background: var(--line) !important; }
+[data-testid="stDialog"] .stTabs::after { background-image: linear-gradient(to right, transparent, var(--surface-1)) !important; }
+/* a checkbox's label is the option itself: sentence case in the reading face, as Nivesa's, not a widget's caption */
+[data-testid="stCheckbox"] [data-testid="stWidgetLabel"] p { font-family: var(--sans) !important; font-size: var(--fs-sm) !important;
+  font-weight: 500 !important; text-transform: none !important; letter-spacing: 0 !important; color: var(--ink-secondary) !important; }
+[data-testid="stCheckbox"] label[data-baseweb="checkbox"]:not(:has(input:checked)) > span:first-child {
+  background: var(--bg) !important; border-color: var(--line-strong) !important; }
+[data-testid="stCheckbox"] label[data-baseweb="checkbox"]:has(input:checked) > span:first-child {
+  background-color: var(--accent) !important; border-color: var(--accent) !important; }
+
 /* tab bodies: KPI strips and two-column rows on the page's 12px rhythm */
 [data-testid="stTabs"] [data-baseweb="tab-panel"] [data-testid="stHorizontalBlock"] { gap: 12px !important; }
 [data-testid="stTabs"] [data-baseweb="tab-panel"] [data-testid="stColumn"] > [data-testid="stVerticalBlock"] { gap: 12px !important; }

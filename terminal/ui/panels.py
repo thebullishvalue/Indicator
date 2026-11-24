@@ -107,6 +107,13 @@ def _is_intraday(idx) -> bool:
 
 
 def _chart(fig) -> None:
+    # Every axis names its own colours. Streamlit's Plotly template paints tick labels, axis titles and the zero line
+    # from its static dark base, over the layout's font: on Paper the labels were a faint near-white and the zero line
+    # near-black. The axis tone is the page's (Paper #5E6979, Slate #8B95A6); the zero line is the panel's hairline.
+    tone = _TOK.get("axis", "#8B95A6")
+    for upd in (fig.update_xaxes, fig.update_yaxes):
+        upd(tickfont=dict(color=tone), title_font=dict(color=tone), zerolinecolor=_TOK.get("border", "rgba(15,23,42,0.12)"),
+            showline=False)           # gridlines only, as every member's charts
     st.plotly_chart(fig, width="stretch", config=dict(displayModeBar=False))
 
 
@@ -228,6 +235,7 @@ def plan(e: dict, vp: dict, df: pd.DataFrame, decimals: int, currency: str, intr
 
 # ═══ FORECAST ═══════════════════════════════════════════════════════════════
 def forecast(e: dict, df: pd.DataFrame, tok: dict, decimals: int) -> None:
+    _TOK.clear(); _TOK.update(tok)
     s, L, inp = e["series"], e["last"], e["inputs"]
     t = e["n"] - 1
     H = inp.H
@@ -272,7 +280,7 @@ def forecast(e: dict, df: pd.DataFrame, tok: dict, decimals: int) -> None:
                 fig.add_annotation(x=h, y=u_, text=f"{h}", showarrow=False, yshift=10, font=dict(size=9, color=tok["axis"]))
             fig.update_layout(**dict(_fig(tok, fan_h), hovermode="closest"))
             fig.update_xaxes(gridcolor=tok["grid"], zeroline=True, zerolinecolor=tok["grid"], title=dict(text="bars from now", font=dict(size=9)))
-            fig.update_yaxes(gridcolor=tok["grid"], side="right")
+            fig.update_yaxes(gridcolor=tok["grid"], side="right", tickformat=",")
             _chart(fig)
     with right:
         with K.panel("term", "Term structure", context="each horizon's range, and how often it held on this chart",
@@ -355,6 +363,7 @@ def forecast(e: dict, df: pd.DataFrame, tok: dict, decimals: int) -> None:
 
 # ═══ AUDIT ══════════════════════════════════════════════════════════════════
 def audit(e: dict, df: pd.DataFrame, tok: dict) -> None:
+    _TOK.clear(); _TOK.update(tok)
     s, L, inp = e["series"], e["last"], e["inputs"]
     nF = L["nF"]
     off = lambda v, tgt: "warning" if (not _na(v) and abs(v - tgt) > 0.03) else "neutral"

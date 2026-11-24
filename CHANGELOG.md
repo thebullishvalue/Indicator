@@ -12,7 +12,24 @@ a chart or a number looks.
 
 ---
 
-## [Terminal 1.1.1] — 2026-11-24 — *The family's mark and tab*
+## [Terminal 1.1.2] — 2026-11-24 — *Settings and the axes on Paper*
+### Fixed
+- **Settings is a panel of the app's own.** No other member of the family opens a dialog, so nothing
+  painted one: Streamlit drew it from its static dark base, near-black on Paper, with near-white help
+  icons and close button, native-dark unchecked boxes, and a tab-strip fade running from black to
+  white. It is now the app's surface, hairline and ink in both appearances, its title in the reading
+  face. Each checkbox reads as the option it is, in sentence case (Nivesa's style) rather than as an
+  uppercase caption.
+- **Help icons show on Paper.** Their ring was drawn with Streamlit's own near-white stroke at 60%,
+  whatever their colour; the stroke now follows the colour, the family's quiet ink.
+- **The charts' axes read on Paper.** Tick labels and axis titles were near-white, painted by
+  Streamlit's Plotly template from its dark base over the layout's font, as the legends were. Every
+  axis now names its colours: the page's axis tone, the zero line in the panel's hairline, gridlines
+  only. The fan's price axis writes prices in full (27,000, not 27k), as the tables do.
+
+---
+
+ — *The family's mark and tab*
 ### Fixed
 - **The browser tab reads like every member's.** It said "Anumaan · Terminal" beside a "◈" glyph;
   it now says "ANUMAAN | Chart Terminal", the family's "NAME | Descriptor", beside Tattva's cobalt
