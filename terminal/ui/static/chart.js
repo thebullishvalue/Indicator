@@ -290,6 +290,7 @@
     bL.classList.toggle('on', isLog());
     corner.style.width = ps0().width() + 'px';
     corner.style.height = chart.timeScale().height() + 'px';
+    fitLegend();                     // log labels, or a dragged scale, change the scale's width: the status line follows it
   };
   const later = () => requestAnimationFrame(() => requestAnimationFrame(sync));     // after the chart has laid out
   const setLog = (on) => {

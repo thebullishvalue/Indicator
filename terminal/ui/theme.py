@@ -12,7 +12,7 @@ from pathlib import Path
 import streamlit as st
 
 HERE = Path(__file__).parent
-VERSION = "1.1.4"
+VERSION = "1.2.0"
 PRODUCT = "Anumaan"
 
 LIGHT_TOKENS = """

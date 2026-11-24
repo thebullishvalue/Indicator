@@ -12,6 +12,25 @@ a chart or a number looks.
 
 ---
 
+## [Terminal 1.2.0] — 2026-11-24 — *Log and auto price scale*
+### Added
+- **A and L under the price scale, as on TradingView.** **L** makes the scale logarithmic, so a move of the same
+  percentage is the same height anywhere on the chart; the volume profile, its levels, the cone, the stops and every
+  other drawing follow, since each places itself through the series' own price conversion. The choice is remembered in
+  the browser. **A** (auto) fits the scale to the bars in view; dragging the scale turns it off, and A, a double-click
+  on the scale or *Reset price scale* turns it back on.
+- **The price scale's menu.** A right-click on the chart (desktop) or a long press on the price scale (touch) opens it:
+  *Reset price scale*, *Auto (fits data to screen)*, *Regular* / *Logarithmic*, *Reset chart view*. A tap or a drag on
+  the scale opens nothing, and a press that does not move leaves Auto as it was (the library's scale drag turns it off
+  the moment the scale is touched). Menu rows are 42px on a touch screen.
+- **Alt+L and Alt+R**, TradingView's keys: log on and off, and the chart's first view with its scales reset.
+### Changed
+- The status line's cap (1.1.4) is measured again whenever the scale's mode or zoom changes, not only on a resize or a
+  scroll: log labels and a dragged scale change the scale's width.
+- A double-click on the plot still brings back the first view; on the scale it now resets the scale only.
+
+---
+
 ## [Terminal 1.1.4] — 2026-11-24 — *The status line stops at the axis*
 ### Fixed
 - **The chart's status line no longer runs over the price axis.** On a phone the symbol line (NIFTY_MICROCAP250 · D ·
