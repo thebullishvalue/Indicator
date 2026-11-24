@@ -46,7 +46,7 @@ bottom panel arranged by the questions a trader brings to a chart.
 
 | Tab | Question | Contents |
 |---|---|---|
-| **Plan** | What do I do now? | Exposure, risk, trend, the cone and this chart's record · position size at the script's stops · risk and exposure over time · the level ladder |
+| **Plan** | What do I do now? | A ticket after VAAYDO: side, entry at the next open, a trailing stop on the script's stop, size, range in R · the ticket on 4,000 paths at today's risk · its outcomes beside its record on this chart · risk and exposure over time · the level ladder |
 | **Forecast** | How far can it go? | The four horizons as a fan and a term structure · the stops' record here · what followed the current state |
 | **Audit** | Has it been honest here? | Calibration by horizon, risk regime and trend · every surprise in band widths · the exposure against buy and hold · the ledger |
 | **Events** | What changed, and when? | Every alert condition as it fired, filterable by kind |

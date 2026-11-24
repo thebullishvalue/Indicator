@@ -12,6 +12,27 @@ a chart or a number looks.
 
 ---
 
+## [Terminal 1.3.0] — 2026-11-24 — *The plan as a ticket*
+### Changed
+- **Plan is a ticket, after VAAYDO** (thebullishvalue/Vaaydo, which takes its stops and ranges from this script). The
+  side is yours - the script finds risk forecastable and direction not. Entry at the next open; a **trailing stop** at
+  1 + 1.5 × the script's 20%-touch stop distance, from the best close since entry, checked on the close and filled at
+  the next open (VAAYDO's ledger rule); a size that loses your risk at the first stop, never more than the **exposure
+  dial** allows, in whole **lots** (1 for a share or a coin, the exchange's lot for a futures contract); the 80% range
+  in **R**; and the script's cost, in and out, in R. The ticket's stop joins the level ladder, and the headline cards
+  carry it and how often it is stopped.
+### Added
+- **Paths**: the ticket on 4,000 paths at today's risk, by VAAYDO's filtered historical simulation - this chart's own
+  gaps and returns over the risk forecast that prevailed when each happened, bootstrapped in blocks of five bars,
+  rescaled to today's forecast, with no drift. R by bar after costs (50% and 80% of paths, the median), this chart's
+  own median beside it, and the share stopped by each bar.
+- **Outcomes**: at one, two and three horizons, simulated and **here** - the same rule opened after every past bar of
+  the chart, each with its own stop, overlapping, drift included: stopped, median, mean, 10th and 90th percentile R,
+  and how often +1R and +2R were reached. Two claims side by side, the way the script audits its cone and stops.
+  On NIFTY daily, long: stopped within 30 bars 28% of the time simulated, 33% here.
+
+---
+
 ## [Terminal 1.2.1] — 2026-11-24 — *Log by default*
 ### Changed
 - **The price scale opens logarithmic, with Auto on** - L and A both lit. A long history (BTC from 2014, NIFTY from

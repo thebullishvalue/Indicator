@@ -189,6 +189,22 @@ html body [data-testid="stToastContainer"] { top: auto !important; bottom: 16px 
 /* controls inside a panel sit on its 16px inset */
 .st-key-sizeinputs, .st-key-eventfilter { padding: 12px 16px 8px !important; }
 .st-key-sizeinputs [data-testid="stHorizontalBlock"] { gap: 12px !important; }
+/* the ticket's four inputs: one line (two by two on a phone); the side's segments sit in a track the height of a number
+   input, its label above it like the others' (the family's group draws its label inside its border) */
+.st-key-sizeinputs [data-testid="stHorizontalBlock"] { display: grid !important; grid-template-columns: 1fr 1.3fr 1.1fr 0.9fr; }
+.st-key-sizeinputs [data-testid="stHorizontalBlock"] > [data-testid="stColumn"] { width: auto !important; min-width: 0 !important; flex: none !important; }
+.st-key-sizeinputs [data-testid="stElementContainer"]:has([data-testid="stButtonGroup"]),
+.st-key-sizeinputs [data-testid="stButtonGroup"] [data-baseweb="button-group"] { width: 100% !important; max-width: none !important; }
+.st-key-sizeinputs [data-testid="stButtonGroup"] { background: none !important; border: none !important; padding: 0 !important; width: 100% !important; }
+.st-key-sizeinputs [data-testid="stButtonGroup"] > div { display: flex !important; gap: 2px; height: 40px; box-sizing: border-box; padding: 3px;
+  background: var(--bg); border: 1px solid var(--line); border-radius: var(--r-md); width: 100%; }
+.st-key-sizeinputs [data-testid="stButtonGroup"] button { flex: 1 1 0; min-width: 0; height: 100% !important; min-height: 0 !important; padding: 0 4px !important; }
+/* below 1100px the ticket stands alone, so a long value wraps under its key rather than running past the panel */
+@media (max-width: 1100px) {
+  .st-key-panel-ticket .kv .kv-row { height: auto; min-height: 30px; padding-top: 6px; padding-bottom: 6px; align-items: flex-start; }
+  .st-key-panel-ticket .kv .kv-v { white-space: normal; }
+}
+@media (max-width: 640px) { .st-key-sizeinputs [data-testid="stHorizontalBlock"] { grid-template-columns: 1fr 1fr; row-gap: 10px !important; } }
 .st-key-sizeinputs [data-testid="stWidgetLabel"] p { font-family: var(--mono); font-size: var(--fs-3xs); letter-spacing: 0.14em; text-transform: uppercase; color: var(--ink-quaternary); }
 .st-key-eventfilter [data-testid="stButtonGroup"] { background: transparent; border: none; padding: 0; flex-wrap: wrap; }
 .st-key-eventfilter [data-testid="stButtonGroup"] button { text-transform: none !important; letter-spacing: 0 !important; font-size: var(--fs-xs) !important;

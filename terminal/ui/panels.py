@@ -1,6 +1,7 @@
 """The bottom panel, arranged by the three questions a trader brings to this chart:
 
-    Plan      what do I do now?          exposure, risk, trend, the cone, position size at the stops, every level
+    Plan      what do I do now?          a ticket after VAAYDO (side, next-open entry, trailing stop, size, range in R),
+                                         its paths at today's risk, its record here, risk and exposure, every level
     Forecast  how far can it go?         the four horizons as a fan and a term structure, and what followed this state
     Audit     has it been honest here?   calibration by horizon, regime and trend, surprises in band widths,
                                          the exposure's proof, the ledger
@@ -39,7 +40,7 @@ CATEGORY = {"Landing band": "Misses", "Stretch ladder": "Ladder", "Risk": "Risk"
 # Every panel's height is arithmetic, so side-by-side panels can be made equal: a panel is 2px of border and a 42px header,
 # a table is a 34px header row and 34px rows (terminal.css fixes both), a plotly chart is exactly its height (no padding),
 # rows of panels are 12px apart. Prose lives behind each header's (i), not in the body.
-PANEL, HDR, ROW, GAP, PLOT_PAD, INPUTS = 44, 34, 34, 12, 0, 89
+PANEL, HDR, ROW, GAP, PLOT_PAD, INPUTS, KV = 44, 34, 34, 12, 0, 88, 30
 
 
 def _table_h(rows: int) -> int:
@@ -132,6 +133,9 @@ def tok_axis() -> str:
 
 
 def plan(e: dict, vp: dict, df: pd.DataFrame, decimals: int, currency: str, intraday: bool, tok: dict) -> None:
+    """The plan as a ticket, after VAAYDO: a side, an entry at the next open, a trailing stop built on the script's stop,
+    a size, a range - then the ticket on 4,000 paths at today's risk, beside its record on this chart."""
+    from engine import ticket as TK
     _TOK.clear(); _TOK.update(tok)
     s, L, inp = e["series"], e["last"], e["inputs"]
     t = e["n"] - 1
@@ -143,7 +147,23 @@ def plan(e: dict, vp: dict, df: pd.DataFrame, decimals: int, currency: str, intr
         K.note(f"The risk forecast needs a year of bars before its first reading ({t + 1} of {252 + H}).")
         return
     lo, hi, stopL, stopS = s["lower"][t], s["upper"][t], s["stopL"][t], s["stopS"][t]
-    nF = L["nF"]
+    o_, c_ = df.open.to_numpy(float), df.close.to_numpy(float)
+    cost = 2.0 * inp.cost / 10000.0                       # the script's cost, on the way in and out
+    if st.session_state.get("ticket_side") not in ("Long", "Short"):   # a click on the selected side leaves it, never empties it
+        st.session_state["ticket_side"] = st.session_state.get("_ticket_side_last", "Long")
+    side_name = st.session_state["ticket_side"]
+    st.session_state["_ticket_side_last"] = side_name
+    side = 1 if side_name == "Long" else -1
+    stop_raw = stopL if side > 0 else stopS
+    k = TK.k_factor(c, stop_raw)
+    stop0, dist = c * k, abs(1.0 - k)
+    hz = (H, 2 * H, 3 * H)
+    z = TK.shocks(o_, c_, s["sig"])
+    sim = TK.simulate(z, side, k, sig, hz[-1], cost)
+    rec = TK.replay(o_, c_, s["stopL" if side > 0 else "stopS"], side, hz[-1], cost)
+
+    a = sim.at(H) if sim else None
+    b = rec.at(H) if rec else None
     K.kpi_strip([
         dict(label="Exposure", value=f_pct(s["E"][t], "#"),
              subtext=f"risk {f_pct(s['dialR'][t], '#')} × trend {f_pct(s['dialT'][t], '#')} · steps of {f_pct(inp.step, '#')}",
@@ -154,16 +174,21 @@ def plan(e: dict, vp: dict, df: pd.DataFrame, decimals: int, currency: str, intr
         dict(label="Trend", value=W["trTxt"], tone="success" if s["trRaw"][t] == 2 else "danger" if s["trRaw"][t] == 0 else "neutral",
              subtext=f"ladder {W['ladShort']}",
              tooltip="The move over a quarter, a half and a year of bars, in units of today's risk. The ladder: the four horizons' surprises against their bands."),
-        dict(label=f"Cone {fmt(inp.cover, '#')}% · {H} bars", value=f"{_px(lo, decimals)} – {_px(hi, decimals)}",
-             subtext=f"{f_pct(math.log(hi / lo), '#.0')} wide · {_signed_pct(lo / c - 1, 1)} / {_signed_pct(hi / c - 1, 1)}"),
-        dict(label="Held here", value=f_pct(L["cov"], "#.0"),
-             tone="warning" if (not _na(L["cov"]) and abs(L["cov"] - inp.cover / 100) > 0.03) else "neutral",
-             subtext=f"of {nF:,} forecasts · stops {f_pct(L['nMS'] / nF if nF else float('nan'), '#')} / {f_pct(L['nMR'] / nF if nF else float('nan'), '#')}",
-             tooltip=f"How often this chart's cone held (target {fmt(inp.cover, '#')}%) and its long / short stops were touched (target {fmt(inp.stop, '#')}%)."),
+        dict(label=f"{side_name} stop", value=_px(stop0, decimals), tone="danger" if side > 0 else "success",
+             subtext=f"{f_pct(dist, '#.0')} {'below' if side > 0 else 'above'} · trails the best close",
+             tooltip=(f"VAAYDO's trailing stop: {TK.STOP_MULT}× the script's {fmt(inp.stop, '#')}%-touch stop distance, from the best close "
+                      "since entry. Checked on each close, filled at the next open. Set again from the fill.")),
+        dict(label=f"Stopped in {H} bars", value=f_pct(a["stopped"], "#") if a else "—",
+             tone="warning" if (a and b and abs(a["stopped"] - b["stopped"]) > 0.10) else "neutral",
+             subtext=(f"here {f_pct(b['stopped'], '#')} · in {hz[-1]}: {f_pct(sim.at(hz[-1])['stopped'], '#')} / "
+                      f"{f_pct(rec.at(hz[-1])['stopped'], '#')}") if (a and b) else "",
+             tooltip=("Simulated: today's ticket on 4,000 paths at today's risk. Here: the same rule opened after every past bar of "
+                      "this chart, each with its own stop. Amber when they differ by more than 10 points.")),
     ], key="kpi-plan", max_cols=5)
 
     st_ = vp["state"]
     lv = [("Short stop", stopS), ("Cone · upper", hi), ("Cone · lower", lo), ("Long stop", stopL),
+          (f"Ticket stop · {side_name.lower()}", stop0),
           ("Landing band · upper", s["upper"][t - H] if t >= H else float("nan")),
           ("Landing band · lower", s["lower"][t - H] if t >= H else float("nan")), ("Midline", s["midL"][t]),
           ("POC", st_["poc"]), ("VAH", st_["vah"]), ("VAL", st_["val"]), ("VWAP", st_["vwap"]),
@@ -171,40 +196,108 @@ def plan(e: dict, vp: dict, df: pd.DataFrame, decimals: int, currency: str, intr
     if intraday:
         lv += [("IBH", st_["ibh"]), ("IBL", st_["ibl"])]
     lv += [("Naked POC", y) for y, _ in st_.get("naked", []) if not _na(y) and y != st_["prev_poc"]]
-    lv = [(k, v) for k, v in lv if not _na(v)]
+    lv = [(k_, v) for k_, v in lv if not _na(v)]
     lv.append(("Close", c))
     lv.sort(key=lambda kv: -kv[1])
 
-    # the two columns meet: the ladder sets the height, the risk chart takes what the sizing table leaves
-    ladder_tbl = _table_h(len(lv))
-    size_h = PANEL + INPUTS + _table_h(3)
-    chart_h = max(220, PANEL + ladder_tbl - size_h - GAP - PANEL - PLOT_PAD)
-    ladder_tbl = max(ladder_tbl, size_h + GAP + PANEL + chart_h + PLOT_PAD - PANEL)
-
+    # ── row 1: the ticket, and its paths ──
+    TICKET_ROWS = 8
+    ticket_h = PANEL + INPUTS + TICKET_ROWS * KV
     left, right = st.columns(2, gap="small")
     with left:
-        with K.panel("size", "Position size", context="sized to lose a set share of equity at the script's stops",
-                     help=f"Each stop is touched within {H} bars {fmt(inp.stop, '#')}% of the time. Above 100% of equity a size needs "
-                          "leverage. The exposure row is the position the dial says to hold, before any stop."):
+        with K.panel("ticket", "Ticket", context="after VAAYDO · entry at the next open, a trailing stop",
+                     help=("VAAYDO's order, on this chart: the side is yours (the script finds risk forecastable and direction not); "
+                           f"entry at the next open; the stop trails the best close at {TK.STOP_MULT}× the script's stop distance, "
+                           "checked on the close and filled at the next open. Size: the units that lose your risk at the first stop, "
+                           "never more than the exposure dial allows, in whole lots. R is that first risk.")):
             with st.container(key="sizeinputs"):
-                a_, b_ = st.columns(2, gap="small")
-                equity = a_.number_input(f"Equity · {currency}" if currency else "Equity", min_value=0.0, value=1_000_000.0,
+                a_, b_, c2, d_ = st.columns(4, gap="small")
+                a_.segmented_control("Side", ["Long", "Short"], key="ticket_side")
+                equity = b_.number_input(f"Equity · {currency}" if currency else "Equity", min_value=0.0, value=1_000_000.0,
                                          step=10_000.0, format="%.0f", key="equity")
-                risk = b_.number_input("Risk per trade · %", min_value=0.05, max_value=10.0, value=float(inp.risk), step=0.05,
+                risk = c2.number_input("Risk per trade · %", min_value=0.05, max_value=10.0, value=float(inp.risk), step=0.05,
                                        format="%.2f", key="risk_pct")
-            rows = []
-            for side, stop in (("Long", stopL), ("Short", stopS)):
-                dist = abs(c - stop)
-                units = equity * risk / 100.0 / dist if dist > 0 else float("nan")
-                value = units * c
-                rows.append({"Side": side, "Entry": _px(c, decimals), "Stop": _px(stop, decimals), "Distance": f_pct(dist / c, "#.00"),
-                             "Units": _units(units), "Value": f"{value:,.0f}",
-                             "Of equity": f_pct(value / equity if equity else float("nan"), "#"), "Loss at stop": f"{equity * risk / 100.0:,.0f}"})
+                lot = d_.number_input("Lot · units", min_value=1, value=1, step=1, key="lot",
+                                      help="Units per contract: 1 for a share or a coin, the exchange's lot for a futures contract.")
+            risk_amt = equity * risk / 100.0
+            per_unit = c * dist
+            u_risk = risk_amt / per_unit if per_unit > 0 else float("nan")
             E = s["E"][t]
-            ev = (E if not _na(E) else 0.0) * equity
-            rows.append({"Side": "Exposure", "Entry": _px(c, decimals), "Stop": "—", "Distance": "—", "Units": _units(ev / c),
-                         "Value": f"{ev:,.0f}", "Of equity": f_pct(E, "#"), "Loss at stop": "—"})
-            K.table(pd.DataFrame(rows), align_left=("Side",))
+            u_dial = (0.0 if _na(E) else E) * equity / c
+            u_raw = min(u_risk, u_dial) if not _na(u_risk) else u_dial
+            lots = int(math.floor(u_raw / lot)) if u_raw == u_raw else 0
+            u = lots * lot
+            capped = "the dial" if u_dial < u_risk else "risk"
+            r_lo, r_hi = side * (lo / c - 1) / dist, side * (hi / c - 1) / dist
+            K.kv_list([
+                ("Order", f"{'Buy' if side > 0 else 'Sell'} at the next open · ref. {_px(c, decimals)}"),
+                ("Stop", f"{_px(stop0, decimals)} · {f_pct(dist, '#.00')} · trails, k {k:.3f}"),
+                ("Risk per unit (1R)", _px(per_unit, decimals)),
+                (f"At {fmt(risk, '0.00')}% risk", f"{_units(u_risk)} units · {f_pct(u_risk * c / equity if equity else float('nan'), '#')} of equity"),
+                ("Exposure dial allows", f"{_units(u_dial)} units · {f_pct(E, '#')} of equity"),
+                ("To trade", (f"{lots:,} lot{'s' if lots != 1 else ''} · {u * c:,.0f} · by {capped}" if lots else
+                              "none · one lot is more than the plan allows")),
+                (f"Range · {H} bars", f"{_sg(min(r_lo, r_hi))}R / {_sg(max(r_lo, r_hi))}R · {_px(lo, decimals)} – {_px(hi, decimals)}"),
+                ("Cost · in and out", f"{fmt(2 * inp.cost, '0')} bp · {_sg(-cost / dist)}R"),
+            ])
+    with right:
+        with K.panel("paths", "Paths", context=f"the ticket on {TK.N_PATHS:,} paths at today's risk · R by bar, after costs",
+                     help=("VAAYDO's filtered historical simulation: this chart's own gaps and returns over the risk that prevailed "
+                           "when they happened, bootstrapped in blocks of 5 bars and rescaled to today's risk, with no drift. The bands "
+                           "hold 50% and 80% of paths; a stopped path keeps its exit. The dashed line is this chart's own median, "
+                           "from every past bar; the bars below, the share stopped by each bar.")):
+            if sim is None:
+                K.note("Too few bars to simulate.")
+            else:
+                q = sim.band()
+                x = np.arange(1, hz[-1] + 1)
+                fig = make_subplots(rows=2, cols=1, shared_xaxes=True, row_heights=[0.74, 0.26], vertical_spacing=0.06)
+                acc = "rgba(76,125,240,{a})"
+                fig.add_trace(go.Scatter(x=x, y=q[4], line=dict(width=0), hoverinfo="skip", showlegend=False), 1, 1)
+                fig.add_trace(go.Scatter(x=x, y=q[0], line=dict(width=0), fill="tonexty", fillcolor=acc.format(a=0.10),
+                                         name="80% of paths", hovertemplate="%{y:.2f}R"), 1, 1)
+                fig.add_trace(go.Scatter(x=x, y=q[3], line=dict(width=0), hoverinfo="skip", showlegend=False), 1, 1)
+                fig.add_trace(go.Scatter(x=x, y=q[1], line=dict(width=0), fill="tonexty", fillcolor=acc.format(a=0.18),
+                                         name="50%", hovertemplate="%{y:.2f}R"), 1, 1)
+                fig.add_trace(go.Scatter(x=x, y=q[2], line=dict(color=acc.format(a=1), width=1.6), name="Median", hovertemplate="%{y:.2f}R"), 1, 1)
+                if rec is not None:
+                    fig.add_trace(go.Scatter(x=x, y=np.median(rec.R, axis=0), line=dict(color=tok_axis(), width=1, dash="dash"),
+                                             name="Median here", hovertemplate="%{y:.2f}R"), 1, 1)
+                fig.add_hline(y=0, line=dict(color=tok_axis(), width=1, dash="dot"), row=1, col=1)
+                fig.add_hline(y=-1, line=dict(color="rgba(242,54,69,0.55)", width=1, dash="dot"), row=1, col=1)
+                fig.add_trace(go.Bar(x=x, y=100 * sim.stopped_by_bar(), marker_color="rgba(242,54,69,0.45)", name="Stopped",
+                                     hovertemplate="%{y:.0f}%"), 2, 1)
+                fig.update_layout(**_fig(_TOK, ticket_h - PANEL - PLOT_PAD), bargap=0.25)
+                fig.update_xaxes(gridcolor=_TOK["grid"], zeroline=False, title=None)
+                fig.update_xaxes(title=dict(text="bars after the fill", font=dict(size=10)), row=2, col=1)
+                fig.update_yaxes(gridcolor=_TOK["grid"], zeroline=False, side="right", ticksuffix="R", row=1, col=1)
+                fig.update_yaxes(gridcolor=_TOK["grid"], zeroline=False, side="right", ticksuffix="%", rangemode="tozero", row=2, col=1)
+                _chart(fig)
+
+    # ── row 2: outcomes by horizon and the risk chart; the level ladder ──
+    out_rows = []
+    for h in hz:
+        for name, oc in (("Simulated", sim), ("Here", rec)):
+            if oc is None:
+                continue
+            m = oc.at(h)
+            out_rows.append({"Ticket": f"{name} · {h} bars", "Stopped": f_pct(m["stopped"], "#"), "Median": f"{_sg(m['median'])}R",
+                             "Mean": f"{_sg(m['mean'])}R", "10th": f"{_sg(m['p10'])}R", "90th": f"{_sg(m['p90'])}R",
+                             "≥ +1R": f_pct(m["ge1"], "#"), "≥ +2R": f_pct(m["ge2"], "#")})
+    ladder_tbl = _table_h(len(lv))
+    out_h = PANEL + _table_h(len(out_rows))
+    chart_h = max(220, PANEL + ladder_tbl - out_h - GAP - PANEL - PLOT_PAD)
+    ladder_tbl = max(ladder_tbl, out_h + GAP + PANEL + chart_h + PLOT_PAD - PANEL)
+    left, right = st.columns(2, gap="small")
+    with left:
+        with K.panel("outcomes", "Outcomes", context=f"R at {hz[0]}, {hz[1]} and {hz[2]} bars · simulated, and here",
+                     help=("Simulated: today's ticket on the paths. Here: the same rule opened after every past bar of this chart "
+                           f"({rec.n:,} entries, overlapping), each with its own stop - this chart's drift included. " if rec else "")
+                     + "A stopped ticket counts at its exit. Median near zero is the design: no direction is assumed, so what the "
+                       "rule offers is the shape - losses held near one R, gains left open."):
+            K.table(pd.DataFrame(out_rows), align_left=("Ticket",),
+                    tone={k_: (lambda x: None if x in ("—",) else "var(--long)" if x.startswith("+") else
+                               "var(--short)" if x.startswith("−") else None) for k_ in ("Median", "Mean", "10th", "90th")})
         n = min(250, t + 1)
         with K.panel("riskexp", "Risk and exposure", context=f"the last {n} bars · risk's rank in its last 500, and the exposure it set",
                      help="Exposure is the instrument's usual risk over its risk now, cut in a downtrend: it falls as risk climbs its range. "
@@ -225,10 +318,10 @@ def plan(e: dict, vp: dict, df: pd.DataFrame, decimals: int, currency: str, intr
     with right:
         with K.panel("levels", "Level ladder", context=f"every level the script draws, by price · distance in % and in {H}-bar σ",
                      help="Sorted by price around the close (marked). σ is the distance over one horizon's risk: a level at ±1σ is one "
-                          "standard move away."):
-            rows = [{"Level": k, "Price": _px(v, decimals), "From close": "—" if k == "Close" else _signed_pct(v / c - 1),
-                     "σ": "—" if k == "Close" else fmt(math.log(v / c) / sH, "+0.00;-0.00")} for k, v in lv]
-            close_row = next(i for i, (k, _) in enumerate(lv) if k == "Close")
+                          "standard move away. The ticket's stop is the trailing stop's level today."):
+            rows = [{"Level": k_, "Price": _px(v, decimals), "From close": "—" if k_ == "Close" else _signed_pct(v / c - 1),
+                     "σ": "—" if k_ == "Close" else _sg(math.log(v / c) / sH)} for k_, v in lv]
+            close_row = next(i for i, (k_, _) in enumerate(lv) if k_ == "Close")
             K.table(pd.DataFrame(rows), mark=close_row, align_left=("Level",), height=ladder_tbl,
                     tone={"From close": lambda x: None if x == "—" else "var(--long)" if x.startswith("+") else "var(--short)"})
 
