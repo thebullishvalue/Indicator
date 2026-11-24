@@ -12,6 +12,14 @@ a chart or a number looks.
 
 ---
 
+## [Terminal 1.1.3] — 2026-11-24 — *The help icon, shared*
+### Changed
+- **The help-icon rule moves into the family's fidelity block.** 1.1.2 fixed the (?) icons in Settings in the
+  terminal's own stylesheet; the same leak was in Vyāpti's, Pragyam's, Arthagati's and Nivesa's hints, so the
+  rule now lives in the block every member shares, and the terminal's copy goes. Nothing on screen changes.
+
+---
+
 ## [Terminal 1.1.2] — 2026-11-24 — *Settings and the axes on Paper*
 ### Fixed
 - **Settings is a panel of the app's own.** No other member of the family opens a dialog, so nothing

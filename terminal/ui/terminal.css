@@ -218,10 +218,7 @@ html body [data-testid="stDialog"] [role="dialog"] > div:first-child { font-fami
   font-weight: 600 !important; letter-spacing: -0.01em; color: var(--ink) !important; }
 [data-testid="stDialog"] button[aria-label="Close"] { color: var(--ink-tertiary) !important; background: transparent !important; border-radius: var(--r-md); }
 [data-testid="stDialog"] button[aria-label="Close"]:hover { color: var(--ink) !important; background: var(--surface-2) !important; }
-/* A help icon's ring is drawn with Streamlit's own stroke, near-white at 60% (230, 234, 241), not its colour: on Paper
-   it all but vanished. The stroke follows the colour, and the colour is the family's quiet ink. */
-[data-testid="stTooltipIcon"] svg { stroke: currentColor !important; color: var(--ink-quaternary) !important; }
-[data-testid="stTooltipIcon"]:hover svg { color: var(--ink-secondary) !important; }
+/* help icons: the family block in theme.css ("A help icon follows its colour") */
 [data-testid="stDialog"] [data-baseweb="tab-list"] { border-bottom: 1px solid var(--line) !important; }
 [data-testid="stDialog"] [data-baseweb="tab-border"] { background: var(--line) !important; }
 [data-testid="stDialog"] .stTabs::after { background-image: linear-gradient(to right, transparent, var(--surface-1)) !important; }
