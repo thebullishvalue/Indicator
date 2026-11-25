@@ -12,6 +12,15 @@ a chart or a number looks.
 
 ---
 
+## [Terminal 1.3.1] — 2026-11-25 — *Text keeps its size on an iPhone*
+### Fixed
+- **Text keeps its size on an iPhone.** iOS Safari enlarges the text of a block it judges too wide to read
+  ("text autosizing"): a table that scrolls sideways with long lines in it was drawn with its prose
+  columns, and their headers, at twice the size of the rest (found on Nivesa's Audit Trail). The page and
+  every table's own iframe now keep the type scale as written (the shared fidelity block, the chart's and the watchlist's own documents, and the table iframe).
+
+---
+
 ## [Terminal 1.3.0] — 2026-11-24 — *The plan as a ticket*
 ### Changed
 - **Plan is a ticket, after VAAYDO** (thebullishvalue/Vaaydo, which takes its stops and ranges from this script). The

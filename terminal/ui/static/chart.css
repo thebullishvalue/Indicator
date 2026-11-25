@@ -1,4 +1,5 @@
-html, body { margin: 0; padding: 0; background: transparent; overflow: hidden; height: 100%; }
+html, body { margin: 0; padding: 0; background: transparent; overflow: hidden; height: 100%;
+  -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }   /* iOS keeps the type scale as written */
 #wrap { position: relative; width: 100%; }
 #chart { position: relative; width: 100%; }
 .legend { position: absolute; left: 12px; top: 8px; z-index: 5; pointer-events: none;
